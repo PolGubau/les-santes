@@ -1,8 +1,10 @@
 import type { Event } from '@/entities/event';
 import { MOCK_EVENTS } from '@/entities/event';
 import { EventDetailSheet, EventMap, MapEventsDrawer, MapHeader, useMapEvents } from '@/features/map';
+import type { EventMapHandle } from '@/features/map/components/EventMap';
+import { useMapFocusStore } from '@/features/map/store/useMapFocusStore';
 import { Screen } from '@/shared/ui';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 export default function MapaScreen() {
   const { mapEvents, drawerEvents, selectedDay, availableDays, todayKey, setDay } =
@@ -10,6 +12,16 @@ export default function MapaScreen() {
 
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [showDrawer, setShowDrawer] = useState(false);
+
+  const { focusedEventId, clearFocus } = useMapFocusStore();
+  const mapRef = useRef<EventMapHandle | null>(null);
+
+  useEffect(() => {
+    if (focusedEventId && mapRef.current) {
+      mapRef.current.focusOnEvent(focusedEventId);
+      clearFocus();
+    }
+  }, [focusedEventId, clearFocus]);
 
   const liveCount = useMemo(
     () => mapEvents.filter((e) => e.kind === 'mobile' && e.state === 'now').length,
@@ -23,7 +35,7 @@ export default function MapaScreen() {
 
   return (
     <Screen safe={false}>
-      <EventMap events={mapEvents} onEventPress={handleEventPress} />
+      <EventMap ref={mapRef} events={mapEvents} onEventPress={handleEventPress} />
 
       <MapHeader
         selectedDay={selectedDay}

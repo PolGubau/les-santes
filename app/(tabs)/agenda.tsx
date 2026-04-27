@@ -5,6 +5,7 @@ import { Colors } from "@/shared/constants";
 import { Screen } from "@/shared/ui";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import type React from "react";
+import { useCallback, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 type FilterIconDef =
@@ -75,6 +76,7 @@ function FilterIcon({ icon, color }: { icon: FilterIconDef; color: string }) {
 }
 
 export default function AgendaScreen() {
+  const [refreshing, setRefreshing] = useState(false);
   const {
     filtered,
     filters,
@@ -84,6 +86,12 @@ export default function AgendaScreen() {
     todayKey,
     setDay,
   } = useAgenda(MOCK_EVENTS);
+
+  const handleRefresh = useCallback(() => {
+    setRefreshing(true);
+    // Simulate a data reload — replace with real fetch when API is ready
+    setTimeout(() => setRefreshing(false), 800);
+  }, []);
 
   return (
     <Screen>
@@ -129,7 +137,7 @@ export default function AgendaScreen() {
         </ScrollView>
       </View>
 
-      <AgendaList events={filtered} />
+      <AgendaList events={filtered} onRefresh={handleRefresh} refreshing={refreshing} />
     </Screen>
   );
 }

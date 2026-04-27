@@ -1,5 +1,6 @@
 import { Colors } from "@/shared/constants";
 import { formatDayChip } from "@/shared/lib";
+import * as Haptics from "expo-haptics";
 import React, { useEffect, useRef } from "react";
 import {
 	Animated,
@@ -7,7 +8,6 @@ import {
 	ScrollView,
 	StyleSheet,
 	Text,
-	View,
 } from "react-native";
 
 interface Props {
@@ -38,9 +38,10 @@ function DayChip({ dateKey, selected, isToday, onSelect }: ChipProps) {
 	const scale = useRef(new Animated.Value(1)).current;
 	const { weekday, day } = parseDayLabel(dateKey);
 
-	// Bounce pop when this chip becomes selected
+	// Bounce pop + haptic when this chip becomes selected
 	useEffect(() => {
 		if (selected) {
+			Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 			Animated.sequence([
 				Animated.timing(scale, { toValue: 0.88, duration: 80, useNativeDriver: true }),
 				Animated.spring(scale, { toValue: 1, tension: 220, friction: 7, useNativeDriver: true }),
@@ -80,9 +81,6 @@ function DayChip({ dateKey, selected, isToday, onSelect }: ChipProps) {
 				<Text style={[styles.dayNumber, selected && styles.textSelected, isToday && !selected && styles.textToday]}>
 					{day}
 				</Text>
-				{isToday && (
-					<View style={[styles.todayDot, selected && styles.todayDotSelected]} />
-				)}
 			</Animated.View>
 		</Pressable>
 	);
@@ -159,14 +157,5 @@ const styles = StyleSheet.create({
 	textToday: {
 		color: Colors.primary,
 	},
-	todayDot: {
-		width: 4,
-		height: 4,
-		borderRadius: 2,
-		backgroundColor: Colors.primary,
-		marginTop: 2,
-	},
-	todayDotSelected: {
-		backgroundColor: "#fff",
-	},
+
 });

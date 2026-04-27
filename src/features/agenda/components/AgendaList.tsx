@@ -3,19 +3,21 @@ import { STATE_COLOR } from '@/entities/event';
 import { Colors } from '@/shared/constants';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef } from 'react';
-import { Animated, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Animated, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { buildSections } from '../lib/sections';
 import { EventCard } from './EventCard';
 
 interface Props {
   events: Event[];
   onEventPress?: (event: Event) => void;
+  onRefresh?: () => void;
+  refreshing?: boolean;
 }
 
 // Pre-allocate 3 animated values (one per possible section: now/upcoming/finished)
 const SECTION_ANIM_COUNT = 3;
 
-export function AgendaList({ events, onEventPress }: Props) {
+export function AgendaList({ events, onEventPress, onRefresh, refreshing = false }: Props) {
   const sections = buildSections(events);
 
   const animValues = useRef(
@@ -48,6 +50,15 @@ export function AgendaList({ events, onEventPress }: Props) {
       style={styles.list}
       contentContainerStyle={styles.listContent}
       showsVerticalScrollIndicator={false}
+      refreshControl={
+        onRefresh ? (
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#888"
+          />
+        ) : undefined
+      }
     >
       {sections.map((section, i) => {
         const anim = animValues[i];

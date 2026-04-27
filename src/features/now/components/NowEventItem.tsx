@@ -61,7 +61,9 @@ export function NowEventItem({ event, onPress }: Props) {
             color={Colors.textDim}
           />
           <Text style={styles.meta}>
-            {event.kind === 'mobile' ? 'Itinerant' : 'Lloc fix'} · fins {formatTime(event.end)}
+            {event.kind === 'mobile'
+              ? 'Itinerant'
+              : (event.locationName ?? 'Lloc fix')} · fins {formatTime(event.end)}
           </Text>
         </View>
       </View>

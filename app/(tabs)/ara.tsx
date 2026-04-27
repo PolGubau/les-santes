@@ -1,12 +1,21 @@
+import type { Event } from '@/entities/event';
 import { MOCK_EVENTS } from '@/entities/event';
+import { useMapFocusStore } from '@/features/map/store/useMapFocusStore';
 import { LiveClock, NowList, useNowEvents } from '@/features/now';
 import { Colors } from '@/shared/constants';
 import { Screen } from '@/shared/ui';
-import React from 'react';
+import { router } from 'expo-router';
+import React, { useCallback } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 export default function AraScreen() {
   const { now, upcoming } = useNowEvents(MOCK_EVENTS);
+  const focusEvent = useMapFocusStore((s) => s.focusEvent);
+
+  const handleEventPress = useCallback((event: Event) => {
+    focusEvent(event.id);
+    router.navigate('/(tabs)/mapa');
+  }, [focusEvent]);
 
   return (
     <Screen>
@@ -27,7 +36,7 @@ export default function AraScreen() {
         </View>
       )}
 
-      <NowList now={now} upcoming={upcoming} />
+      <NowList now={now} upcoming={upcoming} onEventPress={handleEventPress} />
     </Screen>
   );
 }

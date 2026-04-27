@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 // Expo inlines EXPO_PUBLIC_* variables at build time via Metro bundler
 declare const process: { env: Record<string, string | undefined> };
 
-// Mid-Les Santes 2025 - used when no EXPO_PUBLIC_DEV_DATE is set in dev
-const DEV_DEFAULT = "2025-07-27T20:30:00";
+// Mid-Les Santes 2026 - used when no EXPO_PUBLIC_DEV_DATE is set in dev
+const DEV_DEFAULT = "2026-07-27T19:30:00";
 
 function getInitialNow(): Date {
 	if (__DEV__) {

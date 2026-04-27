@@ -47,9 +47,9 @@ export interface Event {
 	kind: EventKind;
 	// static events
 	location?: StaticLocation;
+	locationName?: string; // human-readable venue name
 	// mobile events
 	route?: RoutePoint[];
-	durationMinutes?: number;
 }
 
 /** Event without a computed state - used in mock data and data layer */

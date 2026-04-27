@@ -2,6 +2,7 @@ import type { Event } from '@/entities/event';
 import { Colors } from '@/shared/constants';
 import { formatTime } from '@/shared/lib';
 import { EventIcon } from '@/shared/ui';
+import * as Haptics from 'expo-haptics';
 import React, { useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -16,6 +17,7 @@ export function EventCard({ event, onPress }: Props) {
   const stateLabel = event.state === 'now' ? 'En curs' : event.state === 'upcoming' ? 'Pròximament' : 'Acabat';
 
   const handlePressIn = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     Animated.timing(scale, { toValue: 0.97, duration: 80, useNativeDriver: true }).start();
   };
 

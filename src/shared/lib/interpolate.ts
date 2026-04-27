@@ -7,13 +7,13 @@ import type { RoutePoint } from "@/entities/event";
 export function interpolatePosition(
 	route: RoutePoint[],
 	startISO: string,
-	durationMinutes: number,
+	endISO: string,
 ): RoutePoint | null {
 	if (route.length < 2) return route[0] ?? null;
 
 	const now = Date.now();
 	const start = new Date(startISO).getTime();
-	const end = start + durationMinutes * 60 * 1000;
+	const end = new Date(endISO).getTime();
 
 	if (now < start || now > end) return null;
 

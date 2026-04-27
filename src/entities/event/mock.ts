@@ -1,12 +1,12 @@
 import type { RawEvent } from "./types";
 
-// ISO helper – July 2025 dates, local time (month index 6 = July)
+// ISO helper – July 2026 dates, local time (month index 6 = July)
 const d = (day: number, hour: number, min = 0): string =>
-	new Date(2025, 6, day, hour, min, 0).toISOString();
+	new Date(2026, 6, day, hour, min, 0).toISOString();
 
 // Next calendar day (for events that end after midnight)
 const dn = (day: number, hour: number, min = 0): string =>
-	new Date(2025, 6, day + 1, hour, min, 0).toISOString();
+	new Date(2026, 6, day + 1, hour, min, 0).toISOString();
 
 const LOC = {
 	ajuntament: { lat: 41.539, lng: 2.4448 },
@@ -26,6 +26,24 @@ const LOC = {
 	escorxador: { lat: 41.536, lng: 2.44 },
 };
 
+const NAME = {
+	ajuntament: "Ajuntament de Mataró",
+	basilica: "Basílica de Santa Maria",
+	plSantaAnna: "Pl. Santa Anna",
+	parcCentral: "Nou Parc Central",
+	espaiLlar: "Llar Cabanellas",
+	callao: "Pl. de la Llibertat",
+	maritim: "Passeig Marítim",
+	port: "Port de Mataró",
+	teatre: "Teatre Municipal",
+	biblioteca: "Biblioteca Pompeu Fabra",
+	residencia: "Residència",
+	esmandies: "Les Esmanadies",
+	plCuba: "Pl. de Cuba",
+	plSantaMaria: "Pl. de Santa Maria",
+	escorxador: "Escorxador",
+};
+
 export const MOCK_EVENTS: RawEvent[] = [
 	// ─── JULY 18 (DIVENDRES) ────────────────────────────────────────────────
 	{
@@ -40,6 +58,7 @@ export const MOCK_EVENTS: RawEvent[] = [
 		end: d(18, 21),
 		kind: "static",
 		location: { lat: 41.5372, lng: 2.4431 },
+		locationName: "La Presó",
 	},
 	{
 		id: "e02",
@@ -52,6 +71,7 @@ export const MOCK_EVENTS: RawEvent[] = [
 		end: d(18, 22),
 		kind: "static",
 		location: LOC.teatre,
+		locationName: NAME.teatre,
 	},
 	{
 		id: "e03",
@@ -65,6 +85,7 @@ export const MOCK_EVENTS: RawEvent[] = [
 		end: d(18, 22),
 		kind: "static",
 		location: LOC.plSantaAnna,
+		locationName: NAME.plSantaAnna,
 	},
 	{
 		id: "e04",
@@ -78,6 +99,7 @@ export const MOCK_EVENTS: RawEvent[] = [
 		end: dn(18, 1),
 		kind: "static",
 		location: LOC.plSantaAnna,
+		locationName: NAME.plSantaAnna,
 	},
 	// ─── JULY 19 (DISSABTE) ─────────────────────────────────────────────────
 	{
@@ -112,6 +134,7 @@ export const MOCK_EVENTS: RawEvent[] = [
 		end: d(19, 21),
 		kind: "static",
 		location: LOC.plSantaAnna,
+		locationName: NAME.plSantaAnna,
 	},
 	// ─── JULY 20 (DIUMENGE) ──────────────────────────────────────────────────
 	{
@@ -168,6 +191,7 @@ export const MOCK_EVENTS: RawEvent[] = [
 		end: d(24, 21, 30),
 		kind: "static",
 		location: LOC.callao,
+		locationName: NAME.callao,
 	},
 	{
 		id: "e10",
@@ -181,6 +205,7 @@ export const MOCK_EVENTS: RawEvent[] = [
 		end: dn(24, 0),
 		kind: "static",
 		location: LOC.callao,
+		locationName: NAME.callao,
 	},
 	// ─── JULY 25 (DIVENDRES) ─────────────────────────────────────────────────
 	{
@@ -213,6 +238,7 @@ export const MOCK_EVENTS: RawEvent[] = [
 		end: d(25, 20, 30),
 		kind: "static",
 		location: LOC.ajuntament,
+		locationName: NAME.ajuntament,
 	},
 	{
 		id: "e13",
@@ -267,6 +293,7 @@ export const MOCK_EVENTS: RawEvent[] = [
 		end: d(26, 22),
 		kind: "static",
 		location: LOC.parcCentral,
+		locationName: NAME.parcCentral,
 	},
 	{
 		id: "e16",
@@ -280,6 +307,7 @@ export const MOCK_EVENTS: RawEvent[] = [
 		end: dn(26, 0),
 		kind: "static",
 		location: LOC.maritim,
+		locationName: NAME.maritim,
 	},
 	// ─── JULY 27 (DIUMENGE - DEV DAY ref: 20:30) ────────────────────────────
 	{
@@ -294,6 +322,7 @@ export const MOCK_EVENTS: RawEvent[] = [
 		end: d(27, 6, 30),
 		kind: "static",
 		location: LOC.basilica,
+		locationName: NAME.basilica,
 	},
 	{
 		id: "e18",
@@ -303,8 +332,8 @@ export const MOCK_EVENTS: RawEvent[] = [
 		icon: { lib: "MaterialCommunityIcons", name: "flag" },
 		shortDescription:
 			"Cercavila solemne des de l'Ajuntament fins a la Basílica de Santa Maria per La Riera",
-		start: d(27, 9, 30),
-		end: d(27, 11),
+		start: d(27, 17, 30),
+		end: d(27, 21),
 		kind: "mobile",
 
 		route: [
@@ -338,6 +367,7 @@ export const MOCK_EVENTS: RawEvent[] = [
 		end: d(27, 12),
 		kind: "static",
 		location: LOC.basilica,
+		locationName: NAME.basilica,
 	},
 	{
 		id: "e20",
@@ -351,6 +381,7 @@ export const MOCK_EVENTS: RawEvent[] = [
 		end: d(27, 14),
 		kind: "static",
 		location: { lat: 41.538, lng: 2.4442 },
+		locationName: "Carrer d'en Pujol",
 	},
 	{
 		id: "e21",
@@ -364,6 +395,7 @@ export const MOCK_EVENTS: RawEvent[] = [
 		end: d(27, 20),
 		kind: "static",
 		location: LOC.ajuntament,
+		locationName: NAME.ajuntament,
 	},
 	{
 		id: "e22",
@@ -399,6 +431,7 @@ export const MOCK_EVENTS: RawEvent[] = [
 		end: d(27, 22),
 		kind: "static",
 		location: LOC.parcCentral,
+		locationName: NAME.parcCentral,
 	},
 	{
 		id: "e24",
@@ -412,6 +445,7 @@ export const MOCK_EVENTS: RawEvent[] = [
 		end: d(27, 21),
 		kind: "static",
 		location: LOC.biblioteca,
+		locationName: NAME.biblioteca,
 	},
 	{
 		id: "e25",
@@ -425,6 +459,7 @@ export const MOCK_EVENTS: RawEvent[] = [
 		end: d(27, 21, 30),
 		kind: "static",
 		location: LOC.teatre,
+		locationName: NAME.teatre,
 	},
 	{
 		id: "e26",
@@ -460,6 +495,7 @@ export const MOCK_EVENTS: RawEvent[] = [
 		end: d(27, 23),
 		kind: "static",
 		location: LOC.parcCentral,
+		locationName: NAME.parcCentral,
 	},
 	{
 		id: "e28",
@@ -473,6 +509,7 @@ export const MOCK_EVENTS: RawEvent[] = [
 		end: dn(27, 2),
 		kind: "static",
 		location: LOC.plSantaAnna,
+		locationName: NAME.plSantaAnna,
 	},
 	// ─── JULY 28 (DILLUNS) ───────────────────────────────────────────────────
 	{
@@ -487,6 +524,7 @@ export const MOCK_EVENTS: RawEvent[] = [
 		end: d(28, 20),
 		kind: "static",
 		location: LOC.plSantaAnna,
+		locationName: NAME.plSantaAnna,
 	},
 	{
 		id: "e30",
@@ -500,6 +538,7 @@ export const MOCK_EVENTS: RawEvent[] = [
 		end: d(28, 20, 30),
 		kind: "static",
 		location: LOC.plSantaAnna,
+		locationName: NAME.plSantaAnna,
 	},
 	{
 		id: "e31",
@@ -513,6 +552,7 @@ export const MOCK_EVENTS: RawEvent[] = [
 		end: d(28, 23, 30),
 		kind: "static",
 		location: LOC.maritim,
+		locationName: NAME.maritim,
 	},
 	// ─── JULY 29 (DIMARTS - DARRER DIA) ─────────────────────────────────────
 	{
@@ -546,5 +586,6 @@ export const MOCK_EVENTS: RawEvent[] = [
 		end: dn(29, 0),
 		kind: "static",
 		location: LOC.parcCentral,
+		locationName: NAME.parcCentral,
 	},
 ];
