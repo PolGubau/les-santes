@@ -7,8 +7,19 @@ import { Screen } from "@/shared/ui";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import type React from "react";
-import { useCallback, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { NativeScrollEvent, NativeSyntheticEvent } from "react-native";
+import {
+  Dimensions,
+  FlatList,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+
+const SCREEN_WIDTH = Dimensions.get("window").width;
 
 type FilterIconDef =
   | { lib: "Ionicons"; name: React.ComponentProps<typeof Ionicons>["name"] }
@@ -80,8 +91,12 @@ function FilterIcon({ icon, color }: { icon: FilterIconDef; color: string }) {
 export default function AgendaScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const userCoords = useUserLocation();
+  const flatRef = useRef<FlatList<string>>(null);
+  const isScrollingFromPicker = useRef(false);
+
   const {
     filtered,
+    filteredByDay,
     filters,
     setType,
     toggleNearMe,
@@ -91,9 +106,32 @@ export default function AgendaScreen() {
     setDay,
   } = useAgenda(MOCK_EVENTS, userCoords);
 
+  // Sync FlatList position when DayPicker selection changes
+  useEffect(() => {
+    const idx = availableDays.indexOf(selectedDay);
+    if (idx < 0 || !flatRef.current) return;
+    isScrollingFromPicker.current = true;
+    flatRef.current.scrollToIndex({ index: idx, animated: true });
+  }, [selectedDay, availableDays]);
+
+  const handleFlatListScroll = useCallback(
+    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+      if (isScrollingFromPicker.current) {
+        isScrollingFromPicker.current = false;
+        return;
+      }
+      const idx = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
+      const day = availableDays[idx];
+      if (day && day !== selectedDay) {
+        Haptics.selectionAsync();
+        setDay(day);
+      }
+    },
+    [availableDays, selectedDay, setDay],
+  );
+
   const handleRefresh = useCallback(() => {
     setRefreshing(true);
-    // Simulate a data reload — replace with real fetch when API is ready
     setTimeout(() => setRefreshing(false), 800);
   }, []);
 
@@ -161,15 +199,40 @@ export default function AgendaScreen() {
         </ScrollView>
       </View>
 
-      <AgendaList events={filtered} userCoords={userCoords} onRefresh={handleRefresh} refreshing={refreshing} />
+      <FlatList
+        ref={flatRef}
+        data={availableDays}
+        keyExtractor={(day) => day}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        style={styles.pager}
+        initialScrollIndex={Math.max(0, availableDays.indexOf(selectedDay))}
+        getItemLayout={(_, index) => ({
+          length: SCREEN_WIDTH,
+          offset: SCREEN_WIDTH * index,
+          index,
+        })}
+        onMomentumScrollEnd={handleFlatListScroll}
+        renderItem={({ item: day }) => (
+          <View style={styles.page}>
+            <AgendaList
+              events={filteredByDay.get(day) ?? []}
+              userCoords={userCoords}
+              onRefresh={handleRefresh}
+              refreshing={refreshing}
+            />
+          </View>
+        )}
+      />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  topSection: {
-    flexShrink: 0,
-  },
+  topSection: { flexShrink: 0 },
+  pager: { flex: 1 },
+  page: { width: SCREEN_WIDTH, flex: 1 },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",

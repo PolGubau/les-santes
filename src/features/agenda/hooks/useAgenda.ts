@@ -10,6 +10,49 @@ import { useNow } from "@/shared/hooks";
 import { haversineDistance, toDateKey } from "@/shared/lib";
 import { useMemo, useState } from "react";
 
+function applyFilters(
+	events: Event[],
+	filters: AgendaFilters,
+	userCoords: UserCoords | null | undefined,
+): Event[] {
+	let result = events.filter((e) => {
+		if (filters.type && e.type !== filters.type) return false;
+		if (filters.category && e.category !== filters.category) return false;
+		if (filters.nearMe && userCoords && e.kind === "static" && e.location) {
+			if (
+				haversineDistance(
+					userCoords.lat,
+					userCoords.lng,
+					e.location.lat,
+					e.location.lng,
+				) > NEAR_ME_RADIUS_M
+			)
+				return false;
+		}
+		return true;
+	});
+
+	if (filters.nearMe && userCoords) {
+		result = result.sort((a, b) => {
+			const d = (e: Event) =>
+				e.kind === "static" && e.location
+					? haversineDistance(
+							userCoords.lat,
+							userCoords.lng,
+							e.location.lat,
+							e.location.lng,
+						)
+					: Number.POSITIVE_INFINITY;
+			return d(a) - d(b);
+		});
+	} else {
+		result = result.sort(
+			(a, b) => new Date(a.start).getTime() - new Date(b.start).getTime(),
+		);
+	}
+	return result;
+}
+
 const NEAR_ME_RADIUS_M = 600;
 
 export interface AgendaFilters {
@@ -46,55 +89,28 @@ export function useAgenda(events: RawEvent[], userCoords?: UserCoords | null) {
 		);
 	}, [availableDays, selectedDay, now]);
 
-	const filtered = useMemo((): Event[] => {
-		const withStates = events.map((e) => withState(e, now));
+	/** All events enriched with current state, not yet day-filtered */
+	const withStates = useMemo(
+		() => events.map((e) => withState(e, now)),
+		[events, now],
+	);
 
-		let result = withStates.filter((e) => {
-			if (toDateKey(new Date(e.start)) !== effectiveDay) return false;
-			if (filters.type && e.type !== filters.type) return false;
-			if (filters.category && e.category !== filters.category) return false;
-			if (filters.nearMe && userCoords && e.kind === "static" && e.location) {
-				const d = haversineDistance(
-					userCoords.lat,
-					userCoords.lng,
-					e.location.lat,
-					e.location.lng,
-				);
-				if (d > NEAR_ME_RADIUS_M) return false;
-			}
-			return true;
-		});
-
-		if (filters.nearMe && userCoords) {
-			result = result.sort((a, b) => {
-				const distA =
-					a.kind === "static" && a.location
-						? haversineDistance(
-								userCoords.lat,
-								userCoords.lng,
-								a.location.lat,
-								a.location.lng,
-							)
-						: Number.POSITIVE_INFINITY;
-				const distB =
-					b.kind === "static" && b.location
-						? haversineDistance(
-								userCoords.lat,
-								userCoords.lng,
-								b.location.lat,
-								b.location.lng,
-							)
-						: Number.POSITIVE_INFINITY;
-				return distA - distB;
-			});
-		} else {
-			result = result.sort(
-				(a, b) => new Date(a.start).getTime() - new Date(b.start).getTime(),
+	/** Events grouped by day key, with type/nearMe filters applied */
+	const filteredByDay = useMemo((): Map<string, Event[]> => {
+		const map = new Map<string, Event[]>();
+		for (const day of availableDays) {
+			const forDay = withStates.filter(
+				(e) => toDateKey(new Date(e.start)) === day,
 			);
+			map.set(day, applyFilters(forDay, filters, userCoords));
 		}
+		return map;
+	}, [withStates, availableDays, filters, userCoords]);
 
-		return result;
-	}, [events, filters, now, effectiveDay, userCoords]);
+	const filtered = useMemo(
+		() => filteredByDay.get(effectiveDay) ?? [],
+		[filteredByDay, effectiveDay],
+	);
 
 	const setType = (type: EventType | undefined) =>
 		setFilters((f) => ({ ...f, type }));
@@ -108,6 +124,7 @@ export function useAgenda(events: RawEvent[], userCoords?: UserCoords | null) {
 
 	return {
 		filtered,
+		filteredByDay,
 		filters,
 		selectedDay: effectiveDay,
 		availableDays,

@@ -34,7 +34,7 @@ export function EventCard({ event, onPress, distanceMeters }: Props) {
 
   const handleFavorite = () => {
     Haptics.impactAsync(favorite ? Haptics.ImpactFeedbackStyle.Light : Haptics.ImpactFeedbackStyle.Medium);
-    toggleFavorite(event);
+    toggleFavorite(event.id);
   };
 
   const handleCalendar = () => {
