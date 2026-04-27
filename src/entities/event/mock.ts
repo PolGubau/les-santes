@@ -120,7 +120,6 @@ export const MOCK_EVENTS: RawEvent[] = [
 			{ lat: 41.5368, lng: 2.4422 },
 			{ lat: 41.5375, lng: 2.4438 },
 		],
-		durationMinutes: 90,
 	},
 	{
 		id: "e06",
@@ -155,7 +154,6 @@ export const MOCK_EVENTS: RawEvent[] = [
 			{ lat: 41.5383, lng: 2.4443 },
 			{ lat: 41.539, lng: 2.4448 },
 		],
-		durationMinutes: 210,
 	},
 	// ─── JULY 24 (DIJOUS) ────────────────────────────────────────────────────
 	{
@@ -177,7 +175,6 @@ export const MOCK_EVENTS: RawEvent[] = [
 			{ lat: 41.5383, lng: 2.4438 },
 			{ lat: 41.5375, lng: 2.4438 },
 		],
-		durationMinutes: 150,
 	},
 	{
 		id: "e09",
@@ -224,7 +221,6 @@ export const MOCK_EVENTS: RawEvent[] = [
 			{ lat: 41.5385, lng: 2.4438 },
 			{ lat: 41.539, lng: 2.4448 },
 		],
-		durationMinutes: 15,
 	},
 	{
 		id: "e12",
@@ -257,7 +253,6 @@ export const MOCK_EVENTS: RawEvent[] = [
 			{ lat: 41.5378, lng: 2.4438 },
 			{ lat: 41.5375, lng: 2.4438 },
 		],
-		durationMinutes: 30,
 	},
 	{
 		id: "e14",
@@ -278,7 +273,6 @@ export const MOCK_EVENTS: RawEvent[] = [
 			{ lat: 41.5383, lng: 2.4443 },
 			{ lat: 41.539, lng: 2.4448 },
 		],
-		durationMinutes: 90,
 	},
 	// ─── JULY 26 (DISSABTE) ─────────────────────────────────────────────────
 	{
@@ -353,7 +347,6 @@ export const MOCK_EVENTS: RawEvent[] = [
 			{ lat: 41.53917, lng: 2.444842 },
 			{ lat: 41.539601, lng: 2.444732 },
 		],
-		durationMinutes: 270,
 	},
 	{
 		id: "e19",
@@ -417,7 +410,6 @@ export const MOCK_EVENTS: RawEvent[] = [
 			{ lat: 41.537, lng: 2.4425 },
 			{ lat: 41.5368, lng: 2.442 },
 		],
-		durationMinutes: 180,
 	},
 	{
 		id: "e23",
@@ -481,7 +473,6 @@ export const MOCK_EVENTS: RawEvent[] = [
 			{ lat: 41.5362, lng: 2.4418 },
 			{ lat: 41.5355, lng: 2.4408 },
 		],
-		durationMinutes: 150,
 	},
 	{
 		id: "e27",
@@ -572,7 +563,6 @@ export const MOCK_EVENTS: RawEvent[] = [
 			{ lat: 41.539, lng: 2.4448 },
 			{ lat: 41.5395, lng: 2.445 },
 		],
-		durationMinutes: 120,
 	},
 	{
 		id: "e33",
