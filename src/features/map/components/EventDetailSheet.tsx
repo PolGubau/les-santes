@@ -1,7 +1,7 @@
 import type { Event } from '@/entities/event';
 import { Colors } from '@/shared/constants';
 import { BottomSheet, EventIcon } from '@/shared/ui';
-import { Ionicons } from '@expo/vector-icons';
+import { Clock, Footprints, MapPin } from 'lucide-react-native';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -43,7 +43,7 @@ export function EventDetailSheet({ event, onClose }: Props) {
       <Text style={styles.description}>{event.shortDescription}</Text>
 
       <View style={styles.row}>
-        <Ionicons name="time-outline" size={16} color={Colors.textDim} />
+        <Clock size={16} color={Colors.textDim} strokeWidth={1.75} />
         <Text style={styles.rowText}>
           {formatTime(event.start)} - {formatTime(event.end)}
         </Text>
@@ -51,13 +51,13 @@ export function EventDetailSheet({ event, onClose }: Props) {
 
       {event.kind === 'mobile' && (
         <View style={styles.row}>
-          <Ionicons name="walk-outline" size={16} color={Colors.textDim} />
+          <Footprints size={16} color={Colors.textDim} strokeWidth={1.75} />
           <Text style={styles.rowText}>Recorregut pels carrers</Text>
         </View>
       )}
       {event.kind === 'static' && (
         <View style={styles.row}>
-          <Ionicons name="location-outline" size={16} color={Colors.textDim} />
+          <MapPin size={16} color={Colors.textDim} strokeWidth={1.75} />
           <Text style={styles.rowText}>Lloc fix</Text>
         </View>
       )}

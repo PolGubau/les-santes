@@ -43,6 +43,9 @@ export function NowEventItem({ event, onPress }: Props) {
     <Pressable
       style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`${event.title}. En curs fins a ${formatTime(event.end)}`}
+      accessibilityHint="Prem per veure els detalls"
     >
       <PulseDot />
       <View style={styles.iconBox}>
@@ -53,7 +56,7 @@ export function NowEventItem({ event, onPress }: Props) {
         <Text style={styles.desc} numberOfLines={1}>{event.shortDescription}</Text>
         <View style={styles.metaRow}>
           <Ionicons
-            name={event.kind === 'mobile' ? 'walk-outline' : 'location-outline'}
+            name={event.kind === 'mobile' ? 'walk' : 'location'}
             size={11}
             color={Colors.textDim}
           />
@@ -62,7 +65,7 @@ export function NowEventItem({ event, onPress }: Props) {
           </Text>
         </View>
       </View>
-      <Text style={styles.arrow}>›</Text>
+      <Ionicons name="chevron-forward" size={18} color={Colors.textDim} />
     </Pressable>
   );
 }
@@ -105,5 +108,4 @@ const styles = StyleSheet.create({
   title: { color: Colors.text, fontSize: 15, fontWeight: '700' },
   desc: { color: Colors.textMuted, fontSize: 12 },
   meta: { color: Colors.textDim, fontSize: 11, marginTop: 2 },
-  arrow: { color: Colors.textDim, fontSize: 20 },
 });

@@ -6,7 +6,7 @@ A continuación tienes una versión **cerrada, minimalista y ejecutable** (sin s
 
 ## Nombre provisional
 
-**Santes Live**
+**Les Santes**
 
 ---
 

@@ -1,19 +1,13 @@
 import { MOCK_EVENTS } from '@/entities/event';
 import { NowList, useNowEvents } from '@/features/now';
 import { Colors } from '@/shared/constants';
+import { useNow } from '@/shared/hooks';
 import { Screen } from '@/shared/ui';
-import { Ionicons } from '@expo/vector-icons';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 function LiveClock() {
-  const [time, setTime] = useState(() => new Date());
-
-  useEffect(() => {
-    const id = setInterval(() => setTime(new Date()), 1000);
-    return () => clearInterval(id);
-  }, []);
-
+  const time = useNow(1_000);
   const h = time.getHours().toString().padStart(2, '0');
   const m = time.getMinutes().toString().padStart(2, '0');
   const s = time.getSeconds().toString().padStart(2, '0');
@@ -26,7 +20,7 @@ function LiveClock() {
 }
 
 export default function AraScreen() {
-  const nowEvents = useNowEvents(MOCK_EVENTS);
+  const { now, upcoming } = useNowEvents(MOCK_EVENTS);
 
   return (
     <Screen>
@@ -38,21 +32,16 @@ export default function AraScreen() {
         <LiveClock />
       </View>
 
-      {nowEvents.length === 0 ? (
-        <View style={styles.empty}>
-          <Ionicons name="musical-notes-outline" size={48} color={Colors.textDim} />
-          <Text style={styles.emptyTitle}>Res ara mateix</Text>
-          <Text style={styles.emptyDesc}>Consulta l'agenda per veure els pròxims actes</Text>
+      {now.length > 0 && (
+        <View style={styles.liveBar}>
+          <View style={styles.liveDot} />
+          <Text style={styles.liveText}>
+            {now.length} acte{now.length !== 1 ? 's' : ''} en curs
+          </Text>
         </View>
-      ) : (
-        <>
-          <View style={styles.liveBar}>
-            <View style={styles.liveDot} />
-            <Text style={styles.liveText}>{nowEvents.length} acte{nowEvents.length !== 1 ? 's' : ''} en curs</Text>
-          </View>
-          <NowList events={nowEvents} />
-        </>
       )}
+
+      <NowList now={now} upcoming={upcoming} />
     </Screen>
   );
 }
@@ -82,13 +71,5 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.stateNow,
   },
   liveText: { color: Colors.stateNow, fontSize: 12, fontWeight: '600' },
-  empty: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingHorizontal: 40,
-  },
-  emptyTitle: { color: Colors.text, fontSize: 18, fontWeight: '600' },
-  emptyDesc: { color: Colors.textMuted, fontSize: 14, textAlign: 'center', lineHeight: 20 },
+
 });

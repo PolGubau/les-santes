@@ -20,13 +20,6 @@ export type EventCategory = "familiar" | "nocturn" | "tradicional" | "cultural";
 export type EventState = "now" | "upcoming" | "finished";
 export type EventKind = "static" | "mobile";
 
-export type EventIconLib = "Ionicons" | "MaterialCommunityIcons";
-
-export interface EventIconDef {
-	lib: EventIconLib;
-	name: string;
-}
-
 export interface StaticLocation {
 	lat: number;
 	lng: number;
@@ -36,6 +29,10 @@ export interface RoutePoint {
 	lat: number;
 	lng: number;
 }
+
+export type EventIconDef =
+	| { lib: "Ionicons"; name: string }
+	| { lib: "MaterialCommunityIcons"; name: string };
 
 export interface Event {
 	id: string;
@@ -55,5 +52,5 @@ export interface Event {
 	durationMinutes?: number;
 }
 
-/** Event without a computed state — used in mock data and data layer */
+/** Event without a computed state - used in mock data and data layer */
 export type RawEvent = Omit<Event, "state">;

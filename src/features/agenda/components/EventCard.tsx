@@ -1,9 +1,15 @@
-import type { Event } from '@/entities/event';
+import type { Event, EventState } from '@/entities/event';
 import { Colors } from '@/shared/constants';
 import { formatTime } from '@/shared/lib';
 import { EventIcon, StateBadge } from '@/shared/ui';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+
+const ACCENT_COLOR: Record<EventState, string> = {
+  now: Colors.stateNow,
+  upcoming: Colors.stateUpcoming,
+  finished: 'transparent',
+};
 
 interface Props {
   event: Event;
@@ -12,14 +18,22 @@ interface Props {
 
 export function EventCard({ event, onPress }: Props) {
   const isFinished = event.state === 'finished';
+  const accentColor = ACCENT_COLOR[event.state];
+
+  const stateLabel = event.state === 'now' ? 'En curs' : event.state === 'upcoming' ? 'Pròximament' : 'Acabat';
 
   return (
     <Pressable
-      style={[styles.card, isFinished && styles.cardDim]}
+      style={({ pressed }) => [styles.card, isFinished && styles.cardDim, pressed && styles.cardPressed]}
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`${event.title}. ${stateLabel}. De ${formatTime(event.start)} a ${formatTime(event.end)}`}
+      accessibilityHint="Prem per veure els detalls"
+      accessibilityState={{ disabled: isFinished }}
     >
+      <View style={[styles.accent, { backgroundColor: accentColor }]} />
       <View style={styles.iconBox}>
-        <EventIcon icon={event.icon} size={24} color={Colors.text} />
+        <EventIcon icon={event.icon} size={22} color={isFinished ? Colors.textDim : Colors.text} />
       </View>
       <View style={styles.content}>
         <View style={styles.header}>
@@ -32,7 +46,7 @@ export function EventCard({ event, onPress }: Props) {
           {event.shortDescription}
         </Text>
         <Text style={styles.time}>
-          {formatTime(event.start)} - {formatTime(event.end)}
+          {formatTime(event.start)} – {formatTime(event.end)}
         </Text>
       </View>
     </Pressable>
@@ -42,21 +56,27 @@ export function EventCard({ event, onPress }: Props) {
 const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: 12,
     backgroundColor: Colors.surface,
     borderRadius: 12,
-    padding: 14,
     marginHorizontal: 16,
     marginVertical: 4,
     borderWidth: 1,
     borderColor: Colors.border,
+    overflow: 'hidden',
   },
-  cardDim: {
-    opacity: 0.5,
+  cardDim: { opacity: 0.45 },
+  cardPressed: { opacity: 0.75 },
+  accent: {
+    width: 3,
+    alignSelf: 'stretch',
+    borderTopLeftRadius: 12,
+    borderBottomLeftRadius: 12,
   },
   iconBox: {
-    width: 40,
-    height: 40,
+    width: 38,
+    height: 38,
     borderRadius: 10,
     backgroundColor: Colors.surfaceHigh,
     alignItems: 'center',
@@ -65,7 +85,9 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    gap: 4,
+    gap: 3,
+    paddingVertical: 14,
+    paddingRight: 14,
   },
   header: {
     flexDirection: 'row',
@@ -79,9 +101,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
   },
-  textDim: {
-    color: Colors.textMuted,
-  },
+  textDim: { color: Colors.textMuted },
   desc: {
     color: Colors.textMuted,
     fontSize: 13,
@@ -90,6 +110,5 @@ const styles = StyleSheet.create({
   time: {
     color: Colors.textDim,
     fontSize: 12,
-    marginTop: 2,
   },
 });

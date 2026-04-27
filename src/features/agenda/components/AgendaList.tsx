@@ -50,6 +50,7 @@ export function AgendaList({ events, onEventPress }: Props) {
 
   return (
     <SectionList
+      style={styles.list}
       sections={sections}
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => (
@@ -64,7 +65,7 @@ export function AgendaList({ events, onEventPress }: Props) {
           <Text style={styles.sectionCount}>{section.data.length}</Text>
         </View>
       )}
-      contentContainerStyle={styles.list}
+      contentContainerStyle={styles.listContent}
       showsVerticalScrollIndicator={false}
       stickySectionHeadersEnabled={false}
     />
@@ -72,7 +73,8 @@ export function AgendaList({ events, onEventPress }: Props) {
 }
 
 const styles = StyleSheet.create({
-  list: { paddingBottom: 24 },
+  list: { flex: 1 },
+  listContent: { paddingBottom: 24 },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',

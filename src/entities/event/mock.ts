@@ -1,10 +1,10 @@
-import type { Event, RawEvent } from "./types";
+import type { RawEvent } from "./types";
 
 // ISO helper – July 2025 dates, local time (month index 6 = July)
 const d = (day: number, hour: number, min = 0): string =>
 	new Date(2025, 6, day, hour, min, 0).toISOString();
 
-// Same day but next morning (e.g. correfoc ends at 00:30 next day)
+// Next calendar day (for events that end after midnight)
 const dn = (day: number, hour: number, min = 0): string =>
 	new Date(2025, 6, day + 1, hour, min, 0).toISOString();
 
@@ -13,111 +13,370 @@ const LOC = {
 	basilica: { lat: 41.5368, lng: 2.442 },
 	plSantaAnna: { lat: 41.5375, lng: 2.4438 },
 	parcCentral: { lat: 41.5415, lng: 2.4472 },
+	espaiLlar: { lat: 41.5372, lng: 2.4435 }, // Llar Cabanellas
+	callao: { lat: 41.531, lng: 2.445 },
 	maritim: { lat: 41.529, lng: 2.444 },
+	port: { lat: 41.527, lng: 2.448 },
 	teatre: { lat: 41.5382, lng: 2.4445 },
 	biblioteca: { lat: 41.5385, lng: 2.446 },
-	llarCab: { lat: 41.5372, lng: 2.4435 },
-	callao: { lat: 41.531, lng: 2.445 },
-	port: { lat: 41.527, lng: 2.448 },
+	residencia: { lat: 41.5355, lng: 2.441 },
+	esmandies: { lat: 41.538, lng: 2.4395 },
+	plCuba: { lat: 41.54, lng: 2.4415 },
+	plSantaMaria: { lat: 41.5368, lng: 2.4422 },
+	escorxador: { lat: 41.536, lng: 2.44 },
 };
 
 export const MOCK_EVENTS: RawEvent[] = [
-	// ─── FINALITZATS ──────────────────────────────────────────────────────────
+	// ─── JULY 18 (DIVENDRES) ────────────────────────────────────────────────
 	{
-		id: "1",
-		title: "La Passada",
+		id: "e01",
+		title: "Exposició de Kris Ubach",
+		type: "exposicio",
+		category: "cultural",
+		icon: { lib: "Ionicons", name: "image" },
+		shortDescription:
+			"Fotografies de la festa major 2024. Es pot veure fins al 7 de setembre a La Presó.",
+		start: d(18, 19),
+		end: d(18, 21),
+		kind: "static",
+		location: { lat: 41.5372, lng: 2.4431 },
+	},
+	{
+		id: "e02",
+		title: "Concert 50 anys del Cor Madrigalista",
+		type: "concert",
+		category: "cultural",
+		icon: { lib: "Ionicons", name: "mic" },
+		shortDescription: "Acte gratuït amb invitació al Teatre Monumental.",
+		start: d(18, 20),
+		end: d(18, 22),
+		kind: "static",
+		location: LOC.teatre,
+	},
+	{
+		id: "e03",
+		title: "Assaig Castellers Capgrossos",
+		type: "castellera",
+		category: "tradicional",
+		icon: { lib: "MaterialCommunityIcons", name: "account-group" },
+		shortDescription:
+			"Últim assaig general dels Capgrossos de Mataró abans de l'actuació de Les Santes.",
+		start: d(18, 20),
+		end: d(18, 22),
+		kind: "static",
+		location: LOC.plSantaAnna,
+	},
+	{
+		id: "e04",
+		title: "Música: Ignorantes + Boom Boom Fighters",
+		type: "concert",
+		category: "nocturn",
+		icon: { lib: "Ionicons", name: "musical-notes" },
+		shortDescription:
+			"Concert a la plaça Santa Anna organitzat pels Capgrossos.",
+		start: d(18, 23),
+		end: dn(18, 1),
+		kind: "static",
+		location: LOC.plSantaAnna,
+	},
+	// ─── JULY 19 (DISSABTE) ─────────────────────────────────────────────────
+	{
+		id: "e05",
+		title: "Proclama de Festa Major",
 		type: "cercavila",
 		category: "tradicional",
-		icon: { lib: "MaterialCommunityIcons", name: "drum" },
+		icon: { lib: "Ionicons", name: "megaphone" },
 		shortDescription:
-			"Cercavila solemne des de l'Ajuntament fins a la Basílica de Santa Maria per La Riera",
-		start: d(9, 30),
-		end: d(11, 0),
-		state: "finished",
+			"L'alcalde encarrega a l'Herald la proclama de Festa Major. Recorregut per la Riera i places del centre.",
+		start: d(19, 12),
+		end: d(19, 13, 30),
 		kind: "mobile",
 		route: [
-			// Ajuntament → La Riera → C/ Nou → Pl. Santa Maria
 			{ lat: 41.539, lng: 2.4448 },
-			{ lat: 41.5383, lng: 2.4445 },
-			{ lat: 41.5378, lng: 2.444 },
-			{ lat: 41.5374, lng: 2.4436 },
-			{ lat: 41.5372, lng: 2.443 },
+			{ lat: 41.5385, lng: 2.4443 },
+			{ lat: 41.5375, lng: 2.4437 },
 			{ lat: 41.5368, lng: 2.4422 },
+			{ lat: 41.5375, lng: 2.4438 },
 		],
 		durationMinutes: 90,
 	},
 	{
-		id: "2",
+		id: "e06",
+		title: "Diada Castellera",
+		type: "castellera",
+		category: "tradicional",
+		icon: { lib: "MaterialCommunityIcons", name: "account-group" },
+		shortDescription:
+			"Amb la Colla Castellera Capgrossos de Mataró, els Minyons de Terrassa i els Castellers de Vilafranca.",
+		start: d(19, 18),
+		end: d(19, 21),
+		kind: "static",
+		location: LOC.plSantaAnna,
+	},
+	// ─── JULY 20 (DIUMENGE) ──────────────────────────────────────────────────
+	{
+		id: "e07",
+		title: "L'Encesa",
+		type: "correfoc",
+		category: "nocturn",
+		icon: { lib: "MaterialCommunityIcons", name: "fire" },
+		shortDescription:
+			"Balls parlats, cercavila de foc i encesa final amb el Ball de Diables de Mataró. Convidats: Seguici Festiu de Tarragona i els Basiliscs de Reus.",
+		start: d(20, 18, 30),
+		end: d(20, 22),
+		kind: "mobile",
+		route: [
+			{ lat: 41.5375, lng: 2.4438 },
+			{ lat: 41.5378, lng: 2.4432 },
+			{ lat: 41.5368, lng: 2.4422 },
+			{ lat: 41.5383, lng: 2.4443 },
+			{ lat: 41.539, lng: 2.4448 },
+		],
+		durationMinutes: 210,
+	},
+	// ─── JULY 24 (DIJOUS) ────────────────────────────────────────────────────
+	{
+		id: "e08",
+		title: "Gegantada",
+		type: "gegants",
+		category: "tradicional",
+		icon: { lib: "MaterialCommunityIcons", name: "crown" },
+		shortDescription:
+			"Tots els gegants, nans i figures de la ciutat en una cercavila multitudinària. Sortida des de la Ronda O'Donnell.",
+		start: d(24, 18),
+		end: d(24, 20, 30),
+		kind: "mobile",
+		route: [
+			{ lat: 41.5395, lng: 2.4465 },
+			{ lat: 41.5392, lng: 2.4455 },
+			{ lat: 41.5388, lng: 2.4448 },
+			{ lat: 41.5385, lng: 2.4443 },
+			{ lat: 41.5383, lng: 2.4438 },
+			{ lat: 41.5375, lng: 2.4438 },
+		],
+		durationMinutes: 150,
+	},
+	{
+		id: "e09",
+		title: "Concert GospelSons",
+		type: "concert",
+		category: "cultural",
+		icon: { lib: "Ionicons", name: "mic" },
+		shortDescription:
+			"Concert de gospel a càrrec de la formació Gospelsons, que aquest any compleix 20 anys.",
+		start: d(24, 20),
+		end: d(24, 21, 30),
+		kind: "static",
+		location: LOC.callao,
+	},
+	{
+		id: "e10",
+		title: "Havaneres i rom cremat",
+		type: "havaneres",
+		category: "tradicional",
+		icon: { lib: "Ionicons", name: "boat" },
+		shortDescription:
+			"Amb Les Cremats i Arjau. No faltarà l'habitual rom cremat.",
+		start: d(24, 22),
+		end: dn(24, 0),
+		kind: "static",
+		location: LOC.callao,
+	},
+	// ─── JULY 25 (DIVENDRES) ─────────────────────────────────────────────────
+	{
+		id: "e11",
+		title: "Cap a la Crida",
+		type: "cercavila",
+		category: "tradicional",
+		icon: { lib: "MaterialCommunityIcons", name: "flag" },
+		shortDescription:
+			"Comparses surten des de diversos indrets: Família Robafaves des del carrer Bonaire, Diablesses des de Sant Josep, Dracs des del carrer d'en Pujol.",
+		start: d(25, 19, 45),
+		end: d(25, 20),
+		kind: "mobile",
+		route: [
+			{ lat: 41.5382, lng: 2.4432 },
+			{ lat: 41.5385, lng: 2.4438 },
+			{ lat: 41.539, lng: 2.4448 },
+		],
+		durationMinutes: 15,
+	},
+	{
+		id: "e12",
+		title: "Crida de Festa Major",
+		type: "espectacle",
+		category: "tradicional",
+		icon: { lib: "Ionicons", name: "megaphone" },
+		shortDescription:
+			"L'alcalde proclama l'inici de la Festa Major des del balcó de l'Ajuntament. Una traca dóna pas als primers balls.",
+		start: d(25, 20),
+		end: d(25, 20, 30),
+		kind: "static",
+		location: LOC.ajuntament,
+	},
+	{
+		id: "e13",
+		title: "Desvetllament Bellugós",
+		type: "cercavila",
+		category: "nocturn",
+		icon: { lib: "MaterialCommunityIcons", name: "flag" },
+		shortDescription:
+			"La Família Robafaves baixa la Riera fins a la plaça Santa Anna a ritme de Bequetero.",
+		start: d(25, 23, 30),
+		end: dn(25, 0),
+		kind: "mobile",
+		route: [
+			{ lat: 41.539, lng: 2.4448 },
+			{ lat: 41.5385, lng: 2.4443 },
+			{ lat: 41.5378, lng: 2.4438 },
+			{ lat: 41.5375, lng: 2.4438 },
+		],
+		durationMinutes: 30,
+	},
+	{
+		id: "e14",
+		title: "Escapada a Negra Nit",
+		type: "correfoc",
+		category: "nocturn",
+		icon: { lib: "MaterialCommunityIcons", name: "fire" },
+		shortDescription:
+			"Gran correfoc nocturn amb la Momerota, el Drac, les Diablesses i més de 15 colles convidades.",
+		start: dn(25, 1, 30),
+		end: dn(25, 3),
+		kind: "mobile",
+		route: [
+			{ lat: 41.539, lng: 2.4448 },
+			{ lat: 41.5383, lng: 2.4443 },
+			{ lat: 41.5378, lng: 2.4432 },
+			{ lat: 41.5372, lng: 2.4431 },
+			{ lat: 41.5383, lng: 2.4443 },
+			{ lat: 41.539, lng: 2.4448 },
+		],
+		durationMinutes: 90,
+	},
+	// ─── JULY 26 (DISSABTE) ─────────────────────────────────────────────────
+	{
+		id: "e15",
+		title: "Música per la Diversitat",
+		type: "concert",
+		category: "cultural",
+		icon: { lib: "Ionicons", name: "musical-notes" },
+		shortDescription:
+			"Concert en el marc del Dia de l'Orgull LGTBIQ+. Diverses formacions musicals al Parc Central.",
+		start: d(26, 19),
+		end: d(26, 22),
+		kind: "static",
+		location: LOC.parcCentral,
+	},
+	{
+		id: "e16",
+		title: "Nit de Focs Artificials",
+		type: "focsartificials",
+		category: "nocturn",
+		icon: { lib: "MaterialCommunityIcons", name: "firework" },
+		shortDescription:
+			"Castell de focs des del passeig marítim. Un dels espectacles més esperats de les festes.",
+		start: d(26, 23),
+		end: dn(26, 0),
+		kind: "static",
+		location: LOC.maritim,
+	},
+	// ─── JULY 27 (DIUMENGE - DEV DAY ref: 20:30) ────────────────────────────
+	{
+		id: "e17",
+		title: "Toc de Matinades",
+		type: "barram",
+		category: "tradicional",
+		icon: { lib: "MaterialCommunityIcons", name: "bell-ring" },
+		shortDescription:
+			"Repic de campanes per despertar la ciutat en el dia gran de les Santes",
+		start: d(27, 6),
+		end: d(27, 6, 30),
+		kind: "static",
+		location: LOC.basilica,
+	},
+	{
+		id: "e18",
+		title: "La Passada",
+		type: "cercavila",
+		category: "tradicional",
+		icon: { lib: "MaterialCommunityIcons", name: "flag" },
+		shortDescription:
+			"Cercavila solemne des de l'Ajuntament fins a la Basílica de Santa Maria per La Riera",
+		start: d(27, 9, 30),
+		end: d(27, 11),
+		kind: "mobile",
+
+		route: [
+			{ lat: 41.539754, lng: 2.445055 },
+			{ lat: 41.539663, lng: 2.444724 },
+			{ lat: 41.541168, lng: 2.444011 },
+			{ lat: 41.540595, lng: 2.440122 },
+			{ lat: 41.538858, lng: 2.442039 },
+			{ lat: 41.538566, lng: 2.441491 },
+			{ lat: 41.536506, lng: 2.443518 },
+			{ lat: 41.536981, lng: 2.444018 },
+			{ lat: 41.537203, lng: 2.44458 },
+			{ lat: 41.537456, lng: 2.444418 },
+			{ lat: 41.53814, lng: 2.444936 },
+			{ lat: 41.53822, lng: 2.444846 },
+			{ lat: 41.53845, lng: 2.444911 },
+			{ lat: 41.53917, lng: 2.444842 },
+			{ lat: 41.539601, lng: 2.444732 },
+		],
+		durationMinutes: 90,
+	},
+	{
+		id: "e19",
 		title: "Missa de les Santes",
-		type: "altres",
+		type: "missa",
 		category: "tradicional",
 		icon: { lib: "MaterialCommunityIcons", name: "church" },
 		shortDescription:
-			"Missa solemne a la Basílica de Santa Maria. Més de 150 cantaires i orquestra",
-		start: d(10, 0),
-		end: d(12, 0),
-		state: "finished",
+			"Missa pontifical a la Basílica. Més de 150 cantaires i orquestra simfònica",
+		start: d(27, 10),
+		end: d(27, 12),
 		kind: "static",
-		location: { lat: 41.5368, lng: 2.442 }, // Basílica de Santa Maria
+		location: LOC.basilica,
 	},
 	{
-		id: "3",
+		id: "e20",
 		title: "Ballada de Sardanes",
-		type: "concert",
+		type: "sardanes",
 		category: "tradicional",
 		icon: { lib: "Ionicons", name: "musical-notes" },
 		shortDescription:
 			"Ballada al carrer d'en Pujol. Cobla La Principal del Llobregat",
-		start: d(12, 0),
-		end: d(14, 0),
-		state: "finished",
+		start: d(27, 12),
+		end: d(27, 14),
 		kind: "static",
-		location: { lat: 41.538, lng: 2.4442 }, // C/ d'en Pujol
+		location: { lat: 41.538, lng: 2.4442 },
 	},
 	{
-		id: "4",
+		id: "e21",
 		title: "Postal de Gegants",
 		type: "gegants",
 		category: "tradicional",
 		icon: { lib: "MaterialCommunityIcons", name: "crown" },
 		shortDescription:
-			"Exhibició dels gegants i nans de Mataró davant l'Ajuntament",
-		start: d(18, 30),
-		end: d(20, 0),
-		state: "finished",
+			"Exhibició dels gegants i nans de Mataró davant l'Ajuntament. Entrada lliure",
+		start: d(27, 18, 30),
+		end: d(27, 20),
 		kind: "static",
-		location: { lat: 41.539, lng: 2.4448 }, // Ajuntament
-	},
-
-	// ─── EN CURS ──────────────────────────────────────────────────────────────
-	{
-		id: "5",
-		title: "Espai Familiar - Nou Parc Central",
-		type: "concert",
-		category: "familiar",
-		icon: { lib: "Ionicons", name: "happy" },
-		shortDescription:
-			"Activitats i espectacles per a tota la família al Nou Parc Central",
-		start: d(19, 0),
-		end: d(22, 0),
-		state: "now",
-		kind: "static",
-		location: { lat: 41.5415, lng: 2.4472 }, // Nou Parc Central
+		location: LOC.ajuntament,
 	},
 	{
-		id: "6",
-		title: "La Processó",
+		id: "e22",
+		title: "La Processó de les Santes",
 		type: "cercavila",
 		category: "tradicional",
 		icon: { lib: "MaterialCommunityIcons", name: "candle" },
 		shortDescription:
-			"Cercavila solemne pels carrers del centre amb les relíquies de les Santes",
-		start: d(18, 0),
-		end: d(21, 0),
-		state: "now",
+			"Cercavila solemne amb les relíquies de les Santes pels carrers del centre",
+		start: d(27, 18),
+		end: d(27, 21),
 		kind: "mobile",
 		route: [
-			// Ruta processó: Ajuntament → Pl. Santa Anna → Basílica
 			{ lat: 41.539, lng: 2.4448 },
 			{ lat: 41.5387, lng: 2.4445 },
 			{ lat: 41.5382, lng: 2.444 },
@@ -128,22 +387,57 @@ export const MOCK_EVENTS: RawEvent[] = [
 		],
 		durationMinutes: 180,
 	},
-
-	// ─── PRÒXIMS ──────────────────────────────────────────────────────────────
 	{
-		id: "7",
+		id: "e23",
+		title: "Espai Familiar - Nou Parc Central",
+		type: "jocs",
+		category: "familiar",
+		icon: { lib: "Ionicons", name: "happy" },
+		shortDescription:
+			"Tallers, jocs i espectacles per a tota la família. Animació infantil tot el vespre",
+		start: d(27, 19),
+		end: d(27, 22),
+		kind: "static",
+		location: LOC.parcCentral,
+	},
+	{
+		id: "e24",
+		title: "L'en hora del conte - Bigotis",
+		type: "contes",
+		category: "familiar",
+		icon: { lib: "Ionicons", name: "book" },
+		shortDescription:
+			"Espectacle de contes per a infants de 3 a 8 anys. En català. Places limitades",
+		start: d(27, 20, 15),
+		end: d(27, 21),
+		kind: "static",
+		location: LOC.biblioteca,
+	},
+	{
+		id: "e25",
+		title: "Artilusio - Màgia i Circ",
+		type: "espectacle",
+		category: "familiar",
+		icon: { lib: "MaterialCommunityIcons", name: "hat-fedora" },
+		shortDescription:
+			"Espectacle de circ i màgia al Teatre Municipal. Per a tots els públics",
+		start: d(27, 19, 30),
+		end: d(27, 21, 30),
+		kind: "static",
+		location: LOC.teatre,
+	},
+	{
+		id: "e26",
 		title: "Nit Boja - Correfoc de les Santes",
 		type: "correfoc",
 		category: "nocturn",
 		icon: { lib: "MaterialCommunityIcons", name: "fire" },
 		shortDescription:
-			"El gran correfoc de la Nit Boja. Ball de Diables de Mataró i colles convidades. Màxima espectacularitat",
-		start: d(22, 0),
-		end: d(0, 30),
-		state: "upcoming",
+			"El gran correfoc de la Nit Boja. Ball de Diables de Mataró i set colles convidades",
+		start: d(27, 22),
+		end: dn(27, 0, 30),
 		kind: "mobile",
 		route: [
-			// Correfoc: Ajuntament → La Riera avall → Pl. de les Tereses
 			{ lat: 41.539, lng: 2.4448 },
 			{ lat: 41.5385, lng: 2.4444 },
 			{ lat: 41.538, lng: 2.444 },
@@ -155,33 +449,102 @@ export const MOCK_EVENTS: RawEvent[] = [
 		durationMinutes: 150,
 	},
 	{
-		id: "8",
-		title: "Sardanes de la Nit - Plaça Santa Anna",
-		type: "concert",
-		category: "nocturn",
-		icon: { lib: "Ionicons", name: "musical-notes" },
-		shortDescription:
-			"Ballada de sardanes de nit. Cobla La Principal del Llobregat i Cobla Ciutat de Girona. Repartiment de xíndria",
-		start: d(23, 45),
-		end: d(3, 0),
-		state: "upcoming",
-		kind: "static",
-		location: { lat: 41.5375, lng: 2.4438 }, // Plaça de Santa Anna
-	},
-	{
-		id: "9",
-		title: "Sofia Gabanna en concert",
+		id: "e27",
+		title: "Concert al Parc: Mushkaa",
 		type: "concert",
 		category: "nocturn",
 		icon: { lib: "Ionicons", name: "mic" },
 		shortDescription:
-			"Concert de la cantant Sofia Gabanna al Nou Parc Central. Una de les grans novetats de Les Santes 2026",
-		start: d(21, 0),
-		end: d(23, 0),
-		state: "upcoming",
+			"Concert de la banda Mushkaa al Nou Parc Central. Pop-rock en català",
+		start: d(27, 21),
+		end: d(27, 23),
 		kind: "static",
-		location: { lat: 41.5415, lng: 2.4472 }, // Nou Parc Central
+		location: LOC.parcCentral,
+	},
+	{
+		id: "e28",
+		title: "Sardanes de la Nit",
+		type: "sardanes",
+		category: "nocturn",
+		icon: { lib: "Ionicons", name: "musical-notes" },
+		shortDescription:
+			"Ballada de sardanes de nit. Cobla La Principal del Llobregat. Repartiment de xíndria",
+		start: d(27, 23, 45),
+		end: dn(27, 2),
+		kind: "static",
+		location: LOC.plSantaAnna,
+	},
+	// ─── JULY 28 (DILLUNS) ───────────────────────────────────────────────────
+	{
+		id: "e29",
+		title: "Balls Populars de les Santes",
+		type: "sardanes",
+		category: "tradicional",
+		icon: { lib: "Ionicons", name: "musical-notes" },
+		shortDescription:
+			"Balls de sardanes i ball de bot. Tarda festiva al centre de Mataró",
+		start: d(28, 17),
+		end: d(28, 20),
+		kind: "static",
+		location: LOC.plSantaAnna,
+	},
+	{
+		id: "e30",
+		title: "Diada Castellera de Sant Jaume",
+		type: "castellera",
+		category: "tradicional",
+		icon: { lib: "MaterialCommunityIcons", name: "account-group" },
+		shortDescription:
+			"Actuació castellera de la Colla Castellera de Mataró amb colles convidades",
+		start: d(28, 18),
+		end: d(28, 20, 30),
+		kind: "static",
+		location: LOC.plSantaAnna,
+	},
+	{
+		id: "e31",
+		title: "Havaneres i Cremat de Cloenda",
+		type: "havaneres",
+		category: "tradicional",
+		icon: { lib: "Ionicons", name: "boat" },
+		shortDescription:
+			"Concert d'havaneres per cloure les festes. Cremat gratuït per a tothom. Passeig marítim",
+		start: d(28, 21, 30),
+		end: d(28, 23, 30),
+		kind: "static",
+		location: LOC.maritim,
+	},
+	// ─── JULY 29 (DIMARTS - DARRER DIA) ─────────────────────────────────────
+	{
+		id: "e32",
+		title: "Cercavila de Cloenda",
+		type: "cercavila",
+		category: "tradicional",
+		icon: { lib: "MaterialCommunityIcons", name: "flag" },
+		shortDescription:
+			"Cercavila final de les Santes amb gegants, gralles i entitats de la ciutat",
+		start: d(29, 11),
+		end: d(29, 13),
+		kind: "mobile",
+		route: [
+			{ lat: 41.5375, lng: 2.4438 },
+			{ lat: 41.5382, lng: 2.4443 },
+			{ lat: 41.539, lng: 2.4448 },
+			{ lat: 41.5395, lng: 2.445 },
+		],
+		durationMinutes: 120,
+	},
+	{
+		id: "e33",
+		title: "Concert de Cloenda: La Troba Kung-Fú",
+		type: "concert",
+		category: "nocturn",
+		icon: { lib: "Ionicons", name: "mic" },
+		shortDescription:
+			"Concert final de les Santes amb La Troba Kung-Fú. Entrada lliure fins a completar aforament",
+		start: d(29, 22),
+		end: dn(29, 0),
+		kind: "static",
+		location: LOC.parcCentral,
 	},
 ];
-
-export { festivalDay };

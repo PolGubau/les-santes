@@ -42,7 +42,7 @@ create table events (
 
 ---
 
-### STATIC DATA — ubicació fixa
+### STATIC DATA - ubicació fixa
 
 ```sql
 create table event_static_location (
@@ -54,7 +54,7 @@ create table event_static_location (
 
 ---
 
-### MOBILE DATA — ruta itinerant
+### MOBILE DATA - ruta itinerant
 
 ```sql
 create table event_routes (
@@ -82,7 +82,7 @@ const position = interpolate(route.geometry, progress)
 
 ---
 
-### ANNOUNCEMENTS — canvis d'última hora
+### ANNOUNCEMENTS - canvis d'última hora
 
 ```sql
 create table announcements (
@@ -127,7 +127,7 @@ Sense complicar el backend.
 | GPS real            | Complexitat sense valor MVP                   |
 | Historial posicions | No ajuda a decidir ara                        |
 | Sharing / plans     | Xarxa social fora de l'abast                  |
-| Categories com taula| Sobrecomplexitat — un camp `category` és suficient |
+| Categories com taula| Sobrecomplexitat - un camp `category` és suficient |
 
 ---
 

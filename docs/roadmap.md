@@ -1,15 +1,15 @@
 # Roadmap
 
-## Fase 0 — Setup (1-2 dies)
+## Fase 0 - Setup (1-2 dies)
 
 * Projecte Expo + TypeScript
 * Projecte Supabase + esquema inicial
 * Estructura per funcionalitats: `features / entities / shared`
-* La UI ha de ser independent de la lògica — fàcilment substituïble per React Web reutilitzant hooks.
+* La UI ha de ser independent de la lògica - fàcilment substituïble per React Web reutilitzant hooks.
 
 ---
 
-## Fase 1 — Base funcional (3-5 dies)
+## Fase 1 - Base funcional (3-5 dies)
 
 ### Backend
 
@@ -24,7 +24,7 @@
 
 ---
 
-## Fase 2 — Simulació mòbil (3-4 dies)
+## Fase 2 - Simulació mòbil (3-4 dies)
 
 * Interpolació de posició per temps (sense GPS real)
 * Animació de marcador sobre ruta
@@ -37,7 +37,7 @@
 
 ---
 
-## Fase 3 — Agenda + UX (2-3 dies)
+## Fase 3 - Agenda + UX (2-3 dies)
 
 * Llista d'actes per dia
 * Pantalla "Ara mateix" (`state = 'now'`)
@@ -45,7 +45,7 @@
 
 ---
 
-## Fase 4 — Poliment demo (2-4 dies)
+## Fase 4 - Poliment demo (2-4 dies)
 
 * UI neta i consistent
 * Iconografia d'actes (`icon` al model)
@@ -54,7 +54,7 @@
 
 ---
 
-## Fase 5 — Demo institucional
+## Fase 5 - Demo institucional
 
 * Vídeo + app funcionant
 * Simulació d'actes itinerants en temps real

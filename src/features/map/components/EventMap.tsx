@@ -12,7 +12,7 @@ const STATE_COLOR: Record<string, string> = {
   finished: '#555555',
 };
 
-// WebView can't use @expo/vector-icons — map icon names to emojis
+// WebView can't use @expo/vector-icons - map icon names to emojis
 const ICON_EMOJI: Record<string, string> = {
   drum: '🥁',
   church: '⛪',

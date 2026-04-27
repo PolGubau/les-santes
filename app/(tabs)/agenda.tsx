@@ -1,6 +1,6 @@
 import type { EventType } from "@/entities/event";
 import { MOCK_EVENTS } from "@/entities/event";
-import { AgendaList, useAgenda } from "@/features/agenda";
+import { AgendaList, DayPicker, useAgenda } from "@/features/agenda";
 import { Colors } from "@/shared/constants";
 import { Screen } from "@/shared/ui";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -28,12 +28,12 @@ const TYPE_FILTERS: Array<{
     {
       label: "Concerts",
       value: "concert",
-      icon: { lib: "Ionicons", name: "musical-notes" },
+      icon: { lib: "Ionicons", name: "mic" },
     },
     {
-      label: "Cercavila",
-      value: "cercavila",
-      icon: { lib: "MaterialCommunityIcons", name: "music" },
+      label: "Sardanes",
+      value: "sardanes",
+      icon: { lib: "Ionicons", name: "musical-notes" },
     },
     {
       label: "Gegants",
@@ -41,53 +41,93 @@ const TYPE_FILTERS: Array<{
       icon: { lib: "MaterialCommunityIcons", name: "crown" },
     },
     {
-      label: "Teatre",
-      value: "teatre",
+      label: "Castellers",
+      value: "castellera",
+      icon: { lib: "Ionicons", name: "people" },
+    },
+    {
+      label: "Cercavila",
+      value: "cercavila",
+      icon: { lib: "Ionicons", name: "flag" },
+    },
+    {
+      label: "Havaneres",
+      value: "havaneres",
+      icon: { lib: "Ionicons", name: "boat" },
+    },
+    {
+      label: "Espectacle",
+      value: "espectacle",
       icon: { lib: "Ionicons", name: "ticket" },
+    },
+    {
+      label: "Familiar",
+      value: "jocs",
+      icon: { lib: "Ionicons", name: "happy" },
     },
   ];
 
+function FilterIcon({ icon, color }: { icon: FilterIconDef; color: string }) {
+  if (icon.lib === "Ionicons") {
+    return <Ionicons name={icon.name} size={15} color={color} />;
+  }
+  return <MaterialCommunityIcons name={icon.name} size={15} color={color} />;
+}
+
 export default function AgendaScreen() {
-  const { filtered, filters, setType } = useAgenda(MOCK_EVENTS);
+  const {
+    filtered,
+    filters,
+    setType,
+    selectedDay,
+    availableDays,
+    todayKey,
+    setDay,
+  } = useAgenda(MOCK_EVENTS);
 
   return (
     <Screen>
-      <View style={styles.header}>
-        <Text style={styles.title}>Agenda</Text>
-        <Text style={styles.count}>{filtered.length} actes</Text>
-      </View>
+      <View style={styles.topSection}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Agenda</Text>
+          <Text style={styles.count}>{filtered.length} actes</Text>
+        </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.chips}
-      >
-        {TYPE_FILTERS.map((f) => {
-          const active = filters.type === f.value;
-          const iconColor = active ? "#fff" : Colors.textMuted;
-          return (
-            <Pressable
-              key={f.label}
-              style={[styles.chip, active && styles.chipActive]}
-              onPress={() => setType(f.value)}
-            >
-              {f.icon && f.icon.lib === "MaterialCommunityIcons" && (
-                <MaterialCommunityIcons
-                  name={f.icon.name}
-                  size={14}
-                  color={iconColor}
-                />
-              )}
-              {f.icon && f.icon.lib === "Ionicons" && (
-                <Ionicons name={f.icon.name} size={14} color={iconColor} />
-              )}
-              <Text style={[styles.chipText, active && styles.chipTextActive]}>
-                {f.label}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </ScrollView>
+        <DayPicker
+          days={availableDays}
+          selected={selectedDay}
+          todayKey={todayKey}
+          onSelect={setDay}
+        />
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.chips}
+        >
+          {TYPE_FILTERS.map((f) => {
+            const active = filters.type === f.value;
+            const iconColor = active ? "#fff" : Colors.textDim;
+            return (
+              <Pressable
+                key={f.label}
+                style={[styles.chip, active && styles.chipActive]}
+                onPress={() => setType(f.value)}
+                accessibilityRole="tab"
+                accessibilityLabel={`Filtre: ${f.label}`}
+                accessibilityState={{ selected: active }}
+              >
+                {f.icon && <FilterIcon icon={f.icon} color={iconColor} />}
+                <Text
+                  style={[styles.chipText, active && styles.chipTextActive]}
+                >
+                  {f.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+      </View>
 
       <AgendaList events={filtered} />
     </Screen>
@@ -95,6 +135,9 @@ export default function AgendaScreen() {
 }
 
 const styles = StyleSheet.create({
+  topSection: {
+    flexShrink: 0,
+  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -105,13 +148,19 @@ const styles = StyleSheet.create({
   },
   title: { color: Colors.text, fontSize: 24, fontWeight: "700" },
   count: { color: Colors.textMuted, fontSize: 14 },
-  chips: { paddingHorizontal: 12, paddingVertical: 10, gap: 8 },
+  chips: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    gap: 8,
+    alignItems: "center",
+  },
   chip: {
+    flexShrink: 0,
     flexDirection: "row",
     alignItems: "center",
     gap: 5,
-    paddingHorizontal: 14,
-    paddingVertical: 7,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     borderRadius: 20,
     backgroundColor: Colors.surface,
     borderWidth: 1,
@@ -121,6 +170,11 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     borderColor: Colors.primary,
   },
-  chipText: { color: Colors.textMuted, fontSize: 13, fontWeight: "500" },
+  chipText: {
+    color: Colors.textMuted,
+    fontSize: 13,
+    fontWeight: "500",
+    flexShrink: 0,
+  },
   chipTextActive: { color: "#fff", fontWeight: "700" },
 });
