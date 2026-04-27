@@ -1,32 +1,59 @@
-export type EventType = 'correfoc' | 'concert' | 'cercavila' | 'gegants' | 'teatre' | 'altres';
-export type EventCategory = 'familiar' | 'nocturn' | 'tradicional' | 'cultural';
-export type EventState = 'now' | 'upcoming' | 'finished';
-export type EventKind = 'static' | 'mobile';
+export type EventType =
+	| "cercavila" // parade / procession
+	| "correfoc" // fire run
+	| "concert" // music concert
+	| "sardanes" // sardana dancing
+	| "castellera" // human towers
+	| "gegants" // giants parade
+	| "havaneres" // sea shanties
+	| "exposicio" // exhibition
+	| "espectacle" // circus / theatre / dance show
+	| "missa" // religious service
+	| "focsartificials" // fireworks
+	| "cursa" // running race
+	| "jocs" // family games / children activities
+	| "contes" // story time
+	| "barram" // bell ringing
+	| "altres"; // anything else
+
+export type EventCategory = "familiar" | "nocturn" | "tradicional" | "cultural";
+export type EventState = "now" | "upcoming" | "finished";
+export type EventKind = "static" | "mobile";
+
+export type EventIconLib = "Ionicons" | "MaterialCommunityIcons";
+
+export interface EventIconDef {
+	lib: EventIconLib;
+	name: string;
+}
 
 export interface StaticLocation {
-  lat: number;
-  lng: number;
+	lat: number;
+	lng: number;
 }
 
 export interface RoutePoint {
-  lat: number;
-  lng: number;
+	lat: number;
+	lng: number;
 }
 
 export interface Event {
-  id: string;
-  title: string;
-  type: EventType;
-  category: EventCategory;
-  icon: string;
-  shortDescription: string;
-  start: string; // ISO 8601
-  end: string;   // ISO 8601
-  state: EventState;
-  kind: EventKind;
-  // static events
-  location?: StaticLocation;
-  // mobile events
-  route?: RoutePoint[];
-  durationMinutes?: number;
+	id: string;
+	title: string;
+	type: EventType;
+	category: EventCategory;
+	icon: EventIconDef;
+	shortDescription: string;
+	start: string; // ISO 8601
+	end: string; // ISO 8601
+	state: EventState;
+	kind: EventKind;
+	// static events
+	location?: StaticLocation;
+	// mobile events
+	route?: RoutePoint[];
+	durationMinutes?: number;
 }
+
+/** Event without a computed state — used in mock data and data layer */
+export type RawEvent = Omit<Event, "state">;

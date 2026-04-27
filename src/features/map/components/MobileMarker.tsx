@@ -1,8 +1,9 @@
 import type { Event, RoutePoint } from '@/entities/event';
 import { Colors } from '@/shared/constants';
+import { EventIcon } from '@/shared/ui';
 import { GeoJSONSource, Layer, ViewAnnotation } from '@maplibre/maplibre-react-native';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 interface Props {
   event: Event;
@@ -36,7 +37,7 @@ export function MobileMarker({ event, currentPosition, onPress }: Props) {
 
       <ViewAnnotation lngLat={[currentPosition.lng, currentPosition.lat]}>
         <View style={styles.pin} onTouchEnd={onPress}>
-          <Text style={styles.icon}>{event.icon}</Text>
+          <EventIcon icon={event.icon} size={18} color="#fff" />
         </View>
       </ViewAnnotation>
     </>
@@ -51,7 +52,5 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#fff',
   },
-  icon: {
-    fontSize: 18,
-  },
+
 });

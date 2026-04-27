@@ -1,7 +1,8 @@
-import React from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
 import type { Event } from '@/entities/event';
 import { Colors } from '@/shared/constants';
+import { Ionicons } from '@expo/vector-icons';
+import React from 'react';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { NowEventItem } from './NowEventItem';
 
 interface Props {
@@ -13,7 +14,7 @@ export function NowList({ events, onEventPress }: Props) {
   if (events.length === 0) {
     return (
       <View style={styles.empty}>
-        <Text style={styles.emptyEmoji}>💤</Text>
+        <Ionicons name="moon-outline" size={48} color={Colors.textDim} />
         <Text style={styles.emptyTitle}>Res passant ara</Text>
         <Text style={styles.emptyDesc}>Torna en uns minuts</Text>
       </View>
@@ -41,7 +42,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
   },
-  emptyEmoji: { fontSize: 48 },
   emptyTitle: {
     color: Colors.text,
     fontSize: 18,

@@ -1,6 +1,8 @@
 import type { Event } from '@/entities/event';
 import { Colors } from '@/shared/constants';
 import { formatTime } from '@/shared/lib';
+import { EventIcon } from '@/shared/ui';
+import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -43,13 +45,22 @@ export function NowEventItem({ event, onPress }: Props) {
       onPress={onPress}
     >
       <PulseDot />
-      <Text style={styles.icon}>{event.icon}</Text>
+      <View style={styles.iconBox}>
+        <EventIcon icon={event.icon} size={22} color={Colors.stateNow} />
+      </View>
       <View style={styles.content}>
         <Text style={styles.title} numberOfLines={1}>{event.title}</Text>
         <Text style={styles.desc} numberOfLines={1}>{event.shortDescription}</Text>
-        <Text style={styles.meta}>
-          {event.kind === 'mobile' ? '🚶 Itinerant' : '📍 Lloc fix'} · fins {formatTime(event.end)}
-        </Text>
+        <View style={styles.metaRow}>
+          <Ionicons
+            name={event.kind === 'mobile' ? 'walk-outline' : 'location-outline'}
+            size={11}
+            color={Colors.textDim}
+          />
+          <Text style={styles.meta}>
+            {event.kind === 'mobile' ? 'Itinerant' : 'Lloc fix'} · fins {formatTime(event.end)}
+          </Text>
+        </View>
       </View>
       <Text style={styles.arrow}>›</Text>
     </Pressable>
@@ -81,8 +92,16 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.stateNow,
     position: 'absolute',
   },
-  icon: { fontSize: 26 },
+  iconBox: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    backgroundColor: `${Colors.stateNow}22`,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   content: { flex: 1, gap: 2 },
+  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   title: { color: Colors.text, fontSize: 15, fontWeight: '700' },
   desc: { color: Colors.textMuted, fontSize: 12 },
   meta: { color: Colors.textDim, fontSize: 11, marginTop: 2 },

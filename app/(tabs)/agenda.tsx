@@ -1,19 +1,51 @@
-import type { EventType } from '@/entities/event';
-import { MOCK_EVENTS } from '@/entities/event';
-import { AgendaList, useAgenda } from '@/features/agenda';
-import { Colors } from '@/shared/constants';
-import { Screen } from '@/shared/ui';
-import React from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import type { EventType } from "@/entities/event";
+import { MOCK_EVENTS } from "@/entities/event";
+import { AgendaList, useAgenda } from "@/features/agenda";
+import { Colors } from "@/shared/constants";
+import { Screen } from "@/shared/ui";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import type React from "react";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
-const TYPE_FILTERS: Array<{ label: string; value: EventType | undefined }> = [
-  { label: 'Tots', value: undefined },
-  { label: '🔥 Correfoc', value: 'correfoc' },
-  { label: '🎵 Concerts', value: 'concert' },
-  { label: '🥁 Cercavila', value: 'cercavila' },
-  { label: '🎭 Gegants', value: 'gegants' },
-  { label: '🎪 Teatre', value: 'teatre' },
-];
+type FilterIconDef =
+  | { lib: "Ionicons"; name: React.ComponentProps<typeof Ionicons>["name"] }
+  | {
+    lib: "MaterialCommunityIcons";
+    name: React.ComponentProps<typeof MaterialCommunityIcons>["name"];
+  };
+
+const TYPE_FILTERS: Array<{
+  label: string;
+  value: EventType | undefined;
+  icon?: FilterIconDef;
+}> = [
+    { label: "Tots", value: undefined },
+    {
+      label: "Correfoc",
+      value: "correfoc",
+      icon: { lib: "MaterialCommunityIcons", name: "fire" },
+    },
+    {
+      label: "Concerts",
+      value: "concert",
+      icon: { lib: "Ionicons", name: "musical-notes" },
+    },
+    {
+      label: "Cercavila",
+      value: "cercavila",
+      icon: { lib: "MaterialCommunityIcons", name: "music" },
+    },
+    {
+      label: "Gegants",
+      value: "gegants",
+      icon: { lib: "MaterialCommunityIcons", name: "crown" },
+    },
+    {
+      label: "Teatre",
+      value: "teatre",
+      icon: { lib: "Ionicons", name: "ticket" },
+    },
+  ];
 
 export default function AgendaScreen() {
   const { filtered, filters, setType } = useAgenda(MOCK_EVENTS);
@@ -32,12 +64,23 @@ export default function AgendaScreen() {
       >
         {TYPE_FILTERS.map((f) => {
           const active = filters.type === f.value;
+          const iconColor = active ? "#fff" : Colors.textMuted;
           return (
             <Pressable
               key={f.label}
               style={[styles.chip, active && styles.chipActive]}
               onPress={() => setType(f.value)}
             >
+              {f.icon && f.icon.lib === "MaterialCommunityIcons" && (
+                <MaterialCommunityIcons
+                  name={f.icon.name}
+                  size={14}
+                  color={iconColor}
+                />
+              )}
+              {f.icon && f.icon.lib === "Ionicons" && (
+                <Ionicons name={f.icon.name} size={14} color={iconColor} />
+              )}
               <Text style={[styles.chipText, active && styles.chipTextActive]}>
                 {f.label}
               </Text>
@@ -53,17 +96,20 @@ export default function AgendaScreen() {
 
 const styles = StyleSheet.create({
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 4,
   },
-  title: { color: Colors.text, fontSize: 24, fontWeight: '700' },
+  title: { color: Colors.text, fontSize: 24, fontWeight: "700" },
   count: { color: Colors.textMuted, fontSize: 14 },
   chips: { paddingHorizontal: 12, paddingVertical: 10, gap: 8 },
   chip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
     paddingHorizontal: 14,
     paddingVertical: 7,
     borderRadius: 20,
@@ -75,6 +121,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     borderColor: Colors.primary,
   },
-  chipText: { color: Colors.textMuted, fontSize: 13, fontWeight: '500' },
-  chipTextActive: { color: '#fff', fontWeight: '700' },
+  chipText: { color: Colors.textMuted, fontSize: 13, fontWeight: "500" },
+  chipTextActive: { color: "#fff", fontWeight: "700" },
 });

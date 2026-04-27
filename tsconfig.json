@@ -1,17 +1,12 @@
 {
-  "extends": "expo/tsconfig.base",
-  "compilerOptions": {
-    "strict": true,
-    "baseUrl": ".",
-    "paths": {
-      "@/*": [
-        "src/*"
-      ]
-    }
-  },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    ".expo/types/**/*.d.ts"
-  ]
+	"extends": "expo/tsconfig.base",
+	"compilerOptions": {
+		"strict": true,
+		"types": ["node"],
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["src/*"]
+		}
+	},
+	"include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.d.ts"]
 }

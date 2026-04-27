@@ -1,5 +1,6 @@
 import type { Event, EventState } from '@/entities/event';
 import { Colors } from '@/shared/constants';
+import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { SectionList, StyleSheet, Text, View } from 'react-native';
 import { EventCard } from './EventCard';
@@ -12,9 +13,14 @@ interface Section {
 
 const STATE_ORDER: EventState[] = ['now', 'upcoming', 'finished'];
 const STATE_LABEL: Record<EventState, string> = {
-  now: '🟢 Ara mateix',
-  upcoming: '🔵 Pròxims',
-  finished: '⚫ Finalitzats',
+  now: 'Ara mateix',
+  upcoming: 'Pròxims',
+  finished: 'Finalitzats',
+};
+const STATE_DOT_COLOR: Record<EventState, string> = {
+  now: Colors.stateNow,
+  upcoming: Colors.stateUpcoming,
+  finished: Colors.stateFinished,
 };
 
 function buildSections(events: Event[]): Section[] {
@@ -36,7 +42,7 @@ export function AgendaList({ events, onEventPress }: Props) {
   if (sections.length === 0) {
     return (
       <View style={styles.empty}>
-        <Text style={styles.emptyIcon}>🎭</Text>
+        <Ionicons name="calendar-outline" size={40} color={Colors.textDim} />
         <Text style={styles.emptyText}>Cap acte trobat</Text>
       </View>
     );
@@ -51,7 +57,10 @@ export function AgendaList({ events, onEventPress }: Props) {
       )}
       renderSectionHeader={({ section }) => (
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>{section.title}</Text>
+          <View style={styles.sectionTitleRow}>
+            <View style={[styles.sectionDot, { backgroundColor: STATE_DOT_COLOR[section.state] }]} />
+            <Text style={styles.sectionTitle}>{section.title}</Text>
+          </View>
           <Text style={styles.sectionCount}>{section.data.length}</Text>
         </View>
       )}
@@ -90,6 +99,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
   },
-  emptyIcon: { fontSize: 40 },
-  emptyText: { color: Colors.textMuted, fontSize: 16 },
+  sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  sectionDot: { width: 7, height: 7, borderRadius: 4 },
+  emptyText: { color: Colors.textMuted, fontSize: 16, marginTop: 4 },
 });

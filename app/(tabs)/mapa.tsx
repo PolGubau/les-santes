@@ -1,41 +1,50 @@
+import type { Event } from '@/entities/event';
 import { MOCK_EVENTS } from '@/entities/event';
-import { EventMap } from '@/features/map';
+import { EventDetailSheet, EventMap } from '@/features/map';
 import { Colors } from '@/shared/constants';
 import { Screen } from '@/shared/ui';
-import React from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import React, { useCallback, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function MapaScreen() {
   const insets = useSafeAreaInsets();
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const mobileCount = MOCK_EVENTS.filter((e) => e.kind === 'mobile' && e.state === 'now').length;
+
+  const handleEventPress = useCallback((event: Event) => {
+    setSelectedEvent(event);
+  }, []);
 
   return (
     <Screen safe={false}>
-      <EventMap events={MOCK_EVENTS} />
+      <EventMap events={MOCK_EVENTS} onEventPress={handleEventPress} />
 
-      {/* Floating header */}
       <View style={[styles.floatingHeader, { top: insets.top + 8 }]}>
         <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>📍 Mataró</Text>
+          <View style={styles.headerTitleRow}>
+            <Ionicons name="location" size={15} color={Colors.text} />
+            <Text style={styles.headerTitle}>Mataró</Text>
+          </View>
           {mobileCount > 0 && (
             <View style={styles.livePill}>
               <View style={styles.liveDot} />
-              <Text style={styles.liveText}>{mobileCount} colles en moviment</Text>
+              <Text style={styles.liveText}>{mobileCount} en moviment</Text>
             </View>
           )}
         </View>
       </View>
+
+      {selectedEvent && (
+        <EventDetailSheet event={selectedEvent} onClose={() => setSelectedEvent(null)} />
+      )}
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  floatingHeader: {
-    position: 'absolute',
-    left: 16,
-    right: 16,
-  },
+  floatingHeader: { position: 'absolute', left: 16, right: 16 },
   headerContent: {
     backgroundColor: `${Colors.surface}EE`,
     borderRadius: 14,
@@ -48,6 +57,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 8,
   },
+  headerTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   headerTitle: { color: Colors.text, fontSize: 15, fontWeight: '700' },
   livePill: {
     flexDirection: 'row',

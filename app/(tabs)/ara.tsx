@@ -2,6 +2,7 @@ import { MOCK_EVENTS } from '@/entities/event';
 import { NowList, useNowEvents } from '@/features/now';
 import { Colors } from '@/shared/constants';
 import { Screen } from '@/shared/ui';
+import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -39,7 +40,7 @@ export default function AraScreen() {
 
       {nowEvents.length === 0 ? (
         <View style={styles.empty}>
-          <Text style={styles.emptyIcon}>🎭</Text>
+          <Ionicons name="musical-notes-outline" size={48} color={Colors.textDim} />
           <Text style={styles.emptyTitle}>Res ara mateix</Text>
           <Text style={styles.emptyDesc}>Consulta l'agenda per veure els pròxims actes</Text>
         </View>
@@ -88,7 +89,6 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: 40,
   },
-  emptyIcon: { fontSize: 48 },
   emptyTitle: { color: Colors.text, fontSize: 18, fontWeight: '600' },
   emptyDesc: { color: Colors.textMuted, fontSize: 14, textAlign: 'center', lineHeight: 20 },
 });

@@ -1,9 +1,9 @@
-import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { Event } from '@/entities/event';
 import { Colors } from '@/shared/constants';
 import { formatTime } from '@/shared/lib';
-import { StateBadge } from '@/shared/ui';
+import { EventIcon, StateBadge } from '@/shared/ui';
+import React from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 interface Props {
   event: Event;
@@ -18,7 +18,9 @@ export function EventCard({ event, onPress }: Props) {
       style={[styles.card, isFinished && styles.cardDim]}
       onPress={onPress}
     >
-      <Text style={styles.icon}>{event.icon}</Text>
+      <View style={styles.iconBox}>
+        <EventIcon icon={event.icon} size={24} color={Colors.text} />
+      </View>
       <View style={styles.content}>
         <View style={styles.header}>
           <Text style={[styles.title, isFinished && styles.textDim]} numberOfLines={1}>
@@ -30,7 +32,7 @@ export function EventCard({ event, onPress }: Props) {
           {event.shortDescription}
         </Text>
         <Text style={styles.time}>
-          {formatTime(event.start)} – {formatTime(event.end)}
+          {formatTime(event.start)} - {formatTime(event.end)}
         </Text>
       </View>
     </Pressable>
@@ -52,8 +54,13 @@ const styles = StyleSheet.create({
   cardDim: {
     opacity: 0.5,
   },
-  icon: {
-    fontSize: 28,
+  iconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: Colors.surfaceHigh,
+    alignItems: 'center',
+    justifyContent: 'center',
     alignSelf: 'center',
   },
   content: {

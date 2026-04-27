@@ -1,8 +1,9 @@
 import type { Event } from '@/entities/event';
 import { Colors } from '@/shared/constants';
+import { EventIcon } from '@/shared/ui';
 import { ViewAnnotation } from '@maplibre/maplibre-react-native';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 interface Props {
   event: Event;
@@ -20,7 +21,7 @@ export function StaticMarker({ event, onPress }: Props) {
         style={[styles.pin, event.state === 'now' && styles.pinNow]}
         onTouchEnd={onPress}
       >
-        <Text style={styles.icon}>{event.icon}</Text>
+        <EventIcon icon={event.icon} size={18} color={Colors.text} />
       </View>
     </ViewAnnotation>
   );
@@ -37,7 +38,5 @@ const styles = StyleSheet.create({
   pinNow: {
     borderColor: Colors.stateNow,
   },
-  icon: {
-    fontSize: 18,
-  },
+
 });
