@@ -45,6 +45,7 @@ export interface Event {
 	end: string; // ISO 8601
 	state: EventState;
 	kind: EventKind;
+	imageUrl?: string; // optional cover photo
 	// static events
 	location?: StaticLocation;
 	locationName?: string; // human-readable venue name

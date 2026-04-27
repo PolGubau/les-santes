@@ -5,9 +5,15 @@ import { addEventToCalendar, formatTime } from '@/shared/lib';
 import { EventIcon } from '@/shared/ui';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import * as Sharing from 'expo-sharing';
-import React, { useRef } from 'react';
-import { Animated, Pressable, Share, StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withTiming,
+  interpolate,
+} from 'react-native-reanimated';
 
 interface Props {
   event: Event;
@@ -16,20 +22,31 @@ interface Props {
 }
 
 export function EventCard({ event, onPress, distanceMeters }: Props) {
-  const scale = useRef(new Animated.Value(1)).current;
+  const scale = useSharedValue(1);
+  const expandProgress = useSharedValue(0);
+  const [expanded, setExpanded] = useState(false);
   const isFinished = event.state === 'finished';
   const stateLabel = event.state === 'now' ? 'En curs' : event.state === 'upcoming' ? 'Proximament' : 'Acabat';
 
   const { isFavorite, toggleFavorite } = useFavoritesStore();
   const favorite = isFavorite(event.id);
 
+  const cardStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const actionBarStyle = useAnimatedStyle(() => ({
+    height: interpolate(expandProgress.value, [0, 1], [0, 40]),
+    overflow: 'hidden',
+  }));
+
   const handlePressIn = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Animated.timing(scale, { toValue: 0.97, duration: 80, useNativeDriver: true }).start();
+    scale.value = withTiming(0.97, { duration: 80 });
   };
 
   const handlePressOut = () => {
-    Animated.spring(scale, { toValue: 1, tension: 200, friction: 7, useNativeDriver: true }).start();
+    scale.value = withSpring(1, { stiffness: 200, damping: 15 });
   };
 
   const handleFavorite = () => {
@@ -37,24 +54,26 @@ export function EventCard({ event, onPress, distanceMeters }: Props) {
     toggleFavorite(event.id);
   };
 
+  const handleMenu = () => {
+    Haptics.selectionAsync();
+    const next = !expanded;
+    setExpanded(next);
+    expandProgress.value = withSpring(next ? 1 : 0, { stiffness: 160, damping: 20 });
+  };
+
   const handleCalendar = () => {
     Haptics.selectionAsync();
     addEventToCalendar(event);
   };
 
-  const handleShare = async () => {
+  const handleShare = () => {
     Haptics.selectionAsync();
     const message = `${event.title}\n${formatTime(event.start)} – ${formatTime(event.end)}\n${event.shortDescription}`;
-    if (await Sharing.isAvailableAsync()) {
-      // Native share sheet
-      await Share.share({ message });
-    } else {
-      await Share.share({ message });
-    }
+    Share.share({ message });
   };
 
   return (
-    <Animated.View style={{ transform: [{ scale }] }}>
+    <Animated.View style={cardStyle}>
       <Pressable
         style={({ pressed }) => [styles.row, isFinished && styles.rowDim, pressed && styles.rowPressed]}
         onPress={onPress}
@@ -82,23 +101,35 @@ export function EventCard({ event, onPress, distanceMeters }: Props) {
               : event.shortDescription}
           </Text>
         </View>
-        {/* Actions */}
+        {/* Compact right actions: heart + menu dots */}
         <View style={styles.actions}>
-          <Pressable onPress={handleFavorite} hitSlop={8} accessibilityLabel={favorite ? 'Treure de favorits' : 'Afegir a favorits'}>
-            <Ionicons name={favorite ? 'heart' : 'heart-outline'} size={18} color={favorite ? Colors.primary : Colors.textDim} />
+          <Pressable onPress={handleFavorite} hitSlop={10} accessibilityLabel={favorite ? 'Treure de favorits' : 'Afegir a favorits'}>
+            <Ionicons name={favorite ? 'heart' : 'heart-outline'} size={20} color={favorite ? Colors.primary : Colors.textDim} />
           </Pressable>
           {!isFinished && (
-            <>
-              <Pressable onPress={handleCalendar} hitSlop={8} accessibilityLabel="Afegir al calendari">
-                <Ionicons name="calendar-outline" size={17} color={Colors.textDim} />
-              </Pressable>
-              <Pressable onPress={handleShare} hitSlop={8} accessibilityLabel="Compartir">
-                <Ionicons name="share-outline" size={17} color={Colors.textDim} />
-              </Pressable>
-            </>
+            <Pressable onPress={handleMenu} hitSlop={10} accessibilityLabel="Més opcions">
+              <Ionicons name={expanded ? 'close-circle-outline' : 'ellipsis-horizontal'} size={18} color={Colors.textDim} />
+            </Pressable>
           )}
         </View>
       </Pressable>
+
+      {/* Expandable action bar */}
+      {!isFinished && (
+        <Animated.View style={[styles.actionBar, actionBarStyle]}>
+          <View style={styles.actionBarInner}>
+            <Pressable style={styles.actionBtn} onPress={handleCalendar} accessibilityLabel="Afegir al calendari">
+              <Ionicons name="calendar-outline" size={16} color={Colors.textDim} />
+              <Text style={styles.actionBtnText}>Calendari</Text>
+            </Pressable>
+            <View style={styles.actionSep} />
+            <Pressable style={styles.actionBtn} onPress={handleShare} accessibilityLabel="Compartir">
+              <Ionicons name="share-outline" size={16} color={Colors.textDim} />
+              <Text style={styles.actionBtnText}>Compartir</Text>
+            </Pressable>
+          </View>
+        </Animated.View>
+      )}
     </Animated.View>
   );
 }
@@ -122,15 +153,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexShrink: 0,
   },
-  content: {
-    flex: 1,
-    gap: 2,
-  },
+  content: { flex: 1, gap: 2 },
   actions: {
-    flexDirection: 'column',
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    paddingLeft: 6,
+    gap: 12,
+    paddingLeft: 4,
   },
   header: {
     flexDirection: 'row',
@@ -138,22 +166,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  title: {
-    flex: 1,
-    color: Colors.text,
-    fontSize: 14,
-    fontWeight: '600',
-  },
+  title: { flex: 1, color: Colors.text, fontSize: 14, fontWeight: '600' },
   textDim: { color: Colors.textMuted },
-  desc: {
-    color: Colors.textMuted,
-    fontSize: 12,
-    lineHeight: 17,
+  desc: { color: Colors.textMuted, fontSize: 12, lineHeight: 17 },
+  time: { color: Colors.textDim, fontSize: 12, fontWeight: '500', flexShrink: 0 },
+  actionBar: {
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    backgroundColor: Colors.surface,
   },
-  time: {
-    color: Colors.textDim,
-    fontSize: 12,
-    fontWeight: '500',
-    flexShrink: 0,
+  actionBarInner: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 0,
   },
+  actionBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+  },
+  actionBtnText: { color: Colors.textDim, fontSize: 13, fontWeight: '500' },
+  actionSep: { width: 1, height: 18, backgroundColor: Colors.border },
 });

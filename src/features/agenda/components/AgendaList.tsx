@@ -15,12 +15,22 @@ interface Props {
   onEventPress?: (event: Event) => void;
   onRefresh?: () => void;
   refreshing?: boolean;
+  emptyText?: string;
+  emptyIcon?: React.ComponentProps<typeof Ionicons>["name"];
 }
 
 // Pre-allocate 3 animated values (one per possible section: now/upcoming/finished)
 const SECTION_ANIM_COUNT = 3;
 
-export function AgendaList({ events, userCoords, onEventPress, onRefresh, refreshing = false }: Props) {
+export function AgendaList({
+  events,
+  userCoords,
+  onEventPress,
+  onRefresh,
+  refreshing = false,
+  emptyText = 'Cap acte trobat',
+  emptyIcon = 'calendar-outline',
+}: Props) {
   const sections = buildSections(events);
 
   const animValues = useRef(
@@ -42,8 +52,8 @@ export function AgendaList({ events, userCoords, onEventPress, onRefresh, refres
   if (sections.length === 0) {
     return (
       <View style={styles.empty}>
-        <Ionicons name="calendar-outline" size={40} color={Colors.textDim} />
-        <Text style={styles.emptyText}>Cap acte trobat</Text>
+        <Ionicons name={emptyIcon} size={40} color={Colors.textDim} />
+        <Text style={styles.emptyText}>{emptyText}</Text>
       </View>
     );
   }
@@ -53,6 +63,7 @@ export function AgendaList({ events, userCoords, onEventPress, onRefresh, refres
       style={styles.list}
       contentContainerStyle={styles.listContent}
       showsVerticalScrollIndicator={false}
+      nestedScrollEnabled
       refreshControl={
         onRefresh ? (
           <RefreshControl

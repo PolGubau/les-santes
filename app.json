@@ -40,14 +40,6 @@
 		"plugins": [
 			"expo-router",
 			[
-				"expo-notifications",
-				{
-					"icon": "./assets/icon.png",
-					"color": "#C1001A",
-					"sounds": []
-				}
-			],
-			[
 				"expo-location",
 				{
 					"locationWhenInUsePermission": "La app necessita la teva ubicació per mostrar-la al mapa del festival i filtrar actes propers."

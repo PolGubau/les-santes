@@ -142,6 +142,7 @@ export const MOCK_EVENTS: RawEvent[] = [
 		type: "correfoc",
 		category: "nocturn",
 		icon: { lib: "MaterialCommunityIcons", name: "fire" },
+		imageUrl: "https://picsum.photos/seed/bonfire/800/450",
 		shortDescription:
 			"Balls parlats, cercavila de foc i encesa final amb el Ball de Diables de Mataró. Convidats: Seguici Festiu de Tarragona i els Basiliscs de Reus.",
 		start: d(20, 18, 30),
@@ -162,6 +163,7 @@ export const MOCK_EVENTS: RawEvent[] = [
 		type: "gegants",
 		category: "tradicional",
 		icon: { lib: "MaterialCommunityIcons", name: "crown" },
+		imageUrl: "https://picsum.photos/seed/parade/800/450",
 		shortDescription:
 			"Tots els gegants, nans i figures de la ciutat en una cercavila multitudinària. Sortida des de la Ronda O'Donnell.",
 		start: d(24, 18),
@@ -260,6 +262,7 @@ export const MOCK_EVENTS: RawEvent[] = [
 		type: "correfoc",
 		category: "nocturn",
 		icon: { lib: "MaterialCommunityIcons", name: "fire" },
+		imageUrl: "https://picsum.photos/seed/dragon/800/450",
 		shortDescription:
 			"Gran correfoc nocturn amb la Momerota, el Drac, les Diablesses i més de 15 colles convidades.",
 		start: dn(25, 1, 30),
@@ -295,6 +298,7 @@ export const MOCK_EVENTS: RawEvent[] = [
 		type: "focsartificials",
 		category: "nocturn",
 		icon: { lib: "MaterialCommunityIcons", name: "firework" },
+		imageUrl: "https://picsum.photos/seed/fireworks/800/450",
 		shortDescription:
 			"Castell de focs des del passeig marítim. Un dels espectacles més esperats de les festes.",
 		start: d(26, 23),
@@ -324,6 +328,7 @@ export const MOCK_EVENTS: RawEvent[] = [
 		type: "cercavila",
 		category: "tradicional",
 		icon: { lib: "MaterialCommunityIcons", name: "flag" },
+		imageUrl: "https://picsum.photos/seed/procession/800/450",
 		shortDescription:
 			"Cercavila solemne des de l'Ajuntament fins a la Basílica de Santa Maria per La Riera",
 		start: d(27, 17, 30),

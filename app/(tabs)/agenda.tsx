@@ -1,25 +1,24 @@
 import type { EventType } from "@/entities/event";
-import { MOCK_EVENTS } from "@/entities/event";
+import { MOCK_EVENTS, withState } from "@/entities/event";
 import { AgendaList, DayPicker, useAgenda } from "@/features/agenda";
+import { useFavoritesStore } from "@/features/favorites";
 import { Colors } from "@/shared/constants";
-import { useUserLocation } from "@/shared/hooks";
+import { useNow, useUserLocation } from "@/shared/hooks";
 import { Screen } from "@/shared/ui";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import type React from "react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { NativeScrollEvent, NativeSyntheticEvent } from "react-native";
 import {
-  Dimensions,
   FlatList,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   View,
+  useWindowDimensions,
 } from "react-native";
-
-const SCREEN_WIDTH = Dimensions.get("window").width;
 
 type FilterIconDef =
   | { lib: "Ionicons"; name: React.ComponentProps<typeof Ionicons>["name"] }
@@ -30,10 +29,9 @@ type FilterIconDef =
 
 const TYPE_FILTERS: Array<{
   label: string;
-  value: EventType | undefined;
+  value: EventType;
   icon?: FilterIconDef;
 }> = [
-    { label: "Tots", value: undefined },
     {
       label: "Correfoc",
       value: "correfoc",
@@ -89,13 +87,22 @@ function FilterIcon({ icon, color }: { icon: FilterIconDef; color: string }) {
 }
 
 export default function AgendaScreen() {
+  const { width: SCREEN_WIDTH } = useWindowDimensions();
   const [refreshing, setRefreshing] = useState(false);
+  const [showFavorites, setShowFavorites] = useState(false);
   const userCoords = useUserLocation();
   const flatRef = useRef<FlatList<string>>(null);
   const isScrollingFromPicker = useRef(false);
+  const now = useNow();
+
+  const { favorites, isFavorite } = useFavoritesStore();
+  const favoriteEvents = useMemo(
+    () => MOCK_EVENTS.filter((e) => isFavorite(e.id)).map((e) => withState(e, now)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [favorites, now],
+  );
 
   const {
-    filtered,
     filteredByDay,
     filters,
     setType,
@@ -106,12 +113,19 @@ export default function AgendaScreen() {
     setDay,
   } = useAgenda(MOCK_EVENTS, userCoords);
 
+  const dayCount = showFavorites
+    ? favoriteEvents.length
+    : filteredByDay.get(selectedDay)?.length ?? 0;
+
   // Sync FlatList position when DayPicker selection changes
   useEffect(() => {
     const idx = availableDays.indexOf(selectedDay);
     if (idx < 0 || !flatRef.current) return;
     isScrollingFromPicker.current = true;
     flatRef.current.scrollToIndex({ index: idx, animated: true });
+    // Safety: reset flag even if scrollToIndex doesn't fire onMomentumScrollEnd
+    const timer = setTimeout(() => { isScrollingFromPicker.current = false; }, 500);
+    return () => clearTimeout(timer);
   }, [selectedDay, availableDays]);
 
   const handleFlatListScroll = useCallback(
@@ -127,7 +141,7 @@ export default function AgendaScreen() {
         setDay(day);
       }
     },
-    [availableDays, selectedDay, setDay],
+    [SCREEN_WIDTH, availableDays, selectedDay, setDay],
   );
 
   const handleRefresh = useCallback(() => {
@@ -140,21 +154,51 @@ export default function AgendaScreen() {
       <View style={styles.topSection}>
         <View style={styles.header}>
           <Text style={styles.title}>Agenda</Text>
-          <Text style={styles.count}>{filtered.length} actes</Text>
+          <Text style={styles.count}>{dayCount} actes</Text>
         </View>
 
-        <DayPicker
-          days={availableDays}
-          selected={selectedDay}
-          todayKey={todayKey}
-          onSelect={setDay}
-        />
+        {!showFavorites && (
+          <DayPicker
+            days={availableDays}
+            selected={selectedDay}
+            todayKey={todayKey}
+            onSelect={setDay}
+          />
+        )}
 
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.chips}
         >
+          {/* "Favorits" chip */}
+          <Pressable
+            style={[styles.chip, showFavorites && styles.chipFavorites]}
+            onPress={() => {
+              Haptics.selectionAsync();
+              setShowFavorites((v) => !v);
+            }}
+            accessibilityRole="tab"
+            accessibilityLabel="Filtre: Favorits"
+            accessibilityState={{ selected: showFavorites }}
+          >
+            <Ionicons
+              name={showFavorites ? "heart" : "heart-outline"}
+              size={15}
+              color={showFavorites ? "#fff" : Colors.primary}
+            />
+            <Text style={[styles.chipText, showFavorites && styles.chipTextActive]}>
+              Favorits
+            </Text>
+            {favoriteEvents.length > 0 && (
+              <View style={[styles.favBadge, showFavorites && styles.favBadgeActive]}>
+                <Text style={[styles.favBadgeText, showFavorites && styles.favBadgeTextActive]}>
+                  {favoriteEvents.length}
+                </Text>
+              </View>
+            )}
+          </Pressable>
+
           {/* "Aprop meu" chip */}
           {userCoords && (
             <Pressable
@@ -184,7 +228,7 @@ export default function AgendaScreen() {
               <Pressable
                 key={f.label}
                 style={[styles.chip, active && styles.chipActive]}
-                onPress={() => setType(f.value)}
+                onPress={() => setType(active ? undefined : f.value)}
                 accessibilityRole="tab"
                 accessibilityLabel={`Filtre: ${f.label}`}
                 accessibilityState={{ selected: active }}
@@ -199,32 +243,43 @@ export default function AgendaScreen() {
         </ScrollView>
       </View>
 
-      <FlatList
-        ref={flatRef}
-        data={availableDays}
-        keyExtractor={(day) => day}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        style={styles.pager}
-        initialScrollIndex={Math.max(0, availableDays.indexOf(selectedDay))}
-        getItemLayout={(_, index) => ({
-          length: SCREEN_WIDTH,
-          offset: SCREEN_WIDTH * index,
-          index,
-        })}
-        onMomentumScrollEnd={handleFlatListScroll}
-        renderItem={({ item: day }) => (
-          <View style={styles.page}>
-            <AgendaList
-              events={filteredByDay.get(day) ?? []}
-              userCoords={userCoords}
-              onRefresh={handleRefresh}
-              refreshing={refreshing}
-            />
-          </View>
-        )}
-      />
+      {showFavorites ? (
+        <AgendaList
+          events={favoriteEvents}
+          userCoords={userCoords}
+          onRefresh={handleRefresh}
+          refreshing={refreshing}
+          emptyText="Encara no tens cap acte preferit"
+          emptyIcon="heart-outline"
+        />
+      ) : (
+        <FlatList
+          ref={flatRef}
+          data={availableDays}
+          keyExtractor={(day) => day}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          style={styles.pager}
+          initialScrollIndex={Math.max(0, availableDays.indexOf(selectedDay))}
+          getItemLayout={(_, index) => ({
+            length: SCREEN_WIDTH,
+            offset: SCREEN_WIDTH * index,
+            index,
+          })}
+          onMomentumScrollEnd={handleFlatListScroll}
+          renderItem={({ item: day }) => (
+            <View style={[styles.page, { width: SCREEN_WIDTH }]}>
+              <AgendaList
+                events={filteredByDay.get(day) ?? []}
+                userCoords={userCoords}
+                onRefresh={handleRefresh}
+                refreshing={refreshing}
+              />
+            </View>
+          )}
+        />
+      )}
     </Screen>
   );
 }
@@ -232,7 +287,7 @@ export default function AgendaScreen() {
 const styles = StyleSheet.create({
   topSection: { flexShrink: 0 },
   pager: { flex: 1 },
-  page: { width: SCREEN_WIDTH, flex: 1 },
+  page: { flex: 1 },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -275,5 +330,29 @@ const styles = StyleSheet.create({
   chipNearMe: {
     backgroundColor: Colors.primary,
     borderColor: Colors.primary,
+  },
+  chipFavorites: {
+    backgroundColor: "#e11d48",
+    borderColor: "#e11d48",
+  },
+  favBadge: {
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: Colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 4,
+  },
+  favBadgeActive: {
+    backgroundColor: "rgba(255,255,255,0.3)",
+  },
+  favBadgeText: {
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: "700",
+  },
+  favBadgeTextActive: {
+    color: "#fff",
   },
 });
