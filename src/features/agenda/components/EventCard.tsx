@@ -1,20 +1,27 @@
 import type { Event } from '@/entities/event';
+import { useFavoritesStore } from '@/features/favorites';
 import { Colors } from '@/shared/constants';
-import { formatTime } from '@/shared/lib';
+import { addEventToCalendar, formatTime } from '@/shared/lib';
 import { EventIcon } from '@/shared/ui';
+import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import * as Sharing from 'expo-sharing';
 import React, { useRef } from 'react';
-import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Pressable, Share, StyleSheet, Text, View } from 'react-native';
 
 interface Props {
   event: Event;
   onPress?: () => void;
+  distanceMeters?: number;
 }
 
-export function EventCard({ event, onPress }: Props) {
+export function EventCard({ event, onPress, distanceMeters }: Props) {
   const scale = useRef(new Animated.Value(1)).current;
   const isFinished = event.state === 'finished';
-  const stateLabel = event.state === 'now' ? 'En curs' : event.state === 'upcoming' ? 'Pròximament' : 'Acabat';
+  const stateLabel = event.state === 'now' ? 'En curs' : event.state === 'upcoming' ? 'Proximament' : 'Acabat';
+
+  const { isFavorite, toggleFavorite } = useFavoritesStore();
+  const favorite = isFavorite(event.id);
 
   const handlePressIn = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -23,6 +30,27 @@ export function EventCard({ event, onPress }: Props) {
 
   const handlePressOut = () => {
     Animated.spring(scale, { toValue: 1, tension: 200, friction: 7, useNativeDriver: true }).start();
+  };
+
+  const handleFavorite = () => {
+    Haptics.impactAsync(favorite ? Haptics.ImpactFeedbackStyle.Light : Haptics.ImpactFeedbackStyle.Medium);
+    toggleFavorite(event);
+  };
+
+  const handleCalendar = () => {
+    Haptics.selectionAsync();
+    addEventToCalendar(event);
+  };
+
+  const handleShare = async () => {
+    Haptics.selectionAsync();
+    const message = `${event.title}\n${formatTime(event.start)} – ${formatTime(event.end)}\n${event.shortDescription}`;
+    if (await Sharing.isAvailableAsync()) {
+      // Native share sheet
+      await Share.share({ message });
+    } else {
+      await Share.share({ message });
+    }
   };
 
   return (
@@ -34,7 +62,6 @@ export function EventCard({ event, onPress }: Props) {
         onPressOut={handlePressOut}
         accessibilityRole="button"
         accessibilityLabel={`${event.title}. ${stateLabel}. De ${formatTime(event.start)} a ${formatTime(event.end)}`}
-        accessibilityHint="Prem per veure els detalls"
         accessibilityState={{ disabled: isFinished }}
       >
         <View style={styles.iconBox}>
@@ -50,8 +77,26 @@ export function EventCard({ event, onPress }: Props) {
             </Text>
           </View>
           <Text style={styles.desc} numberOfLines={1}>
-            {event.shortDescription}
+            {distanceMeters != null
+              ? `${event.shortDescription} · ${distanceMeters < 1000 ? `${Math.round(distanceMeters)} m` : `${(distanceMeters / 1000).toFixed(1)} km`}`
+              : event.shortDescription}
           </Text>
+        </View>
+        {/* Actions */}
+        <View style={styles.actions}>
+          <Pressable onPress={handleFavorite} hitSlop={8} accessibilityLabel={favorite ? 'Treure de favorits' : 'Afegir a favorits'}>
+            <Ionicons name={favorite ? 'heart' : 'heart-outline'} size={18} color={favorite ? Colors.primary : Colors.textDim} />
+          </Pressable>
+          {!isFinished && (
+            <>
+              <Pressable onPress={handleCalendar} hitSlop={8} accessibilityLabel="Afegir al calendari">
+                <Ionicons name="calendar-outline" size={17} color={Colors.textDim} />
+              </Pressable>
+              <Pressable onPress={handleShare} hitSlop={8} accessibilityLabel="Compartir">
+                <Ionicons name="share-outline" size={17} color={Colors.textDim} />
+              </Pressable>
+            </>
+          )}
         </View>
       </Pressable>
     </Animated.View>
@@ -80,6 +125,12 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     gap: 2,
+  },
+  actions: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 10,
+    paddingLeft: 6,
   },
   header: {
     flexDirection: 'row',

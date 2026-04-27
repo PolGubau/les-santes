@@ -2,8 +2,10 @@ import type { EventType } from "@/entities/event";
 import { MOCK_EVENTS } from "@/entities/event";
 import { AgendaList, DayPicker, useAgenda } from "@/features/agenda";
 import { Colors } from "@/shared/constants";
+import { useUserLocation } from "@/shared/hooks";
 import { Screen } from "@/shared/ui";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 import type React from "react";
 import { useCallback, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -77,15 +79,17 @@ function FilterIcon({ icon, color }: { icon: FilterIconDef; color: string }) {
 
 export default function AgendaScreen() {
   const [refreshing, setRefreshing] = useState(false);
+  const userCoords = useUserLocation();
   const {
     filtered,
     filters,
     setType,
+    toggleNearMe,
     selectedDay,
     availableDays,
     todayKey,
     setDay,
-  } = useAgenda(MOCK_EVENTS);
+  } = useAgenda(MOCK_EVENTS, userCoords);
 
   const handleRefresh = useCallback(() => {
     setRefreshing(true);
@@ -113,6 +117,28 @@ export default function AgendaScreen() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.chips}
         >
+          {/* "Aprop meu" chip */}
+          {userCoords && (
+            <Pressable
+              style={[styles.chip, filters.nearMe && styles.chipNearMe]}
+              onPress={() => {
+                Haptics.selectionAsync();
+                toggleNearMe();
+              }}
+              accessibilityRole="tab"
+              accessibilityLabel="Filtre: Aprop meu"
+              accessibilityState={{ selected: !!filters.nearMe }}
+            >
+              <Ionicons
+                name="location"
+                size={15}
+                color={filters.nearMe ? "#fff" : Colors.primary}
+              />
+              <Text style={[styles.chipText, filters.nearMe && styles.chipTextActive]}>
+                Aprop meu
+              </Text>
+            </Pressable>
+          )}
           {TYPE_FILTERS.map((f) => {
             const active = filters.type === f.value;
             const iconColor = active ? "#fff" : Colors.textDim;
@@ -126,9 +152,7 @@ export default function AgendaScreen() {
                 accessibilityState={{ selected: active }}
               >
                 {f.icon && <FilterIcon icon={f.icon} color={iconColor} />}
-                <Text
-                  style={[styles.chipText, active && styles.chipTextActive]}
-                >
+                <Text style={[styles.chipText, active && styles.chipTextActive]}>
                   {f.label}
                 </Text>
               </Pressable>
@@ -137,7 +161,7 @@ export default function AgendaScreen() {
         </ScrollView>
       </View>
 
-      <AgendaList events={filtered} onRefresh={handleRefresh} refreshing={refreshing} />
+      <AgendaList events={filtered} userCoords={userCoords} onRefresh={handleRefresh} refreshing={refreshing} />
     </Screen>
   );
 }
@@ -185,4 +209,8 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   chipTextActive: { color: "#fff", fontWeight: "700" },
+  chipNearMe: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
 });

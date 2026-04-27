@@ -14,13 +14,17 @@
 			"backgroundColor": "#ffffff"
 		},
 		"ios": {
-			"supportsTablet": true
+			"supportsTablet": true,
+			"infoPlist": {
+				"NSLocationWhenInUseUsageDescription": "La app necesita la teva ubicació per mostrar-la al mapa del festival."
+			}
 		},
 		"android": {
 			"adaptiveIcon": {
 				"foregroundImage": "./assets/adaptive-icon.png",
 				"backgroundColor": "#ffffff"
 			},
+			"permissions": ["android.permission.ACCESS_FINE_LOCATION"],
 			"edgeToEdgeEnabled": true,
 			"predictiveBackGestureEnabled": false
 		},
@@ -33,6 +37,28 @@
 				"projectId": "dffc30d5-6870-47b8-979f-a842d6848eb5"
 			}
 		},
-		"plugins": ["expo-router"]
+		"plugins": [
+			"expo-router",
+			[
+				"expo-notifications",
+				{
+					"icon": "./assets/icon.png",
+					"color": "#C1001A",
+					"sounds": []
+				}
+			],
+			[
+				"expo-location",
+				{
+					"locationWhenInUsePermission": "La app necessita la teva ubicació per mostrar-la al mapa del festival i filtrar actes propers."
+				}
+			],
+			[
+				"expo-calendar",
+				{
+					"calendarPermission": "La app vol afegir actes del festival al teu calendari."
+				}
+			]
+		]
 	}
 }

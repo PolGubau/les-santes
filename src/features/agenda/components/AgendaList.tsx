@@ -1,6 +1,8 @@
 import type { Event } from '@/entities/event';
 import { STATE_COLOR } from '@/entities/event';
 import { Colors } from '@/shared/constants';
+import type { UserCoords } from '@/shared/hooks';
+import { haversineDistance } from '@/shared/lib';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef } from 'react';
 import { Animated, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -9,6 +11,7 @@ import { EventCard } from './EventCard';
 
 interface Props {
   events: Event[];
+  userCoords?: UserCoords | null;
   onEventPress?: (event: Event) => void;
   onRefresh?: () => void;
   refreshing?: boolean;
@@ -17,7 +20,7 @@ interface Props {
 // Pre-allocate 3 animated values (one per possible section: now/upcoming/finished)
 const SECTION_ANIM_COUNT = 3;
 
-export function AgendaList({ events, onEventPress, onRefresh, refreshing = false }: Props) {
+export function AgendaList({ events, userCoords, onEventPress, onRefresh, refreshing = false }: Props) {
   const sections = buildSections(events);
 
   const animValues = useRef(
@@ -90,12 +93,22 @@ export function AgendaList({ events, onEventPress, onRefresh, refreshing = false
             <View style={styles.headerDivider} />
 
             {/* Event rows */}
-            {section.data.map((item, index) => (
-              <React.Fragment key={item.id}>
-                <EventCard event={item} onPress={() => onEventPress?.(item)} />
-                {index < section.data.length - 1 && <View style={styles.itemDivider} />}
-              </React.Fragment>
-            ))}
+            {section.data.map((item, index) => {
+              const distanceMeters =
+                userCoords && item.kind === 'static' && item.location
+                  ? haversineDistance(userCoords.lat, userCoords.lng, item.location.lat, item.location.lng)
+                  : undefined;
+              return (
+                <React.Fragment key={item.id}>
+                  <EventCard
+                    event={item}
+                    onPress={() => onEventPress?.(item)}
+                    distanceMeters={distanceMeters}
+                  />
+                  {index < section.data.length - 1 && <View style={styles.itemDivider} />}
+                </React.Fragment>
+              );
+            })}
           </Animated.View>
         );
       })}

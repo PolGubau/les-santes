@@ -3,6 +3,7 @@ import { Colors } from '@/shared/constants';
 import { formatTime } from '@/shared/lib';
 import { EventIcon } from '@/shared/ui';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import React, { useEffect, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -39,10 +40,15 @@ function PulseDot() {
 }
 
 export function NowEventItem({ event, onPress }: Props) {
+  const handlePress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    onPress?.();
+  };
+
   return (
     <Pressable
       style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}
-      onPress={onPress}
+      onPress={handlePress}
       accessibilityRole="button"
       accessibilityLabel={`${event.title}. En curs fins a ${formatTime(event.end)}`}
       accessibilityHint="Prem per veure els detalls"

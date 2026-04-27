@@ -1,4 +1,5 @@
 import type { Event } from '@/entities/event';
+import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import * as Location from 'expo-location';
 import React, { forwardRef, memo, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { StyleSheet } from 'react-native';
@@ -41,7 +42,17 @@ const BASE_HTML = `<!DOCTYPE html>
 <body>
 <div id="map"></div>
 <script>
-const STATE_COLOR = { now:'#00C896', upcoming:'#4A9EFF', finished:'#666' };
+const STATE_COLOR = { now:'#00C896', upcoming:'#4A9EFF', finished:'#888' };
+// Metro-style route palette — vivid, high-contrast, clearly distinct
+const ROUTE_PALETTE = [
+  '#E63946','#FF6B35','#F7C948','#2EC4B6','#3A86FF',
+  '#8338EC','#FB5607','#06D6A0','#EF476F','#118AB2',
+];
+function routeColor(eventId) {
+  let h = 0;
+  for (let i = 0; i < eventId.length; i++) h = (Math.imul(31, h) + eventId.charCodeAt(i)) | 0;
+  return ROUTE_PALETTE[Math.abs(h) % ROUTE_PALETTE.length];
+}
 // MaterialCommunityIcons → Ionicons name mapping
 const ICON_MAP = { 'account-group':'people', 'fire':'flame', 'crown':'trophy',
   'flag':'flag', 'candle':'flame', 'church':'business', 'bell-ring':'notifications',
@@ -57,8 +68,8 @@ function post(msg) {
 }
 
 // ── Marker elements ───────────────────────────────────────────────────────────
-function makeMarkerEl(event) {
-  const color = STATE_COLOR[event.state] || '#888';
+function makeMarkerEl(event, overrideColor) {
+  const color = overrideColor || STATE_COLOR[event.state] || '#888';
   const finished = event.state === 'finished';
   const wrap = document.createElement('div');
   wrap.className = 'm-wrap';
@@ -93,7 +104,7 @@ const map = new maplibregl.Map({
 });
 
 // ── State ─────────────────────────────────────────────────────────────────────
-let _staticMarkers = [], _clusterMarkers = [];
+let _staticMarkers = [], _clusterMarkers = [], _routeMarkers = [];
 let _routeLayerIds = [], _routeSourceIds = [];
 let _userMarker = null, _mapReady = false, _pending = null;
 const sc = new Supercluster({ radius:55, maxZoom:16 });
@@ -105,10 +116,12 @@ function clearStaticMarkers() {
   _clusterMarkers.forEach(m => m.remove()); _clusterMarkers = [];
 }
 function clearRoutes() {
-  // Always remove layers BEFORE sources (MapLibre requirement)
+  // Remove layers BEFORE sources (MapLibre requirement)
   _routeLayerIds.forEach(id => { try { if (map.getLayer(id)) map.removeLayer(id); } catch(e){} });
   _routeSourceIds.forEach(id => { try { if (map.getSource(id)) map.removeSource(id); } catch(e){} });
   _routeLayerIds = []; _routeSourceIds = [];
+  // Route start markers are tracked separately — not in _staticMarkers
+  _routeMarkers.forEach(m => m.remove()); _routeMarkers = [];
 }
 
 // ── Cluster update ────────────────────────────────────────────────────────────
@@ -136,33 +149,50 @@ function renderClusters() {
   });
 }
 
-// ── Route rendering ───────────────────────────────────────────────────────────
+// ── Route rendering (metro style) ────────────────────────────────────────────
 function renderRoute(event) {
-  const color = STATE_COLOR[event.state] || '#888';
+  const color = routeColor(event.id);           // distinctive per-route color
   const finished = event.state === 'finished';
+  const lineOpacity = finished ? 0.45 : 1;
   const coords = event.route.map(p => [p.lng, p.lat]);
   const srcId = 'route-' + event.id;
   _routeSourceIds.push(srcId);
   map.addSource(srcId, { type:'geojson',
     data:{ type:'Feature', properties:{}, geometry:{ type:'LineString', coordinates:coords } } });
 
-  if (!finished) {
-    const haloId = srcId + '-halo';
-    _routeLayerIds.push(haloId);
-    map.addLayer({ id:haloId, type:'line', source:srcId,
-      paint:{ 'line-color':color, 'line-width':13, 'line-opacity':0.10, 'line-blur':6 } });
-  }
+  // 1. White casing (border) — gives the "road" feel
+  const casingId = srcId + '-casing';
+  _routeLayerIds.push(casingId);
+  map.addLayer({ id:casingId, type:'line', source:srcId,
+    paint:{ 'line-color':'#ffffff', 'line-width':14,
+      'line-opacity': finished ? 0.30 : 0.90,
+      'line-cap':'round', 'line-join':'round' } });
+
+  // 2. Colored fill on top
   const lineId = srcId + '-line';
   _routeLayerIds.push(lineId);
   map.addLayer({ id:lineId, type:'line', source:srcId,
-    paint:{ 'line-color':color, 'line-width':event.state==='now'?5:3.5,
-      'line-opacity':finished?0.3:0.85, 'line-cap':'round', 'line-join':'round' } });
+    paint:{ 'line-color':color, 'line-width':9,
+      'line-opacity':lineOpacity,
+      'line-cap':'round', 'line-join':'round' } });
+
+  // 3. Soft glow for active routes (added first so it renders below casing)
+  if (!finished) {
+    const glowId = srcId + '-glow';
+    // Pre-insert glow source before casing — add BEFORE the casing layer by id
+    try {
+      _routeLayerIds.push(glowId);
+      map.addLayer({ id:glowId, type:'line', source:srcId,
+        paint:{ 'line-color':color, 'line-width':22, 'line-opacity':0.15, 'line-blur':8 } });
+    } catch(e) { /* ignore if layer already exists */ }
+  }
 
   map.on('click', lineId, () => post({ type:'EVENT_PRESS', event }));
+  map.on('click', casingId, () => post({ type:'EVENT_PRESS', event }));
 
-  // Start-of-route marker
-  const el = makeMarkerEl(event);
-  _staticMarkers.push(new maplibregl.Marker({ element:el }).setLngLat(coords[0]).addTo(map));
+  // Start-of-route marker — tracked separately so renderClusters() doesn't wipe it
+  const el = makeMarkerEl(event, color);
+  _routeMarkers.push(new maplibregl.Marker({ element:el }).setLngLat(coords[0]).addTo(map));
 }
 
 // ── Main render ───────────────────────────────────────────────────────────────
@@ -240,11 +270,34 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
     },
   }));
 
+  // Keep screen on while map is visible
+  useEffect(() => {
+    activateKeepAwakeAsync();
+    return () => { deactivateKeepAwake(); };
+  }, []);
+
   useEffect(() => {
     if (!mapReady) return;
     const js = `window.updateEvents(${JSON.stringify(events)}); true;`;
     webviewRef.current?.injectJavaScript(js);
   }, [events, mapReady]);
+
+  // Native location → WebView bridge
+  useEffect(() => {
+    let sub: Location.LocationSubscription | null = null;
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') return;
+      sub = await Location.watchPositionAsync(
+        { accuracy: Location.Accuracy.High, distanceInterval: 5 },
+        ({ coords }) => {
+          const js = `window.updateUserLocation(${coords.latitude}, ${coords.longitude}); true;`;
+          webviewRef.current?.injectJavaScript(js);
+        },
+      );
+    })();
+    return () => { sub?.remove(); };
+  }, []);
 
   const handleMessage = useCallback((e: WebViewMessageEvent) => {
     try {
@@ -265,7 +318,6 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
       originWhitelist={['*']}
       javaScriptEnabled
       domStorageEnabled
-      geolocationEnabled
       allowUniversalAccessFromFileURLs
       onMessage={handleMessage}
     />
