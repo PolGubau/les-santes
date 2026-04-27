@@ -82,9 +82,13 @@ Aplicación de guía en tiempo real para Les Santes de Mataró que permite visua
 
 ## No incluido en MVP
 
-* chat
-* red social
-* tracking GPS real
-* panel admin complejo
+> Regla de oro: si un campo o funcionalidad no ayuda al usuario a decidir **qué hacer ahora mismo**, se elimina.
+
+* Tracking GPS real (sustituido por interpolación temporal)
+* Sharing / planes de usuario
+* Autenticación de usuarios
+* Panel de administración
+* Chat o red social
+* Categorías como tabla separada (un campo `category` es suficiente)
 
  

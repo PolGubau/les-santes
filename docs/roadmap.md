@@ -1,68 +1,70 @@
-# 2. ROADMAP
+# Roadmap
 
-## Fase 0 — Setup (1-2 días)
+## Fase 0 — Setup (1-2 dies)
 
-* proyecto Expo + TS
-* Supabase proyecto
-* estructura hexagonal ligera (features/entities/shared)
-* Toda la UI debe ser abstracta de la lógica, pues debe ser fácilmente reemplazable por React Web (repitiendo hook y lógica, pero con componentes web).
+* Projecte Expo + TypeScript
+* Projecte Supabase + esquema inicial
+* Estructura per funcionalitats: `features / entities / shared`
+* La UI ha de ser independent de la lògica — fàcilment substituïble per React Web reutilitzant hooks.
 
 ---
 
-## Fase 1 — Base funcional (3-5 días)
+## Fase 1 — Base funcional (3-5 dies)
 
 ### Backend
 
-* crear tablas Supabase
-* insertar datos mock de eventos
+* Crear taules: `events`, `event_static_location`, `event_routes`, `announcements`
+* Inserir dades mock d'actes de Les Santes
 
 ### Frontend
 
-* mapa base
-* render markers estáticos
-* render rutas móviles (polyline)
+* Mapa base
+* Marcadors estàtics (actes fixos)
+* Polilínia de ruta (actes itinerants)
 
 ---
 
-## Fase 2 — Simulación móvil (3-4 días)
+## Fase 2 — Simulació mòbil (3-4 dies)
 
-* interpolación de posición por tiempo
-* animación de marker sobre ruta
-* lógica:
+* Interpolació de posició per temps (sense GPS real)
+* Animació de marcador sobre ruta
+* Lògica:
 
-  * start_time
-  * duration
-  * progress → punto en polyline
-
----
-
-## Fase 3 — Agenda + UX (2-3 días)
-
-* lista de eventos por día
-* vista “Ahora”
-* filtros básicos
+  ```ts
+  progress = (now - start_time) / duration_minutes
+  position = interpolate(route.geometry, progress)
+  ```
 
 ---
 
-## Fase 4 — Sharing (2 días)
+## Fase 3 — Agenda + UX (2-3 dies)
 
-* compartir evento (link)
-* generar `.ics` calendario
-* deep link a evento
-
----
-
-## Fase 5 — Pulido demo (2-4 días)
-
-* UI básica limpia
-* iconografía eventos
-* performance mapa
-* datos reales de Les Santes
+* Llista d'actes per dia
+* Pantalla "Ara mateix" (`state = 'now'`)
+* Filtres: tipus / categoria
 
 ---
 
-## Fase 6 — Demo institucional
+## Fase 4 — Poliment demo (2-4 dies)
 
-* vídeo + app funcionando
-* simulación de eventos móviles en tiempo real
-* presentación a ayuntamiento
+* UI neta i consistent
+* Iconografia d'actes (`icon` al model)
+* Rendiment del mapa
+* Dades reals de Les Santes
+
+---
+
+## Fase 5 — Demo institucional
+
+* Vídeo + app funcionant
+* Simulació d'actes itinerants en temps real
+* Presentació a l'ajuntament
+
+---
+
+## Fora de l'abast (MVP)
+
+* Sharing / plans d'usuari
+* GPS real
+* Autenticació d'usuaris
+* Panell d'administració
