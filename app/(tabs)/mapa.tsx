@@ -2,7 +2,7 @@ import type { Event } from '@/entities/event';
 import { MOCK_EVENTS } from '@/entities/event';
 import { EventDetailSheet, EventMap, MapEventsDrawer, MapHeader, useMapEvents } from '@/features/map';
 import { Screen } from '@/shared/ui';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 
 export default function MapaScreen() {
   const { mapEvents, drawerEvents, selectedDay, availableDays, todayKey, setDay } =
@@ -11,9 +11,15 @@ export default function MapaScreen() {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [showDrawer, setShowDrawer] = useState(false);
 
-  const liveCount = mapEvents.filter((e) => e.kind === 'mobile' && e.state === 'now').length;
+  const liveCount = useMemo(
+    () => mapEvents.filter((e) => e.kind === 'mobile' && e.state === 'now').length,
+    [mapEvents],
+  );
 
   const handleEventPress = useCallback((event: Event) => setSelectedEvent(event), []);
+  const handleListPress = useCallback(() => setShowDrawer(true), []);
+  const handleDrawerClose = useCallback(() => setShowDrawer(false), []);
+  const handleDetailClose = useCallback(() => setSelectedEvent(null), []);
 
   return (
     <Screen safe={false}>
@@ -25,19 +31,19 @@ export default function MapaScreen() {
         todayKey={todayKey}
         liveCount={liveCount}
         onDayChange={setDay}
-        onListPress={() => setShowDrawer(true)}
+        onListPress={handleListPress}
       />
 
       {showDrawer && (
         <MapEventsDrawer
           events={drawerEvents}
           selectedDay={selectedDay}
-          onClose={() => setShowDrawer(false)}
+          onClose={handleDrawerClose}
         />
       )}
 
       {!showDrawer && selectedEvent && (
-        <EventDetailSheet event={selectedEvent} onClose={() => setSelectedEvent(null)} />
+        <EventDetailSheet event={selectedEvent} onClose={handleDetailClose} />
       )}
     </Screen>
   );

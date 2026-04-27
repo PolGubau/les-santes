@@ -1,11 +1,10 @@
 import type { Event } from '@/entities/event';
 import { Colors } from '@/shared/constants';
-import { formatTime } from '@/shared/lib';
-import { EventIcon } from '@/shared/ui';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { NowEventItem } from './NowEventItem';
+import { UpcomingItem } from './UpcomingItem';
 
 interface Props {
   now: Event[];
@@ -13,24 +12,6 @@ interface Props {
   onEventPress?: (event: Event) => void;
 }
 
-function UpcomingItem({ event }: { event: Event }) {
-  return (
-    <View style={styles.upcomingItem}>
-      <View style={styles.upcomingIcon}>
-        <EventIcon icon={event.icon} size={16} color={Colors.stateUpcoming} />
-      </View>
-      <View style={styles.upcomingContent}>
-        <Text style={styles.upcomingTitle} numberOfLines={1}>{event.title}</Text>
-        <Text style={styles.upcomingTime}>
-          {formatTime(event.start)} – {formatTime(event.end)}
-        </Text>
-      </View>
-      <View style={styles.upcomingTimeBadge}>
-        <Text style={styles.upcomingTimeBadgeText}>{formatTime(event.start)}</Text>
-      </View>
-    </View>
-  );
-}
 
 export function NowList({ now, upcoming, onEventPress }: Props) {
   const hasNow = now.length > 0;
@@ -97,39 +78,5 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
-  upcomingItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginHorizontal: 16,
-    marginVertical: 4,
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  upcomingIcon: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
-    backgroundColor: `${Colors.stateUpcoming}22`,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  upcomingContent: { flex: 1, gap: 2 },
-  upcomingTitle: { color: Colors.text, fontSize: 14, fontWeight: '600' },
-  upcomingTime: { color: Colors.textMuted, fontSize: 12 },
-  upcomingTimeBadge: {
-    backgroundColor: `${Colors.stateUpcoming}22`,
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  upcomingTimeBadgeText: {
-    color: Colors.stateUpcoming,
-    fontSize: 12,
-    fontWeight: '700',
-    fontVariant: ['tabular-nums'],
-  },
+
 });

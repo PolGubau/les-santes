@@ -324,7 +324,7 @@ export const MOCK_EVENTS: RawEvent[] = [
 			{ lat: 41.53917, lng: 2.444842 },
 			{ lat: 41.539601, lng: 2.444732 },
 		],
-		durationMinutes: 90,
+		durationMinutes: 270,
 	},
 	{
 		id: "e19",

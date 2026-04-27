@@ -1,33 +1,14 @@
 import type { Event } from '@/entities/event';
-import React, { useCallback, useRef } from 'react';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import WebView, { type WebViewMessageEvent } from 'react-native-webview';
 
 const CENTER_LNG = 2.444;
 const CENTER_LAT = 41.5378;
 
-const STATE_COLOR: Record<string, string> = {
-  now: '#00C896',
-  upcoming: '#4A9EFF',
-  finished: '#555555',
-};
-
-// WebView can't use @expo/vector-icons - map icon names to emojis
-const ICON_EMOJI: Record<string, string> = {
-  drum: '🥁',
-  church: '⛪',
-  'musical-notes': '🎵',
-  crown: '👑',
-  happy: '😊',
-  candle: '🕯️',
-  fire: '🔥',
-  mic: '🎤',
-  'map-marker': '📍',
-};
-
-function buildHtml(events: Event[]): string {
-  const eventsJson = JSON.stringify(events);
-  return `<!DOCTYPE html>
+// Stable HTML — the map is initialised once and never reloaded.
+// Events are pushed via window.updateEvents() through injectJavaScript.
+const BASE_HTML = `<!DOCTYPE html>
 <html>
 <head>
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
@@ -44,13 +25,24 @@ function buildHtml(events: Event[]): string {
 <body>
 <div id="map"></div>
 <script>
-const STATE_COLOR = ${JSON.stringify(STATE_COLOR)};
-const ICON_EMOJI_MAP = ${JSON.stringify(ICON_EMOJI)};
-const events = ${eventsJson};
+const STATE_COLOR = { now:'#00C896', upcoming:'#4A9EFF', finished:'#555555' };
+const ICON_EMOJI = { drum:'🥁', church:'⛪', 'musical-notes':'🎵', crown:'👑', happy:'😊', candle:'🕯️', fire:'🔥', mic:'🎤', 'map-marker':'📍' };
 
 function resolveEmoji(icon) {
   if (typeof icon === 'string') return icon;
-  return ICON_EMOJI_MAP[icon && icon.name] || '\u{1F4CD}';
+  return ICON_EMOJI[icon && icon.name] || '📍';
+}
+function postEvent(event) {
+  if (window.ReactNativeWebView) {
+    window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'EVENT_PRESS', event }));
+  }
+}
+function makeMarker(event, lngLat) {
+  const el = document.createElement('div');
+  el.className = 'marker' + (event.state === 'finished' ? ' marker-finished' : '');
+  el.textContent = resolveEmoji(event.icon);
+  el.addEventListener('click', () => postEvent(event));
+  return new maplibregl.Marker({ element: el }).setLngLat(lngLat);
 }
 
 const map = new maplibregl.Map({
@@ -61,72 +53,105 @@ const map = new maplibregl.Map({
   attributionControl: false,
 });
 
-function postEvent(event) {
-  if (window.ReactNativeWebView) {
-    window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'EVENT_PRESS', event }));
-  }
+// Track active markers and layer IDs so we can clean them up on update
+let _markers = [];
+let _layerIds = [];
+let _mapReady = false;
+let _pendingEvents = null;
+
+function clearLayer(id) {
+  if (map.getLayer(id)) map.removeLayer(id);
+  if (map.getSource(id)) map.removeSource(id);
 }
 
-function makeMarker(event, lngLat) {
-  const el = document.createElement('div');
-  el.className = 'marker' + (event.state === 'finished' ? ' marker-finished' : '');
-  el.textContent = resolveEmoji(event.icon);
-  el.addEventListener('click', () => postEvent(event));
-  return new maplibregl.Marker({ element: el }).setLngLat(lngLat);
-}
+function renderEvents(events) {
+  // Remove previous markers
+  _markers.forEach(m => m.remove());
+  _markers = [];
+  // Remove previous layers/sources
+  _layerIds.forEach(id => clearLayer(id));
+  _layerIds = [];
 
-map.on('load', () => {
   events.forEach(event => {
     const color = STATE_COLOR[event.state] || '#888';
     const width = event.state === 'now' ? 6 : 3;
     const opacity = event.state === 'finished' ? 0.35 : 0.9;
 
     if (event.kind === 'static' && event.location) {
-      makeMarker(event, [event.location.lng, event.location.lat]).addTo(map);
+      const m = makeMarker(event, [event.location.lng, event.location.lat]);
+      m.addTo(map);
+      _markers.push(m);
     }
 
     if (event.kind === 'mobile' && event.route && event.route.length > 1) {
       const coords = event.route.map(p => [p.lng, p.lat]);
       const srcId = 'route-' + event.id;
+      _layerIds.push(srcId);
       map.addSource(srcId, {
         type: 'geojson',
         data: { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: coords } }
       });
-      // Halo for active routes
       if (event.state === 'now') {
-        map.addLayer({ id: srcId + '-halo', type: 'line', source: srcId,
+        const haloId = srcId + '-halo';
+        _layerIds.push(haloId);
+        map.addLayer({ id: haloId, type: 'line', source: srcId,
           paint: { 'line-color': color, 'line-width': 14, 'line-opacity': 0.15 } });
       }
       map.addLayer({ id: srcId, type: 'line', source: srcId,
         paint: { 'line-color': color, 'line-width': width, 'line-opacity': opacity, 'line-cap': 'round', 'line-join': 'round' } });
-
-      // Clickable layer
       map.on('click', srcId, () => postEvent(event));
       map.on('mouseenter', srcId, () => { map.getCanvas().style.cursor = 'pointer'; });
       map.on('mouseleave', srcId, () => { map.getCanvas().style.cursor = ''; });
-
-      // Icon marker at route start
-      makeMarker(event, coords[0]).addTo(map);
+      const m = makeMarker(event, coords[0]);
+      m.addTo(map);
+      _markers.push(m);
     }
   });
+}
+
+map.on('load', () => {
+  _mapReady = true;
+  if (_pendingEvents) { renderEvents(_pendingEvents); _pendingEvents = null; }
+  if (window.ReactNativeWebView) {
+    window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'MAP_READY' }));
+  }
 });
+
+// Called from React Native via injectJavaScript
+window.updateEvents = function(events) {
+  if (_mapReady) {
+    renderEvents(events);
+  } else {
+    _pendingEvents = events;
+  }
+};
 </script>
 </body>
 </html>`;
-}
 
 interface Props {
   events: Event[];
   onEventPress?: (event: Event) => void;
 }
 
-export function EventMap({ events, onEventPress }: Props) {
+export const EventMap = memo(function EventMap({ events, onEventPress }: Props) {
   const webviewRef = useRef<WebView>(null);
+  const [mapReady, setMapReady] = useState(false);
+
+  // Push events whenever they change — but only after the map is ready
+  useEffect(() => {
+    const js = `window.updateEvents(${JSON.stringify(events)}); true;`;
+    if (mapReady) {
+      webviewRef.current?.injectJavaScript(js);
+    }
+  }, [events, mapReady]);
 
   const handleMessage = useCallback((e: WebViewMessageEvent) => {
     try {
       const data = JSON.parse(e.nativeEvent.data);
-      if (data.type === 'EVENT_PRESS' && onEventPress) {
+      if (data.type === 'MAP_READY') {
+        setMapReady(true);
+      } else if (data.type === 'EVENT_PRESS' && onEventPress) {
         onEventPress(data.event as Event);
       }
     } catch { /* ignore malformed messages */ }
@@ -136,7 +161,7 @@ export function EventMap({ events, onEventPress }: Props) {
     <WebView
       ref={webviewRef}
       style={styles.map}
-      source={{ html: buildHtml(events) }}
+      source={{ html: BASE_HTML }}
       originWhitelist={['*']}
       javaScriptEnabled
       domStorageEnabled
@@ -144,7 +169,7 @@ export function EventMap({ events, onEventPress }: Props) {
       onMessage={handleMessage}
     />
   );
-}
+});
 
 const styles = StyleSheet.create({
   map: { flex: 1 },

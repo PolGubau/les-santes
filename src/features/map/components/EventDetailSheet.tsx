@@ -1,25 +1,10 @@
-import type { Event } from '@/entities/event';
+import { type Event, STATE_COLOR, STATE_LABEL_SHORT } from '@/entities/event';
 import { Colors } from '@/shared/constants';
+import { formatTime } from '@/shared/lib';
 import { BottomSheet, EventIcon } from '@/shared/ui';
-import { Clock, Footprints, MapPin } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-
-const STATE_LABEL: Record<Event['state'], string> = {
-  now: 'Ara mateix',
-  upcoming: 'Pròximament',
-  finished: 'Finalitzat',
-};
-
-const STATE_COLOR: Record<Event['state'], string> = {
-  now: Colors.stateNow,
-  upcoming: Colors.stateUpcoming,
-  finished: Colors.stateFinished,
-};
-
-function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString('ca-ES', { hour: '2-digit', minute: '2-digit' });
-}
 
 interface Props {
   event: Event;
@@ -33,7 +18,7 @@ export function EventDetailSheet({ event, onClose }: Props) {
     <BottomSheet onClose={onClose}>
       <View style={[styles.stateBadge, { backgroundColor: `${stateColor}22` }]}>
         <View style={[styles.stateDot, { backgroundColor: stateColor }]} />
-        <Text style={[styles.stateText, { color: stateColor }]}>{STATE_LABEL[event.state]}</Text>
+        <Text style={[styles.stateText, { color: stateColor }]}>{STATE_LABEL_SHORT[event.state]}</Text>
       </View>
 
       <View style={styles.iconBox}>
@@ -43,7 +28,7 @@ export function EventDetailSheet({ event, onClose }: Props) {
       <Text style={styles.description}>{event.shortDescription}</Text>
 
       <View style={styles.row}>
-        <Clock size={16} color={Colors.textDim} strokeWidth={1.75} />
+        <Ionicons name="time-outline" size={16} color={Colors.textDim} />
         <Text style={styles.rowText}>
           {formatTime(event.start)} - {formatTime(event.end)}
         </Text>
@@ -51,13 +36,13 @@ export function EventDetailSheet({ event, onClose }: Props) {
 
       {event.kind === 'mobile' && (
         <View style={styles.row}>
-          <Footprints size={16} color={Colors.textDim} strokeWidth={1.75} />
+          <Ionicons name="walk-outline" size={16} color={Colors.textDim} />
           <Text style={styles.rowText}>Recorregut pels carrers</Text>
         </View>
       )}
       {event.kind === 'static' && (
         <View style={styles.row}>
-          <MapPin size={16} color={Colors.textDim} strokeWidth={1.75} />
+          <Ionicons name="location-outline" size={16} color={Colors.textDim} />
           <Text style={styles.rowText}>Lloc fix</Text>
         </View>
       )}

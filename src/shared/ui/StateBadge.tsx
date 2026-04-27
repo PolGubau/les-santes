@@ -1,19 +1,6 @@
+import { type EventState, STATE_COLOR, STATE_LABEL_SHORT } from '@/entities/event';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import type { EventState } from '@/entities/event';
-import { Colors } from '@/shared/constants';
-
-const LABEL: Record<EventState, string> = {
-  now: 'Ara',
-  upcoming: 'Pròxim',
-  finished: 'Finalitzat',
-};
-
-const BG: Record<EventState, string> = {
-  now: Colors.stateNow,
-  upcoming: Colors.stateUpcoming,
-  finished: Colors.stateFinished,
-};
 
 interface Props {
   state: EventState;
@@ -21,8 +8,8 @@ interface Props {
 
 export function StateBadge({ state }: Props) {
   return (
-    <View style={[styles.badge, { backgroundColor: BG[state] }]}>
-      <Text style={styles.label}>{LABEL[state]}</Text>
+    <View style={[styles.badge, { backgroundColor: STATE_COLOR[state] }]}>
+      <Text style={styles.label}>{STATE_LABEL_SHORT[state]}</Text>
     </View>
   );
 }

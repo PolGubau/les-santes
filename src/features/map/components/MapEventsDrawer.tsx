@@ -1,6 +1,6 @@
-import type { Event } from '@/entities/event';
+import { type Event, STATE_COLOR, STATE_LABEL_SHORT } from '@/entities/event';
 import { Colors } from '@/shared/constants';
-import { formatTime } from '@/shared/lib';
+import { formatDayShort, formatTime } from '@/shared/lib';
 import { BottomSheet, EventIcon } from '@/shared/ui';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -9,24 +9,6 @@ import { Dimensions, FlatList, Pressable, StyleSheet, Text, View } from 'react-n
 
 const { height: SCREEN_H } = Dimensions.get('window');
 
-const STATE_COLOR: Record<Event['state'], string> = {
-  now: Colors.stateNow,
-  upcoming: Colors.stateUpcoming,
-  finished: Colors.stateFinished,
-};
-
-const STATE_LABEL: Record<Event['state'], string> = {
-  now: 'Ara',
-  upcoming: 'Pròxim',
-  finished: 'Finalitzat',
-};
-
-const WEEKDAYS_CA = ['Diumenge', 'Dilluns', 'Dimarts', 'Dimecres', 'Dijous', 'Divendres', 'Dissabte'];
-
-function formatDayTitle(dateKey: string): string {
-  const d = new Date(dateKey + 'T12:00:00');
-  return `${WEEKDAYS_CA[d.getDay()]} ${d.getDate()}`;
-}
 
 interface Props {
   events: Event[];
@@ -49,7 +31,7 @@ function EventRow({ event }: { event: Event }) {
         <Text style={styles.rowMeta}>
           {formatTime(event.start)} – {formatTime(event.end)}
           {'  ·  '}
-          <Text style={{ color: STATE_COLOR[event.state] }}>{STATE_LABEL[event.state]}</Text>
+          <Text style={{ color: STATE_COLOR[event.state] }}>{STATE_LABEL_SHORT[event.state]}</Text>
         </Text>
       </View>
       <Ionicons name="chevron-forward" size={14} color={Colors.textDim} />
@@ -63,7 +45,7 @@ export function MapEventsDrawer({ events, selectedDay, onClose }: Props) {
   return (
     <BottomSheet onClose={onClose} height={SCREEN_H * 0.75}>
       <View style={styles.header}>
-        <Text style={styles.title}>{formatDayTitle(selectedDay)}</Text>
+        <Text style={styles.title}>{formatDayShort(selectedDay)}</Text>
         <Text style={styles.count}>{events.length} actes</Text>
         {nowCount > 0 && (
           <View style={styles.nowPill}>

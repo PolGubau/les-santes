@@ -2,6 +2,7 @@ import { Colors } from "@/shared/constants";
 import { formatDayChip } from "@/shared/lib";
 import React, { useEffect, useRef } from "react";
 import {
+	Animated,
 	Pressable,
 	ScrollView,
 	StyleSheet,
@@ -26,17 +27,74 @@ function parseDayLabel(dateKey: string) {
 	};
 }
 
+interface ChipProps {
+	dateKey: string;
+	selected: boolean;
+	isToday: boolean;
+	onSelect: (key: string) => void;
+}
+
+function DayChip({ dateKey, selected, isToday, onSelect }: ChipProps) {
+	const scale = useRef(new Animated.Value(1)).current;
+	const { weekday, day } = parseDayLabel(dateKey);
+
+	// Bounce pop when this chip becomes selected
+	useEffect(() => {
+		if (selected) {
+			Animated.sequence([
+				Animated.timing(scale, { toValue: 0.88, duration: 80, useNativeDriver: true }),
+				Animated.spring(scale, { toValue: 1, tension: 220, friction: 7, useNativeDriver: true }),
+			]).start();
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [selected]);
+
+	const handlePressIn = () => {
+		Animated.timing(scale, { toValue: 0.90, duration: 70, useNativeDriver: true }).start();
+	};
+
+	const handlePressOut = () => {
+		Animated.spring(scale, { toValue: 1, tension: 220, friction: 7, useNativeDriver: true }).start();
+	};
+
+	return (
+		<Pressable
+			onPress={() => onSelect(dateKey)}
+			onPressIn={handlePressIn}
+			onPressOut={handlePressOut}
+			accessibilityRole="tab"
+			accessibilityLabel={`${weekday} ${day}${isToday ? ', avui' : ''}`}
+			accessibilityState={{ selected }}
+		>
+			<Animated.View
+				style={[
+					styles.chip,
+					selected && styles.chipSelected,
+					isToday && !selected && styles.chipToday,
+					{ transform: [{ scale }] },
+				]}
+			>
+				<Text style={[styles.weekday, selected && styles.textSelected, isToday && !selected && styles.textToday]}>
+					{weekday}
+				</Text>
+				<Text style={[styles.dayNumber, selected && styles.textSelected, isToday && !selected && styles.textToday]}>
+					{day}
+				</Text>
+				{isToday && (
+					<View style={[styles.todayDot, selected && styles.todayDotSelected]} />
+				)}
+			</Animated.View>
+		</Pressable>
+	);
+}
+
 export function DayPicker({ days, selected, todayKey, onSelect }: Props) {
 	const scrollRef = useRef<ScrollView>(null);
 	const selectedIndex = days.indexOf(selected);
 
-	// Scroll selected chip into view on mount and when selection changes
 	useEffect(() => {
 		if (selectedIndex >= 0) {
-			scrollRef.current?.scrollTo({
-				x: selectedIndex * 64,
-				animated: true,
-			});
+			scrollRef.current?.scrollTo({ x: selectedIndex * 64, animated: true });
 		}
 	}, [selectedIndex]);
 
@@ -47,53 +105,15 @@ export function DayPicker({ days, selected, todayKey, onSelect }: Props) {
 			showsHorizontalScrollIndicator={false}
 			contentContainerStyle={styles.container}
 		>
-			{days.map((key) => {
-				const { weekday, day } = parseDayLabel(key);
-				const isSelected = key === selected;
-				const isToday = key === todayKey;
-
-				return (
-					<Pressable
-						key={key}
-						onPress={() => onSelect(key)}
-						style={[
-							styles.chip,
-							isSelected && styles.chipSelected,
-							isToday && !isSelected && styles.chipToday,
-						]}
-						accessibilityRole="tab"
-						accessibilityLabel={`${weekday} ${day}${isToday ? ', avui' : ''}`}
-						accessibilityState={{ selected: isSelected }}
-					>
-						<Text
-							style={[
-								styles.weekday,
-								isSelected && styles.textSelected,
-								isToday && !isSelected && styles.textToday,
-							]}
-						>
-							{weekday}
-						</Text>
-						<Text
-							style={[
-								styles.dayNumber,
-								isSelected && styles.textSelected,
-								isToday && !isSelected && styles.textToday,
-							]}
-						>
-							{day}
-						</Text>
-						{isToday && (
-							<View
-								style={[
-									styles.todayDot,
-									isSelected && styles.todayDotSelected,
-								]}
-							/>
-						)}
-					</Pressable>
-				);
-			})}
+			{days.map((key) => (
+				<DayChip
+					key={key}
+					dateKey={key}
+					selected={key === selected}
+					isToday={key === todayKey}
+					onSelect={onSelect}
+				/>
+			))}
 		</ScrollView>
 	);
 }

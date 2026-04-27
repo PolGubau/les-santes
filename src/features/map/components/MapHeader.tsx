@@ -1,17 +1,10 @@
 import { DayPicker } from '@/features/agenda';
 import { Colors } from '@/shared/constants';
+import { formatDayFull } from '@/shared/lib';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-const WEEKDAYS_CA = ['Diumenge', 'Dilluns', 'Dimarts', 'Dimecres', 'Dijous', 'Divendres', 'Dissabte'];
-const MONTHS_CA = ['gener', 'febrer', 'març', 'abril', 'maig', 'juny', 'juliol', 'agost', 'setembre', 'octubre', 'novembre', 'desembre'];
-
-function formatDayLabel(dateKey: string): string {
-  const d = new Date(dateKey + 'T12:00:00');
-  return `${WEEKDAYS_CA[d.getDay()]} ${d.getDate()} de ${MONTHS_CA[d.getMonth()]}`;
-}
 
 interface Props {
   selectedDay: string;
@@ -22,7 +15,7 @@ interface Props {
   onListPress: () => void;
 }
 
-export function MapHeader({
+export const MapHeader = React.memo(function MapHeader({
   selectedDay,
   availableDays,
   todayKey,
@@ -38,7 +31,7 @@ export function MapHeader({
         <View style={styles.topRow}>
           <Ionicons name="calendar-outline" size={13} color={Colors.textMuted} />
           <Text style={styles.dateLabel} numberOfLines={1}>
-            {formatDayLabel(selectedDay)}
+            {formatDayFull(selectedDay)}
           </Text>
           <View style={styles.actions}>
             {liveCount > 0 && (
@@ -62,7 +55,7 @@ export function MapHeader({
       </View>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: { position: 'absolute', left: 12, right: 12 },
