@@ -53,6 +53,7 @@ const NAME = {
 	callao: "Pl. de la Llibertat",
 	maritim: "Passeig Marítim",
 	port: "Port de Mataró",
+	tereses: "Col·legi de les Tereses",
 	monumental: "Teatre Municipal",
 	biblioteca: "Biblioteca Pompeu Fabra",
 	residencia: "Residència",

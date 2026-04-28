@@ -1,6 +1,6 @@
 import type { Event } from '@/entities/event';
 import { Colors } from '@/shared/constants';
-import { Ionicons } from '@expo/vector-icons';
+import { Moon } from 'lucide-react-native';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { NowEventItem } from './NowEventItem';
@@ -20,7 +20,7 @@ export function NowList({ now, upcoming, onEventPress }: Props) {
   if (!hasNow && !hasUpcoming) {
     return (
       <View style={styles.empty}>
-        <Ionicons name="moon-outline" size={52} color={Colors.textDim} />
+        <Moon size={52} color={Colors.textDim} />
         <Text style={styles.emptyTitle}>Res passant ara</Text>
         <Text style={styles.emptyDesc}>Consulta l'agenda per veure els pròxims actes</Text>
       </View>

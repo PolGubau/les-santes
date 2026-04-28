@@ -1,6 +1,6 @@
 import { Colors } from '@/shared/constants';
-import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
+import { Compass } from 'lucide-react-native';
 import React from 'react';
 import { StyleSheet, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,7 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 export default function NotFoundScreen() {
   return (
     <SafeAreaView style={styles.container}>
-      <Ionicons name="compass-outline" size={56} color={Colors.textDim} />
+      <Compass size={56} color={Colors.textDim} />
       <Text style={styles.title}>Pàgina no trobada</Text>
       <Text style={styles.desc}>Aquesta ruta no existeix.</Text>
       <Link href="/(tabs)/ara" style={styles.link}>

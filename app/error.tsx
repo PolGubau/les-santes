@@ -1,6 +1,6 @@
 import { Colors } from '@/shared/constants';
-import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { AlertCircle } from 'lucide-react-native';
 import React from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,7 +10,7 @@ export default function ErrorScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Ionicons name="alert-circle-outline" size={56} color={Colors.primary} />
+      <AlertCircle size={56} color={Colors.primary} />
       <Text style={styles.title}>Quelcom ha anat malament</Text>
       <Text style={styles.desc}>
         S'ha produït un error inesperat. Torna a l'inici i ho tornem a intentar.

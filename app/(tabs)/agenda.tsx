@@ -5,8 +5,10 @@ import { useFavoritesStore } from "@/features/favorites";
 import { Colors } from "@/shared/constants";
 import { useNow, useUserLocation } from "@/shared/hooks";
 import { Screen } from "@/shared/ui";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import {
+  Crown, Flag, Flame, Heart, MapPin, Mic, Music, Sailboat, Smile, Ticket, Users,
+} from "lucide-react-native";
 import type React from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { NativeScrollEvent, NativeSyntheticEvent } from "react-native";
@@ -20,71 +22,23 @@ import {
   useWindowDimensions,
 } from "react-native";
 
-type FilterIconDef =
-  | { lib: "Ionicons"; name: React.ComponentProps<typeof Ionicons>["name"] }
-  | {
-    lib: "MaterialCommunityIcons";
-    name: React.ComponentProps<typeof MaterialCommunityIcons>["name"];
-  };
+import type { LucideIcon } from "lucide-react-native";
 
 const TYPE_FILTERS: Array<{
   label: string;
   value: EventType;
-  icon?: FilterIconDef;
+  Icon?: LucideIcon;
 }> = [
-    {
-      label: "Correfoc",
-      value: "correfoc",
-      icon: { lib: "MaterialCommunityIcons", name: "fire" },
-    },
-    {
-      label: "Concerts",
-      value: "concert",
-      icon: { lib: "Ionicons", name: "mic" },
-    },
-    {
-      label: "Sardanes",
-      value: "sardanes",
-      icon: { lib: "Ionicons", name: "musical-notes" },
-    },
-    {
-      label: "Gegants",
-      value: "gegants",
-      icon: { lib: "MaterialCommunityIcons", name: "crown" },
-    },
-    {
-      label: "Castellers",
-      value: "castellera",
-      icon: { lib: "Ionicons", name: "people" },
-    },
-    {
-      label: "Cercavila",
-      value: "cercavila",
-      icon: { lib: "Ionicons", name: "flag" },
-    },
-    {
-      label: "Havaneres",
-      value: "havaneres",
-      icon: { lib: "Ionicons", name: "boat" },
-    },
-    {
-      label: "Espectacle",
-      value: "espectacle",
-      icon: { lib: "Ionicons", name: "ticket" },
-    },
-    {
-      label: "Familiar",
-      value: "jocs",
-      icon: { lib: "Ionicons", name: "happy" },
-    },
+    { label: "Correfoc", value: "correfoc", Icon: Flame },
+    { label: "Concerts", value: "concert", Icon: Mic },
+    { label: "Sardanes", value: "sardanes", Icon: Music },
+    { label: "Gegants", value: "gegants", Icon: Crown },
+    { label: "Castellers", value: "castellera", Icon: Users },
+    { label: "Cercavila", value: "cercavila", Icon: Flag },
+    { label: "Havaneres", value: "havaneres", Icon: Sailboat },
+    { label: "Espectacle", value: "espectacle", Icon: Ticket },
+    { label: "Familiar", value: "jocs", Icon: Smile },
   ];
-
-function FilterIcon({ icon, color }: { icon: FilterIconDef; color: string }) {
-  if (icon.lib === "Ionicons") {
-    return <Ionicons name={icon.name} size={15} color={color} />;
-  }
-  return <MaterialCommunityIcons name={icon.name} size={15} color={color} />;
-}
 
 export default function AgendaScreen() {
   const { width: SCREEN_WIDTH } = useWindowDimensions();
@@ -182,10 +136,10 @@ export default function AgendaScreen() {
             accessibilityLabel="Filtre: Favorits"
             accessibilityState={{ selected: showFavorites }}
           >
-            <Ionicons
-              name={showFavorites ? "heart" : "heart-outline"}
+            <Heart
               size={15}
               color={showFavorites ? "#fff" : Colors.primary}
+              fill={showFavorites ? "#fff" : "none"}
             />
             <Text style={[styles.chipText, showFavorites && styles.chipTextActive]}>
               Favorits
@@ -211,8 +165,7 @@ export default function AgendaScreen() {
               accessibilityLabel="Filtre: Aprop meu"
               accessibilityState={{ selected: !!filters.nearMe }}
             >
-              <Ionicons
-                name="location"
+              <MapPin
                 size={15}
                 color={filters.nearMe ? "#fff" : Colors.primary}
               />
@@ -233,7 +186,7 @@ export default function AgendaScreen() {
                 accessibilityLabel={`Filtre: ${f.label}`}
                 accessibilityState={{ selected: active }}
               >
-                {f.icon && <FilterIcon icon={f.icon} color={iconColor} />}
+                {f.Icon && <f.Icon size={15} color={iconColor} />}
                 <Text style={[styles.chipText, active && styles.chipTextActive]}>
                   {f.label}
                 </Text>
@@ -250,7 +203,6 @@ export default function AgendaScreen() {
           onRefresh={handleRefresh}
           refreshing={refreshing}
           emptyText="Encara no tens cap acte preferit"
-          emptyIcon="heart-outline"
         />
       ) : (
         <FlatList

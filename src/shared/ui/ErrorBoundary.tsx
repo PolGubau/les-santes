@@ -1,5 +1,5 @@
 import { Colors } from '@/shared/constants';
-import { Ionicons } from '@expo/vector-icons';
+import { TriangleAlert } from 'lucide-react-native';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -26,7 +26,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
       if (this.props.fallback) return this.props.fallback;
       return (
         <View style={styles.container}>
-          <Ionicons name="warning-outline" size={48} color={Colors.primary} />
+          <TriangleAlert size={48} color={Colors.primary} />
           <Text style={styles.title}>Quelcom ha anat malament</Text>
           <Text style={styles.message}>{this.state.error.message}</Text>
           <Pressable
