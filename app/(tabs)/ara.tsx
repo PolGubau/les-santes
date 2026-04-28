@@ -6,11 +6,11 @@ import { Colors } from '@/shared/constants';
 import { formatTime } from '@/shared/lib';
 import { EventIcon } from '@/shared/ui';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useCallback } from 'react';
 import {
-  ImageBackground,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -44,42 +44,43 @@ function HeroCard({ event, onPress }: { event: Event; onPress: () => void }) {
   const isLive = event.state === 'now';
   return (
     <Pressable style={styles.hero} onPress={onPress} accessibilityRole="button">
-      <ImageBackground
+      <Image
         source={{ uri: eventImage(event) }}
         style={styles.heroImage}
-        imageStyle={styles.heroImageStyle}
+        contentFit="cover"
+        transition={400}
+        placeholder={{ blurhash: 'L6Pj0^jE.AyE_3t7t7R**0o#DgR4' }}
+      />
+      <LinearGradient
+        colors={['transparent', 'rgba(0,0,0,0.75)']}
+        style={styles.heroGradient}
       >
-        <LinearGradient
-          colors={['transparent', 'rgba(0,0,0,0.75)']}
-          style={styles.heroGradient}
-        >
-          {isLive && (
-            <View style={styles.liveBadge}>
-              <View style={styles.liveDot} />
-              <Text style={styles.liveBadgeText}>EN CURS</Text>
-            </View>
-          )}
-          <View style={styles.heroContent}>
-            <Text style={styles.heroType}>
-              {event.type.toUpperCase().replace('FOCSARTIFICIALS', 'FOCS')}
-            </Text>
-            <Text style={styles.heroTitle} numberOfLines={2}>{event.title}</Text>
-            <View style={styles.heroMeta}>
-              <Ionicons name="time-outline" size={13} color="rgba(255,255,255,0.8)" />
-              <Text style={styles.heroMetaText}>
-                {formatTime(event.start)} – {formatTime(event.end)}
-              </Text>
-              {event.locationName && (
-                <>
-                  <Text style={styles.heroMetaDot}>·</Text>
-                  <Ionicons name="location-outline" size={13} color="rgba(255,255,255,0.8)" />
-                  <Text style={styles.heroMetaText} numberOfLines={1}>{event.locationName}</Text>
-                </>
-              )}
-            </View>
+        {isLive && (
+          <View style={styles.liveBadge}>
+            <View style={styles.liveDot} />
+            <Text style={styles.liveBadgeText}>EN CURS</Text>
           </View>
-        </LinearGradient>
-      </ImageBackground>
+        )}
+        <View style={styles.heroContent}>
+          <Text style={styles.heroType}>
+            {event.type.toUpperCase().replace('FOCSARTIFICIALS', 'FOCS')}
+          </Text>
+          <Text style={styles.heroTitle} numberOfLines={2}>{event.title}</Text>
+          <View style={styles.heroMeta}>
+            <Ionicons name="time-outline" size={13} color="rgba(255,255,255,0.8)" />
+            <Text style={styles.heroMetaText}>
+              {formatTime(event.start)} – {formatTime(event.end)}
+            </Text>
+            {event.locationName && (
+              <>
+                <Text style={styles.heroMetaDot}>·</Text>
+                <Ionicons name="location-outline" size={13} color="rgba(255,255,255,0.8)" />
+                <Text style={styles.heroMetaText} numberOfLines={1}>{event.locationName}</Text>
+              </>
+            )}
+          </View>
+        </View>
+      </LinearGradient>
     </Pressable>
   );
 }
@@ -88,22 +89,23 @@ function HeroCard({ event, onPress }: { event: Event; onPress: () => void }) {
 function NowCard({ event, onPress }: { event: Event; onPress: () => void }) {
   return (
     <Pressable style={styles.nowCard} onPress={onPress} accessibilityRole="button">
-      <ImageBackground
+      <Image
         source={{ uri: eventImage(event) }}
         style={styles.nowCardImage}
-        imageStyle={styles.nowCardImageStyle}
+        contentFit="cover"
+        transition={300}
+        placeholder={{ blurhash: 'L6Pj0^jE.AyE_3t7t7R**0o#DgR4' }}
+      />
+      <LinearGradient
+        colors={['transparent', 'rgba(0,0,0,0.8)']}
+        style={styles.nowCardGradient}
       >
-        <LinearGradient
-          colors={['transparent', 'rgba(0,0,0,0.8)']}
-          style={styles.nowCardGradient}
-        >
-          <View style={styles.nowCardIcon}>
-            <EventIcon icon={event.icon} size={16} color="#fff" />
-          </View>
-          <Text style={styles.nowCardTitle} numberOfLines={2}>{event.title}</Text>
-          <Text style={styles.nowCardTime}>fins {formatTime(event.end)}</Text>
-        </LinearGradient>
-      </ImageBackground>
+        <View style={styles.nowCardIcon}>
+          <EventIcon icon={event.icon} size={16} color="#fff" />
+        </View>
+        <Text style={styles.nowCardTitle} numberOfLines={2}>{event.title}</Text>
+        <Text style={styles.nowCardTime}>fins {formatTime(event.end)}</Text>
+      </LinearGradient>
     </Pressable>
   );
 }
@@ -152,8 +154,6 @@ export default function AraScreen() {
 
   // Hero = first live event, or first upcoming if nothing is live
   const hero = now[0] ?? upcoming[0];
-  // Remaining now events for the strip (skip the hero if it's a now event)
-  const nowStrip = now.length > 1 ? now.slice(1) : now.length === 0 ? [] : [];
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
@@ -250,10 +250,9 @@ const styles = StyleSheet.create({
   liveBarText: { color: Colors.stateNow, fontSize: 12, fontWeight: '600' },
 
   // Hero
-  hero: { marginHorizontal: 16, marginBottom: 20, borderRadius: 20, overflow: 'hidden' },
-  heroImage: { width: '100%', height: HERO_H },
-  heroImageStyle: { borderRadius: 20 },
-  heroGradient: { flex: 1, justifyContent: 'space-between', padding: 16 },
+  hero: { marginHorizontal: 16, marginBottom: 20, borderRadius: 20, overflow: 'hidden', height: HERO_H },
+  heroImage: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
+  heroGradient: { flex: 1, height: HERO_H, justifyContent: 'space-between', padding: 16 },
   heroContent: { gap: 4 },
   heroType: { color: 'rgba(255,255,255,0.7)', fontSize: 11, fontWeight: '700', letterSpacing: 1 },
   heroTitle: { color: '#fff', fontSize: 22, fontWeight: '800', lineHeight: 28 },
@@ -287,9 +286,8 @@ const styles = StyleSheet.create({
     width: NOW_CARD_W, height: NOW_CARD_H,
     borderRadius: 16, overflow: 'hidden',
   },
-  nowCardImage: { width: '100%', height: '100%' },
-  nowCardImageStyle: { borderRadius: 16 },
-  nowCardGradient: { flex: 1, justifyContent: 'flex-end', padding: 12, gap: 4 },
+  nowCardImage: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
+  nowCardGradient: { flex: 1, height: NOW_CARD_H, justifyContent: 'flex-end', padding: 12, gap: 4 },
   nowCardIcon: {
     width: 28, height: 28, borderRadius: 8,
     backgroundColor: 'rgba(255,255,255,0.2)',

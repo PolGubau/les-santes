@@ -1,14 +1,19 @@
 import { Colors } from "@/shared/constants";
-import { formatDayChip } from "@/shared/lib";
 import * as Haptics from "expo-haptics";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react"; // useRef kept for ScrollView ref
 import {
-	Animated,
 	Pressable,
 	ScrollView,
 	StyleSheet,
 	Text,
 } from "react-native";
+import Animated, {
+	useSharedValue,
+	useAnimatedStyle,
+	withSpring,
+	withTiming,
+	withSequence,
+} from "react-native-reanimated";
 
 interface Props {
 	days: string[]; // YYYY-MM-DD sorted
@@ -35,27 +40,31 @@ interface ChipProps {
 }
 
 function DayChip({ dateKey, selected, isToday, onSelect }: ChipProps) {
-	const scale = useRef(new Animated.Value(1)).current;
+	const scale = useSharedValue(1);
 	const { weekday, day } = parseDayLabel(dateKey);
+
+	const animStyle = useAnimatedStyle(() => ({
+		transform: [{ scale: scale.value }],
+	}));
 
 	// Bounce pop + haptic when this chip becomes selected
 	useEffect(() => {
 		if (selected) {
 			Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-			Animated.sequence([
-				Animated.timing(scale, { toValue: 0.88, duration: 80, useNativeDriver: true }),
-				Animated.spring(scale, { toValue: 1, tension: 220, friction: 7, useNativeDriver: true }),
-			]).start();
+			scale.value = withSequence(
+				withTiming(0.88, { duration: 80 }),
+				withSpring(1, { damping: 8, stiffness: 220 }),
+			);
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [selected]);
 
 	const handlePressIn = () => {
-		Animated.timing(scale, { toValue: 0.90, duration: 70, useNativeDriver: true }).start();
+		scale.value = withTiming(0.9, { duration: 70 });
 	};
 
 	const handlePressOut = () => {
-		Animated.spring(scale, { toValue: 1, tension: 220, friction: 7, useNativeDriver: true }).start();
+		scale.value = withSpring(1, { damping: 8, stiffness: 220 });
 	};
 
 	return (
@@ -72,7 +81,7 @@ function DayChip({ dateKey, selected, isToday, onSelect }: ChipProps) {
 					styles.chip,
 					selected && styles.chipSelected,
 					isToday && !selected && styles.chipToday,
-					{ transform: [{ scale }] },
+					animStyle,
 				]}
 			>
 				<Text style={[styles.weekday, selected && styles.textSelected, isToday && !selected && styles.textToday]}>

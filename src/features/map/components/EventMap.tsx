@@ -149,45 +149,78 @@ function renderClusters() {
   });
 }
 
+// ── Arrow SDF image (generated once on map load) ─────────────────────────────
+function addArrowImage() {
+  const size = 32;
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const ctx = c.getContext('2d');
+  ctx.clearRect(0, 0, size, size);
+  // Draw a right-pointing chevron (›) centred in the canvas
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.moveTo(9,  8);
+  ctx.lineTo(22, 16);
+  ctx.lineTo(9,  24);
+  ctx.lineTo(12, 16);
+  ctx.closePath();
+  ctx.fill();
+  const imgData = ctx.getImageData(0, 0, size, size);
+  map.addImage('route-arrow', { width:size, height:size, data:imgData.data }, { sdf:true });
+}
+
 // ── Route rendering (metro style) ────────────────────────────────────────────
 function renderRoute(event) {
-  const color = routeColor(event.id);           // distinctive per-route color
+  const color = routeColor(event.id);
   const finished = event.state === 'finished';
-  const lineOpacity = finished ? 0.45 : 1;
+  const opacity = finished ? 0.45 : 1;
   const coords = event.route.map(p => [p.lng, p.lat]);
   const srcId = 'route-' + event.id;
   _routeSourceIds.push(srcId);
-  map.addSource(srcId, { type:'geojson',
-    data:{ type:'Feature', properties:{}, geometry:{ type:'LineString', coordinates:coords } } });
+  map.addSource(srcId, {
+    type:'geojson',
+    data:{ type:'Feature', properties:{}, geometry:{ type:'LineString', coordinates:coords } },
+  });
 
-  // 1. White casing (border) — gives the "road" feel
+  // Layer order: casing (bottom) → fill → arrows (top)
+  // 1. White casing — metro "border" feel
   const casingId = srcId + '-casing';
   _routeLayerIds.push(casingId);
-  map.addLayer({ id:casingId, type:'line', source:srcId,
-    paint:{ 'line-color':'#ffffff', 'line-width':14,
-      'line-opacity': finished ? 0.30 : 0.90,
-      'line-cap':'round', 'line-join':'round' } });
+  map.addLayer({
+    id:casingId, type:'line', source:srcId,
+    layout:{ 'line-cap':'round', 'line-join':'round' },
+    paint:{ 'line-color':'#ffffff', 'line-width':14, 'line-opacity': finished ? 0.28 : 0.92 },
+  });
 
-  // 2. Colored fill on top
+  // 2. Vivid colored fill on top of casing
   const lineId = srcId + '-line';
   _routeLayerIds.push(lineId);
-  map.addLayer({ id:lineId, type:'line', source:srcId,
-    paint:{ 'line-color':color, 'line-width':9,
-      'line-opacity':lineOpacity,
-      'line-cap':'round', 'line-join':'round' } });
+  map.addLayer({
+    id:lineId, type:'line', source:srcId,
+    layout:{ 'line-cap':'round', 'line-join':'round' },
+    paint:{ 'line-color':color, 'line-width':9, 'line-opacity':opacity },
+  });
 
-  // 3. Soft glow for active routes (added first so it renders below casing)
+  // 3. Directional arrow symbols spaced along the line
   if (!finished) {
-    const glowId = srcId + '-glow';
-    // Pre-insert glow source before casing — add BEFORE the casing layer by id
-    try {
-      _routeLayerIds.push(glowId);
-      map.addLayer({ id:glowId, type:'line', source:srcId,
-        paint:{ 'line-color':color, 'line-width':22, 'line-opacity':0.15, 'line-blur':8 } });
-    } catch(e) { /* ignore if layer already exists */ }
+    const arrowId = srcId + '-arrows';
+    _routeLayerIds.push(arrowId);
+    map.addLayer({
+      id:arrowId, type:'symbol', source:srcId,
+      layout:{
+        'symbol-placement':'line',
+        'symbol-spacing':80,
+        'icon-image':'route-arrow',
+        'icon-size':0.55,
+        'icon-allow-overlap':true,
+        'icon-ignore-placement':true,
+        'icon-rotation-alignment':'map',
+      },
+      paint:{ 'icon-color':'#ffffff', 'icon-opacity':0.9 },
+    });
   }
 
-  map.on('click', lineId, () => post({ type:'EVENT_PRESS', event }));
+  map.on('click', lineId,   () => post({ type:'EVENT_PRESS', event }));
   map.on('click', casingId, () => post({ type:'EVENT_PRESS', event }));
 
   // Start-of-route marker — tracked separately so renderClusters() doesn't wipe it
@@ -237,6 +270,7 @@ window.updateUserLocation = function(lat, lng) {
 };
 
 map.on('load', () => {
+  addArrowImage();
   _mapReady = true;
   if (_pending) { renderEvents(_pending); _pending = null; }
   post({ type:'MAP_READY' });

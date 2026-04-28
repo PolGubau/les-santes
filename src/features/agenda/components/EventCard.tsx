@@ -12,7 +12,6 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
   withTiming,
-  interpolate,
 } from 'react-native-reanimated';
 
 interface Props {
@@ -23,7 +22,7 @@ interface Props {
 
 export function EventCard({ event, onPress, distanceMeters }: Props) {
   const scale = useSharedValue(1);
-  const expandProgress = useSharedValue(0);
+  const expandHeight = useSharedValue(0);
   const [expanded, setExpanded] = useState(false);
   const isFinished = event.state === 'finished';
   const stateLabel = event.state === 'now' ? 'En curs' : event.state === 'upcoming' ? 'Proximament' : 'Acabat';
@@ -31,12 +30,12 @@ export function EventCard({ event, onPress, distanceMeters }: Props) {
   const { isFavorite, toggleFavorite } = useFavoritesStore();
   const favorite = isFavorite(event.id);
 
-  const cardStyle = useAnimatedStyle(() => ({
+  const animatedCard = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
 
-  const actionBarStyle = useAnimatedStyle(() => ({
-    height: interpolate(expandProgress.value, [0, 1], [0, 40]),
+  const animatedBar = useAnimatedStyle(() => ({
+    height: expandHeight.value,
     overflow: 'hidden',
   }));
 
@@ -46,7 +45,7 @@ export function EventCard({ event, onPress, distanceMeters }: Props) {
   };
 
   const handlePressOut = () => {
-    scale.value = withSpring(1, { stiffness: 200, damping: 15 });
+    scale.value = withSpring(1, { damping: 10, stiffness: 200 });
   };
 
   const handleFavorite = () => {
@@ -58,7 +57,7 @@ export function EventCard({ event, onPress, distanceMeters }: Props) {
     Haptics.selectionAsync();
     const next = !expanded;
     setExpanded(next);
-    expandProgress.value = withSpring(next ? 1 : 0, { stiffness: 160, damping: 20 });
+    expandHeight.value = withSpring(next ? 40 : 0, { damping: 12, stiffness: 150 });
   };
 
   const handleCalendar = () => {
@@ -73,7 +72,7 @@ export function EventCard({ event, onPress, distanceMeters }: Props) {
   };
 
   return (
-    <Animated.View style={cardStyle}>
+    <Animated.View style={animatedCard}>
       <Pressable
         style={({ pressed }) => [styles.row, isFinished && styles.rowDim, pressed && styles.rowPressed]}
         onPress={onPress}
@@ -116,7 +115,7 @@ export function EventCard({ event, onPress, distanceMeters }: Props) {
 
       {/* Expandable action bar */}
       {!isFinished && (
-        <Animated.View style={[styles.actionBar, actionBarStyle]}>
+        <Animated.View style={[styles.actionBar, animatedBar]}>
           <View style={styles.actionBarInner}>
             <Pressable style={styles.actionBtn} onPress={handleCalendar} accessibilityLabel="Afegir al calendari">
               <Ionicons name="calendar-outline" size={16} color={Colors.textDim} />

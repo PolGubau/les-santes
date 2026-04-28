@@ -4,8 +4,14 @@ import { Colors } from '@/shared/constants';
 import type { UserCoords } from '@/shared/hooks';
 import { haversineDistance } from '@/shared/lib';
 import { Ionicons } from '@expo/vector-icons';
-import React, { useEffect, useRef } from 'react';
-import { Animated, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect } from 'react';
+import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withDelay,
+} from 'react-native-reanimated';
 import { buildSections } from '../lib/sections';
 import { EventCard } from './EventCard';
 
@@ -19,8 +25,66 @@ interface Props {
   emptyIcon?: React.ComponentProps<typeof Ionicons>["name"];
 }
 
-// Pre-allocate 3 animated values (one per possible section: now/upcoming/finished)
-const SECTION_ANIM_COUNT = 3;
+function SectionCard({
+  section,
+  index,
+  userCoords,
+  onEventPress,
+}: {
+  section: ReturnType<typeof buildSections>[number];
+  index: number;
+  userCoords?: UserCoords | null;
+  onEventPress?: (event: Event) => void;
+}) {
+  const opacity = useSharedValue(0);
+  const translateY = useSharedValue(20);
+
+  useEffect(() => {
+    opacity.value = withDelay(index * 70, withSpring(1, { damping: 18, stiffness: 120 }));
+    translateY.value = withDelay(index * 70, withSpring(0, { damping: 18, stiffness: 120 }));
+  }, [index, opacity, translateY]);
+
+  const animStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateY: translateY.value }],
+  }));
+
+  return (
+    <Animated.View style={[styles.sectionCard, animStyle]}>
+      {/* Header */}
+      <View style={styles.sectionHeader}>
+        <View style={[styles.accentBar, { backgroundColor: STATE_COLOR[section.state] }]} />
+        <Text style={styles.sectionTitle}>{section.title}</Text>
+        <View style={[styles.countBadge, { borderColor: STATE_COLOR[section.state] }]}>
+          <Text style={[styles.countText, { color: STATE_COLOR[section.state] }]}>
+            {section.data.length}
+          </Text>
+        </View>
+      </View>
+
+      {/* Divider */}
+      <View style={styles.headerDivider} />
+
+      {/* Event rows */}
+      {section.data.map((item, idx) => {
+        const distanceMeters =
+          userCoords && item.kind === 'static' && item.location
+            ? haversineDistance(userCoords.lat, userCoords.lng, item.location.lat, item.location.lng)
+            : undefined;
+        return (
+          <React.Fragment key={item.id}>
+            <EventCard
+              event={item}
+              onPress={() => onEventPress?.(item)}
+              distanceMeters={distanceMeters}
+            />
+            {idx < section.data.length - 1 && <View style={styles.itemDivider} />}
+          </React.Fragment>
+        );
+      })}
+    </Animated.View>
+  );
+}
 
 export function AgendaList({
   events,
@@ -32,22 +96,6 @@ export function AgendaList({
   emptyIcon = 'calendar-outline',
 }: Props) {
   const sections = buildSections(events);
-
-  const animValues = useRef(
-    Array.from({ length: SECTION_ANIM_COUNT }, () => new Animated.Value(0)),
-  ).current;
-
-  useEffect(() => {
-    for (const v of animValues) v.setValue(0);
-    Animated.stagger(
-      70,
-      animValues.slice(0, sections.length).map((v) =>
-        Animated.spring(v, { toValue: 1, useNativeDriver: true, tension: 120, friction: 14 }),
-      ),
-    ).start();
-    // animValues is a stable ref; sections.length is derived from events
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [events]);
 
   if (sections.length === 0) {
     return (
@@ -74,55 +122,15 @@ export function AgendaList({
         ) : undefined
       }
     >
-      {sections.map((section, i) => {
-        const anim = animValues[i];
-        return (
-          <Animated.View
-            key={section.state}
-            style={[
-              styles.sectionCard,
-              {
-                opacity: anim,
-                transform: [
-                  { translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) },
-                ],
-              },
-            ]}
-          >
-            {/* Header */}
-            <View style={styles.sectionHeader}>
-              <View style={[styles.accentBar, { backgroundColor: STATE_COLOR[section.state] }]} />
-              <Text style={styles.sectionTitle}>{section.title}</Text>
-              <View style={[styles.countBadge, { borderColor: STATE_COLOR[section.state] }]}>
-                <Text style={[styles.countText, { color: STATE_COLOR[section.state] }]}>
-                  {section.data.length}
-                </Text>
-              </View>
-            </View>
-
-            {/* Divider */}
-            <View style={styles.headerDivider} />
-
-            {/* Event rows */}
-            {section.data.map((item, index) => {
-              const distanceMeters =
-                userCoords && item.kind === 'static' && item.location
-                  ? haversineDistance(userCoords.lat, userCoords.lng, item.location.lat, item.location.lng)
-                  : undefined;
-              return (
-                <React.Fragment key={item.id}>
-                  <EventCard
-                    event={item}
-                    onPress={() => onEventPress?.(item)}
-                    distanceMeters={distanceMeters}
-                  />
-                  {index < section.data.length - 1 && <View style={styles.itemDivider} />}
-                </React.Fragment>
-              );
-            })}
-          </Animated.View>
-        );
-      })}
+      {sections.map((section, i) => (
+        <SectionCard
+          key={section.state}
+          section={section}
+          index={i}
+          userCoords={userCoords}
+          onEventPress={onEventPress}
+        />
+      ))}
     </ScrollView>
   );
 }

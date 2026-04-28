@@ -1,56 +1,59 @@
 {
-	"expo": {
-		"name": "Les Santes",
-		"slug": "santes-live",
-		"scheme": "santes-live",
-		"version": "1.0.0",
-		"orientation": "portrait",
-		"icon": "./assets/icon.png",
-		"userInterfaceStyle": "light",
-		"newArchEnabled": true,
-		"splash": {
-			"image": "./assets/splash-icon.png",
-			"resizeMode": "contain",
-			"backgroundColor": "#ffffff"
-		},
-		"ios": {
-			"supportsTablet": true,
-			"infoPlist": {
-				"NSLocationWhenInUseUsageDescription": "La app necesita la teva ubicació per mostrar-la al mapa del festival."
-			}
-		},
-		"android": {
-			"adaptiveIcon": {
-				"foregroundImage": "./assets/adaptive-icon.png",
-				"backgroundColor": "#ffffff"
-			},
-			"permissions": ["android.permission.ACCESS_FINE_LOCATION"],
-			"edgeToEdgeEnabled": true,
-			"predictiveBackGestureEnabled": false
-		},
-		"web": {
-			"bundler": "metro",
-			"favicon": "./assets/favicon.png"
-		},
-		"extra": {
-			"eas": {
-				"projectId": "dffc30d5-6870-47b8-979f-a842d6848eb5"
-			}
-		},
-		"plugins": [
-			"expo-router",
-			[
-				"expo-location",
-				{
-					"locationWhenInUsePermission": "La app necessita la teva ubicació per mostrar-la al mapa del festival i filtrar actes propers."
-				}
-			],
-			[
-				"expo-calendar",
-				{
-					"calendarPermission": "La app vol afegir actes del festival al teu calendari."
-				}
-			]
-		]
-	}
+  "expo": {
+    "name": "Les Santes",
+    "slug": "santes-live",
+    "scheme": "santes-live",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0D0D0D"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "La app necesita la teva ubicació per mostrar-la al mapa del festival."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "permissions": [
+        "android.permission.ACCESS_FINE_LOCATION"
+      ],
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": true
+    },
+    "web": {
+      "bundler": "metro",
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "dffc30d5-6870-47b8-979f-a842d6848eb5"
+      }
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "La app necessita la teva ubicació per mostrar-la al mapa del festival i filtrar actes propers."
+        }
+      ],
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "La app vol afegir actes del festival al teu calendari."
+        }
+      ],
+      "expo-font"
+    ]
+  }
 }

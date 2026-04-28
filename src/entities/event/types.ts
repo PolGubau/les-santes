@@ -30,9 +30,8 @@ export interface RoutePoint {
 	lng: number;
 }
 
-export type EventIconDef =
-	| { lib: "Ionicons"; name: string }
-	| { lib: "MaterialCommunityIcons"; name: string };
+/** Lucide icon name — see lucide-react-native icon list */
+export type EventIconDef = { name: string };
 
 export interface Event {
 	id: string;
@@ -45,7 +44,8 @@ export interface Event {
 	end: string; // ISO 8601
 	state: EventState;
 	kind: EventKind;
-	imageUrl?: string; // optional cover photo
+	imageUrl?: string; // optional CDN photo (Supabase Storage)
+	blurhash?: string; // offline placeholder shown while image loads
 	// static events
 	location?: StaticLocation;
 	locationName?: string; // human-readable venue name
