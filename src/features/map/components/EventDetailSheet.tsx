@@ -2,8 +2,8 @@ import { type Event, STATE_COLOR, STATE_LABEL_SHORT } from '@/entities/event';
 import { Colors } from '@/shared/constants';
 import { formatTime } from '@/shared/lib';
 import { BottomSheet, EventIcon } from '@/shared/ui';
-import { Ionicons } from '@expo/vector-icons';
 import * as Calendar from 'expo-calendar';
+import { CalendarPlus, Clock, MapPin, PersonStanding } from 'lucide-react-native';
 import React, { useCallback } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -76,7 +76,7 @@ export function EventDetailSheet({ event, onClose }: Props) {
       <Text style={styles.description}>{event.shortDescription}</Text>
 
       <View style={styles.row}>
-        <Ionicons name="time-outline" size={16} color={Colors.textDim} />
+        <Clock size={16} color={Colors.textDim} />
         <Text style={styles.rowText}>
           {formatTime(event.start)} - {formatTime(event.end)}
         </Text>
@@ -84,19 +84,19 @@ export function EventDetailSheet({ event, onClose }: Props) {
 
       {event.kind === 'mobile' && (
         <View style={styles.row}>
-          <Ionicons name="walk-outline" size={16} color={Colors.textDim} />
+          <PersonStanding size={16} color={Colors.textDim} />
           <Text style={styles.rowText}>Recorregut pels carrers</Text>
         </View>
       )}
       {event.kind === 'static' && event.locationName && (
         <View style={styles.row}>
-          <Ionicons name="location-outline" size={16} color={Colors.textDim} />
+          <MapPin size={16} color={Colors.textDim} />
           <Text style={styles.rowText}>{event.locationName}</Text>
         </View>
       )}
 
       <Pressable style={styles.calendarBtn} onPress={handleAddToCalendar}>
-        <Ionicons name="calendar-outline" size={18} color="#fff" />
+        <CalendarPlus size={18} color="#fff" />
         <Text style={styles.calendarBtnText}>Afegir al calendari</Text>
       </Pressable>
     </BottomSheet>

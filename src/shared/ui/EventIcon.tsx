@@ -1,6 +1,6 @@
 import type { EventIconDef } from "@/entities/event";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import type React from "react";
+import * as LucideIcons from "lucide-react-native";
+import type { LucideIcon } from "lucide-react-native";
 
 interface Props {
   icon: EventIconDef;
@@ -9,24 +9,8 @@ interface Props {
 }
 
 export function EventIcon({ icon, size = 26, color = "#fff" }: Props) {
-  if (icon.lib === "MaterialCommunityIcons") {
-    return (
-      <MaterialCommunityIcons
-        name={
-          icon.name as React.ComponentProps<
-            typeof MaterialCommunityIcons
-          >["name"]
-        }
-        size={size}
-        color={color}
-      />
-    );
-  }
-  return (
-    <Ionicons
-      name={icon.name as React.ComponentProps<typeof Ionicons>["name"]}
-      size={size}
-      color={color}
-    />
-  );
+  const LucideIcon =
+    (LucideIcons[icon.name as keyof typeof LucideIcons] as LucideIcon | undefined) ??
+    LucideIcons.Star;
+  return <LucideIcon size={size} color={color} />;
 }

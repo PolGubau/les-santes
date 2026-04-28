@@ -1,8 +1,8 @@
 import { DayPicker } from '@/features/agenda';
 import { Colors } from '@/shared/constants';
 import { formatDayFull } from '@/shared/lib';
-import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { Calendar, ChevronDown, List } from 'lucide-react-native';
 import React, { useCallback, useRef, useState } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -104,12 +104,12 @@ export const MapHeader = React.memo(function MapHeader({
         {/* ── Compact bar ── */}
         <View style={styles.topRow}>
           <Pressable style={styles.datePressable} onPress={toggle} hitSlop={6}>
-            <Ionicons name="calendar-outline" size={13} color={Colors.textMuted} />
+            <Calendar size={13} color={Colors.textMuted} />
             <Text style={styles.dateLabel} numberOfLines={1}>
               {formatDayFull(selectedDay)}
             </Text>
             <Animated.View style={{ transform: [{ rotate: chevronRotate }] }}>
-              <Ionicons name="chevron-down" size={13} color={Colors.textMuted} />
+              <ChevronDown size={13} color={Colors.textMuted} />
             </Animated.View>
           </Pressable>
 
@@ -121,7 +121,7 @@ export const MapHeader = React.memo(function MapHeader({
               </View>
             )}
             <Pressable style={styles.listBtn} onPress={onListPress} hitSlop={8}>
-              <Ionicons name="list" size={18} color={Colors.text} />
+              <List size={18} color={Colors.text} />
             </Pressable>
           </View>
         </View>

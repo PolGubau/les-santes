@@ -2,8 +2,8 @@ import { type Event, STATE_COLOR, STATE_LABEL_SHORT } from '@/entities/event';
 import { Colors } from '@/shared/constants';
 import { formatDayShort, formatTime } from '@/shared/lib';
 import { BottomSheet, EventIcon } from '@/shared/ui';
-import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { ArrowRight, ChevronRight } from 'lucide-react-native';
 import React from 'react';
 import { Dimensions, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -34,7 +34,7 @@ function EventRow({ event }: { event: Event }) {
           <Text style={{ color: STATE_COLOR[event.state] }}>{STATE_LABEL_SHORT[event.state]}</Text>
         </Text>
       </View>
-      <Ionicons name="chevron-forward" size={14} color={Colors.textDim} />
+      <ChevronRight size={14} color={Colors.textDim} />
     </Pressable>
   );
 }
@@ -69,7 +69,7 @@ export function MapEventsDrawer({ events, selectedDay, onClose }: Props) {
         onPress={() => { onClose(); router.push('/(tabs)/agenda'); }}
       >
         <Text style={styles.agendaBtnText}>Veure tota l&apos;agenda</Text>
-        <Ionicons name="arrow-forward" size={15} color={Colors.primary} />
+        <ArrowRight size={15} color={Colors.primary} />
       </Pressable>
     </BottomSheet>
   );

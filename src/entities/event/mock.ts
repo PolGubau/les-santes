@@ -236,7 +236,8 @@ export const MOCK_EVENTS: RawEvent[] = [
 		title: "Cap a la Crida",
 		type: "cercavila",
 		category: "tradicional",
-		icon: { lib: "MaterialCommunityIcons", name: "flag" },
+		icon: { name: "Flag" },
+		blurhash: "L6B;DR-;IU?bx]t7t7WB-;_3t7WB",
 		shortDescription:
 			"Comparses surten des de diversos indrets: Família Robafaves des del carrer Bonaire, Diablesses des de Sant Josep, Dracs des del carrer d'en Pujol.",
 		start: d(25, 19, 45),
@@ -253,7 +254,8 @@ export const MOCK_EVENTS: RawEvent[] = [
 		title: "Crida de Festa Major",
 		type: "espectacle",
 		category: "tradicional",
-		icon: { lib: "Ionicons", name: "megaphone" },
+		icon: { name: "Megaphone" },
+		blurhash: "L6B;DR-;IU?bx]t7t7WB-;_3t7WB",
 		shortDescription:
 			"L'alcalde proclama l'inici de la Festa Major des del balcó de l'Ajuntament. Una traca dóna pas als primers balls.",
 		start: d(25, 20),
@@ -267,7 +269,8 @@ export const MOCK_EVENTS: RawEvent[] = [
 		title: "Desvetllament Bellugós",
 		type: "cercavila",
 		category: "nocturn",
-		icon: { lib: "MaterialCommunityIcons", name: "flag" },
+		icon: { name: "Flag" },
+		blurhash: "L03_jN?bofj[~qj[j[j[D%j[Rjj[",
 		shortDescription:
 			"La Família Robafaves baixa la Riera fins a la plaça Santa Anna a ritme de Bequetero.",
 		start: d(25, 23, 30),
@@ -285,8 +288,8 @@ export const MOCK_EVENTS: RawEvent[] = [
 		title: "Escapada a Negra Nit",
 		type: "correfoc",
 		category: "nocturn",
-		icon: { lib: "MaterialCommunityIcons", name: "fire" },
-		imageUrl: "https://picsum.photos/seed/dragon/800/450",
+		icon: { name: "Flame" },
+		blurhash: "L9C?:H-;M{oL~qRjt7t7xuRjt7t7",
 		shortDescription:
 			"Gran correfoc nocturn amb la Momerota, el Drac, les Diablesses i més de 15 colles convidades.",
 		start: dn(25, 1, 30),
@@ -307,7 +310,8 @@ export const MOCK_EVENTS: RawEvent[] = [
 		title: "Música per la Diversitat",
 		type: "concert",
 		category: "cultural",
-		icon: { lib: "Ionicons", name: "musical-notes" },
+		icon: { name: "Music" },
+		blurhash: "L4ADf900?bIU?bt7t7WB00-;RjWB",
 		shortDescription:
 			"Concert en el marc del Dia de l'Orgull LGTBIQ+. Diverses formacions musicals al Parc Central.",
 		start: d(26, 19),
@@ -321,8 +325,8 @@ export const MOCK_EVENTS: RawEvent[] = [
 		title: "Nit de Focs Artificials",
 		type: "focsartificials",
 		category: "nocturn",
-		icon: { lib: "MaterialCommunityIcons", name: "firework" },
-		imageUrl: "https://picsum.photos/seed/fireworks/800/450",
+		icon: { name: "Sparkles" },
+		blurhash: "L9C?:H-;M{oL~qRjt7t7xuRjt7t7",
 		shortDescription:
 			"Castell de focs des del passeig marítim. Un dels espectacles més esperats de les festes.",
 		start: d(26, 23),
@@ -337,7 +341,8 @@ export const MOCK_EVENTS: RawEvent[] = [
 		title: "Toc de Matinades",
 		type: "barram",
 		category: "tradicional",
-		icon: { lib: "MaterialCommunityIcons", name: "bell-ring" },
+		icon: { name: "Bell" },
+		blurhash: "L6PZfSi_.AyE_3t7t7R**0o#DgR4",
 		shortDescription:
 			"Repic de campanes per despertar la ciutat en el dia gran de les Santes",
 		start: d(27, 6),
@@ -351,8 +356,8 @@ export const MOCK_EVENTS: RawEvent[] = [
 		title: "La Passada",
 		type: "cercavila",
 		category: "tradicional",
-		icon: { lib: "MaterialCommunityIcons", name: "flag" },
-		imageUrl: "https://picsum.photos/seed/procession/800/450",
+		icon: { name: "Flag" },
+		blurhash: "L6B;DR-;IU?bx]t7t7WB-;_3t7WB",
 		shortDescription:
 			"Cercavila solemne des de l'Ajuntament fins a la Basílica de Santa Maria per La Riera",
 		start: d(27, 17, 30),
@@ -382,7 +387,8 @@ export const MOCK_EVENTS: RawEvent[] = [
 		title: "Missa de les Santes",
 		type: "missa",
 		category: "tradicional",
-		icon: { lib: "MaterialCommunityIcons", name: "church" },
+		icon: { name: "Church" },
+		blurhash: "L6PZfSi_.AyE_3t7t7R**0o#DgR4",
 		shortDescription:
 			"Missa pontifical a la Basílica. Més de 150 cantaires i orquestra simfònica",
 		start: d(27, 10),
@@ -396,7 +402,8 @@ export const MOCK_EVENTS: RawEvent[] = [
 		title: "Ballada de Sardanes",
 		type: "sardanes",
 		category: "tradicional",
-		icon: { lib: "Ionicons", name: "musical-notes" },
+		icon: { name: "Music" },
+		blurhash: "L4ADf900?bIU?bt7t7WB00-;RjWB",
 		shortDescription:
 			"Ballada al carrer d'en Pujol. Cobla La Principal del Llobregat",
 		start: d(27, 12),
@@ -410,7 +417,8 @@ export const MOCK_EVENTS: RawEvent[] = [
 		title: "Postal de Gegants",
 		type: "gegants",
 		category: "tradicional",
-		icon: { lib: "MaterialCommunityIcons", name: "crown" },
+		icon: { name: "Crown" },
+		blurhash: "L6B;DR-;IU?bx]t7t7WB-;_3t7WB",
 		shortDescription:
 			"Exhibició dels gegants i nans de Mataró davant l'Ajuntament. Entrada lliure",
 		start: d(27, 18, 30),
@@ -424,7 +432,8 @@ export const MOCK_EVENTS: RawEvent[] = [
 		title: "La Processó de les Santes",
 		type: "cercavila",
 		category: "tradicional",
-		icon: { lib: "MaterialCommunityIcons", name: "candle" },
+		icon: { name: "Candle" },
+		blurhash: "L6PZfSi_.AyE_3t7t7R**0o#DgR4",
 		shortDescription:
 			"Cercavila solemne amb les relíquies de les Santes pels carrers del centre",
 		start: d(27, 18),
@@ -445,7 +454,8 @@ export const MOCK_EVENTS: RawEvent[] = [
 		title: "Espai Familiar - Nou Parc Central",
 		type: "jocs",
 		category: "familiar",
-		icon: { lib: "Ionicons", name: "happy" },
+		icon: { name: "Smile" },
+		blurhash: "L5H2EC=PM+yV0g-mq.wG9c010J}I",
 		shortDescription:
 			"Tallers, jocs i espectacles per a tota la família. Animació infantil tot el vespre",
 		start: d(27, 19),
@@ -459,7 +469,8 @@ export const MOCK_EVENTS: RawEvent[] = [
 		title: "L'en hora del conte - Bigotis",
 		type: "contes",
 		category: "familiar",
-		icon: { lib: "Ionicons", name: "book" },
+		icon: { name: "BookOpen" },
+		blurhash: "L5H2EC=PM+yV0g-mq.wG9c010J}I",
 		shortDescription:
 			"Espectacle de contes per a infants de 3 a 8 anys. En català. Places limitades",
 		start: d(27, 20, 15),
@@ -473,7 +484,8 @@ export const MOCK_EVENTS: RawEvent[] = [
 		title: "Artilusio - Màgia i Circ",
 		type: "espectacle",
 		category: "familiar",
-		icon: { lib: "MaterialCommunityIcons", name: "hat-fedora" },
+		icon: { name: "Wand" },
+		blurhash: "L5H2EC=PM+yV0g-mq.wG9c010J}I",
 		shortDescription:
 			"Espectacle de circ i màgia al Teatre Municipal. Per a tots els públics",
 		start: d(27, 19, 30),
@@ -487,7 +499,8 @@ export const MOCK_EVENTS: RawEvent[] = [
 		title: "Nit Boja - Correfoc de les Santes",
 		type: "correfoc",
 		category: "nocturn",
-		icon: { lib: "MaterialCommunityIcons", name: "fire" },
+		icon: { name: "Flame" },
+		blurhash: "L9C?:H-;M{oL~qRjt7t7xuRjt7t7",
 		shortDescription:
 			"El gran correfoc de la Nit Boja. Ball de Diables de Mataró i set colles convidades",
 		start: d(27, 22),
@@ -508,7 +521,8 @@ export const MOCK_EVENTS: RawEvent[] = [
 		title: "Concert al Parc: Mushkaa",
 		type: "concert",
 		category: "nocturn",
-		icon: { lib: "Ionicons", name: "mic" },
+		icon: { name: "Mic" },
+		blurhash: "L4ADf900?bIU?bt7t7WB00-;RjWB",
 		shortDescription:
 			"Concert de la banda Mushkaa al Nou Parc Central. Pop-rock en català",
 		start: d(27, 21),
@@ -522,7 +536,8 @@ export const MOCK_EVENTS: RawEvent[] = [
 		title: "Sardanes de la Nit",
 		type: "sardanes",
 		category: "nocturn",
-		icon: { lib: "Ionicons", name: "musical-notes" },
+		icon: { name: "Music" },
+		blurhash: "L4ADf900?bIU?bt7t7WB00-;RjWB",
 		shortDescription:
 			"Ballada de sardanes de nit. Cobla La Principal del Llobregat. Repartiment de xíndria",
 		start: d(27, 23, 45),
@@ -537,7 +552,8 @@ export const MOCK_EVENTS: RawEvent[] = [
 		title: "Balls Populars de les Santes",
 		type: "sardanes",
 		category: "tradicional",
-		icon: { lib: "Ionicons", name: "musical-notes" },
+		icon: { name: "Music" },
+		blurhash: "L4ADf900?bIU?bt7t7WB00-;RjWB",
 		shortDescription:
 			"Balls de sardanes i ball de bot. Tarda festiva al centre de Mataró",
 		start: d(28, 17),
@@ -551,7 +567,8 @@ export const MOCK_EVENTS: RawEvent[] = [
 		title: "Diada Castellera de Sant Jaume",
 		type: "castellera",
 		category: "tradicional",
-		icon: { lib: "MaterialCommunityIcons", name: "account-group" },
+		icon: { name: "Users" },
+		blurhash: "L5H2EC=PM+yV0g-mq.wG9c010J}I",
 		shortDescription:
 			"Actuació castellera de la Colla Castellera de Mataró amb colles convidades",
 		start: d(28, 18),
@@ -565,7 +582,8 @@ export const MOCK_EVENTS: RawEvent[] = [
 		title: "Havaneres i Cremat de Cloenda",
 		type: "havaneres",
 		category: "tradicional",
-		icon: { lib: "Ionicons", name: "boat" },
+		icon: { name: "Sailboat" },
+		blurhash: "L4CQ:W?b0KMx~qt7t7WB00?bIU?b",
 		shortDescription:
 			"Concert d'havaneres per cloure les festes. Cremat gratuït per a tothom. Passeig marítim",
 		start: d(28, 21, 30),
@@ -580,7 +598,8 @@ export const MOCK_EVENTS: RawEvent[] = [
 		title: "Cercavila de Cloenda",
 		type: "cercavila",
 		category: "tradicional",
-		icon: { lib: "MaterialCommunityIcons", name: "flag" },
+		icon: { name: "Flag" },
+		blurhash: "L6B;DR-;IU?bx]t7t7WB-;_3t7WB",
 		shortDescription:
 			"Cercavila final de les Santes amb gegants, gralles i entitats de la ciutat",
 		start: d(29, 11),
@@ -598,7 +617,8 @@ export const MOCK_EVENTS: RawEvent[] = [
 		title: "Concert de Cloenda: La Troba Kung-Fú",
 		type: "concert",
 		category: "nocturn",
-		icon: { lib: "Ionicons", name: "mic" },
+		icon: { name: "Mic" },
+		blurhash: "L4ADf900?bIU?bt7t7WB00-;RjWB",
 		shortDescription:
 			"Concert final de les Santes amb La Troba Kung-Fú. Entrada lliure fins a completar aforament",
 		start: d(29, 22),
