@@ -1,7 +1,7 @@
 import { Colors } from '@/shared/constants';
-import { Ionicons } from '@expo/vector-icons';
 import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { AlertCircle } from 'lucide-react-native';
 import React from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
@@ -11,7 +11,7 @@ export function ErrorBoundary({ error, retry }: { error: Error; retry: () => voi
   const router = useRouter();
   return (
     <SafeAreaView style={styles.container}>
-      <Ionicons name="alert-circle-outline" size={56} color={Colors.primary} />
+      <AlertCircle size={56} color={Colors.primary} />
       <Text style={styles.title}>Quelcom ha anat malament</Text>
       <Text style={styles.desc}>{error.message}</Text>
       <Pressable

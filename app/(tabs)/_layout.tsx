@@ -1,7 +1,7 @@
 import { Colors } from '@/shared/constants';
-import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Tabs } from 'expo-router';
+import { CalendarDays, Map as MapIcon, Zap } from 'lucide-react-native';
 
 const tabPress = () =>
   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -36,9 +36,7 @@ export default function TabsLayout() {
         name="ara"
         options={{
           title: 'Ara',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'flash' : 'flash-outline'} size={24} color={color} />
-          ),
+          tabBarIcon: ({ color }) => <Zap size={22} color={color} />,
         }}
         listeners={{ tabPress }}
       />
@@ -46,9 +44,7 @@ export default function TabsLayout() {
         name="mapa"
         options={{
           title: 'Mapa',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'map' : 'map-outline'} size={24} color={color} />
-          ),
+          tabBarIcon: ({ color }) => <MapIcon size={22} color={color} />,
         }}
         listeners={{ tabPress }}
       />
@@ -56,9 +52,7 @@ export default function TabsLayout() {
         name="agenda"
         options={{
           title: 'Agenda',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'calendar' : 'calendar-outline'} size={24} color={color} />
-          ),
+          tabBarIcon: ({ color }) => <CalendarDays size={22} color={color} />,
         }}
         listeners={{ tabPress }}
       />

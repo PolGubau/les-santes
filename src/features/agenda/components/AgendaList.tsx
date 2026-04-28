@@ -3,7 +3,7 @@ import { STATE_COLOR } from '@/entities/event';
 import { Colors } from '@/shared/constants';
 import type { UserCoords } from '@/shared/hooks';
 import { haversineDistance } from '@/shared/lib';
-import { Ionicons } from '@expo/vector-icons';
+import { CalendarOff } from 'lucide-react-native';
 import React, { useEffect } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, {
@@ -22,7 +22,6 @@ interface Props {
   onRefresh?: () => void;
   refreshing?: boolean;
   emptyText?: string;
-  emptyIcon?: React.ComponentProps<typeof Ionicons>["name"];
 }
 
 function SectionCard({
@@ -93,14 +92,13 @@ export function AgendaList({
   onRefresh,
   refreshing = false,
   emptyText = 'Cap acte trobat',
-  emptyIcon = 'calendar-outline',
 }: Props) {
   const sections = buildSections(events);
 
   if (sections.length === 0) {
     return (
       <View style={styles.empty}>
-        <Ionicons name={emptyIcon} size={40} color={Colors.textDim} />
+        <CalendarOff size={40} color={Colors.textDim} />
         <Text style={styles.emptyText}>{emptyText}</Text>
       </View>
     );

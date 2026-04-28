@@ -3,8 +3,8 @@ import { useFavoritesStore } from '@/features/favorites';
 import { Colors } from '@/shared/constants';
 import { addEventToCalendar, formatTime } from '@/shared/lib';
 import { EventIcon } from '@/shared/ui';
-import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { CalendarPlus, Ellipsis, Heart, HeartOff, Share2, X } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
 import Animated, {
@@ -103,11 +103,15 @@ export function EventCard({ event, onPress, distanceMeters }: Props) {
         {/* Compact right actions: heart + menu dots */}
         <View style={styles.actions}>
           <Pressable onPress={handleFavorite} hitSlop={10} accessibilityLabel={favorite ? 'Treure de favorits' : 'Afegir a favorits'}>
-            <Ionicons name={favorite ? 'heart' : 'heart-outline'} size={20} color={favorite ? Colors.primary : Colors.textDim} />
+            {favorite
+              ? <Heart size={20} color={Colors.primary} fill={Colors.primary} />
+              : <HeartOff size={20} color={Colors.textDim} />}
           </Pressable>
           {!isFinished && (
             <Pressable onPress={handleMenu} hitSlop={10} accessibilityLabel="Més opcions">
-              <Ionicons name={expanded ? 'close-circle-outline' : 'ellipsis-horizontal'} size={18} color={Colors.textDim} />
+              {expanded
+                ? <X size={18} color={Colors.textDim} />
+                : <Ellipsis size={18} color={Colors.textDim} />}
             </Pressable>
           )}
         </View>
@@ -118,12 +122,12 @@ export function EventCard({ event, onPress, distanceMeters }: Props) {
         <Animated.View style={[styles.actionBar, animatedBar]}>
           <View style={styles.actionBarInner}>
             <Pressable style={styles.actionBtn} onPress={handleCalendar} accessibilityLabel="Afegir al calendari">
-              <Ionicons name="calendar-outline" size={16} color={Colors.textDim} />
+              <CalendarPlus size={16} color={Colors.textDim} />
               <Text style={styles.actionBtnText}>Calendari</Text>
             </Pressable>
             <View style={styles.actionSep} />
             <Pressable style={styles.actionBtn} onPress={handleShare} accessibilityLabel="Compartir">
-              <Ionicons name="share-outline" size={16} color={Colors.textDim} />
+              <Share2 size={16} color={Colors.textDim} />
               <Text style={styles.actionBtnText}>Compartir</Text>
             </Pressable>
           </View>
