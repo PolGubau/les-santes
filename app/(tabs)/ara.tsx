@@ -5,10 +5,10 @@ import { LiveClock, useNowEvents } from '@/features/now';
 import { Colors } from '@/shared/constants';
 import { formatTime } from '@/shared/lib';
 import { EventIcon } from '@/shared/ui';
-import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
+import { Clock, MapPin, Moon } from 'lucide-react-native';
 import React, { useCallback } from 'react';
 import {
   Pressable,
@@ -67,14 +67,14 @@ function HeroCard({ event, onPress }: { event: Event; onPress: () => void }) {
           </Text>
           <Text style={styles.heroTitle} numberOfLines={2}>{event.title}</Text>
           <View style={styles.heroMeta}>
-            <Ionicons name="time-outline" size={13} color="rgba(255,255,255,0.8)" />
+            <Clock size={13} color="rgba(255,255,255,0.8)" />
             <Text style={styles.heroMetaText}>
               {formatTime(event.start)} – {formatTime(event.end)}
             </Text>
             {event.locationName && (
               <>
                 <Text style={styles.heroMetaDot}>·</Text>
-                <Ionicons name="location-outline" size={13} color="rgba(255,255,255,0.8)" />
+                <MapPin size={13} color="rgba(255,255,255,0.8)" />
                 <Text style={styles.heroMetaText} numberOfLines={1}>{event.locationName}</Text>
               </>
             )}
@@ -213,7 +213,7 @@ export default function AraScreen() {
         {/* Empty state */}
         {!hero && (
           <View style={styles.empty}>
-            <Ionicons name="moon-outline" size={48} color={Colors.textDim} />
+            <Moon size={48} color={Colors.textDim} />
             <Text style={styles.emptyTitle}>Sense actes ara</Text>
             <Text style={styles.emptySubtitle}>Consulta l'agenda per als propers actes</Text>
           </View>

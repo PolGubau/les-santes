@@ -25,21 +25,23 @@ const dn = (day: number, hour: number, min = 0): string =>
 	new Date(2026, 6, day + 1, hour, min, 0).toISOString();
 
 const LOC = {
-	ajuntament: { lat: 41.539, lng: 2.4448 },
-	basilica: { lat: 41.5368, lng: 2.442 },
-	plSantaAnna: { lat: 41.5375, lng: 2.4438 },
-	parcCentral: { lat: 41.5415, lng: 2.4472 },
-	espaiLlar: { lat: 41.5372, lng: 2.4435 }, // Llar Cabanellas
-	callao: { lat: 41.531, lng: 2.445 },
-	maritim: { lat: 41.529, lng: 2.444 },
-	port: { lat: 41.527, lng: 2.448 },
-	teatre: { lat: 41.5382, lng: 2.4445 },
+	ajuntament: { lat: 41.539813, lng: 2.44490516 },
+	basilica: { lat: 41.541, lng: 2.4468 },
+	plSantaAnna: { lat: 41.5377, lng: 2.4447 },
+	parcCentral: { lat: 41.5427, lng: 2.4379 },
+	espaiLlar: { lat: 41.5459, lng: 2.4458 }, // Llar Cabanellas
+	callao: { lat: 41.5343, lng: 2.4477 },
+	maritim: { lat: 41.5392, lng: 2.4548 },
+	port: { lat: 41.5325, lng: 2.4473 },
+	tereses: { lat: 41.5384, lng: 2.4421 },
+	monumental: { lat: 41.5438, lng: 2.4423 },
 	biblioteca: { lat: 41.5385, lng: 2.446 },
 	residencia: { lat: 41.5355, lng: 2.441 },
 	esmandies: { lat: 41.538, lng: 2.4395 },
-	plCuba: { lat: 41.54, lng: 2.4415 },
-	plSantaMaria: { lat: 41.5368, lng: 2.4422 },
+	plCuba: { lat: 41.5374, lng: 2.4409 },
+	plSantaMaria: { lat: 41.5408, lng: 2.4463 },
 	escorxador: { lat: 41.536, lng: 2.44 },
+	preso: { lat: 41.5418, lng: 2.4434 },
 };
 
 const NAME = {
@@ -51,13 +53,14 @@ const NAME = {
 	callao: "Pl. de la Llibertat",
 	maritim: "Passeig Marítim",
 	port: "Port de Mataró",
-	teatre: "Teatre Municipal",
+	monumental: "Teatre Municipal",
 	biblioteca: "Biblioteca Pompeu Fabra",
 	residencia: "Residència",
 	esmandies: "Les Esmanadies",
 	plCuba: "Pl. de Cuba",
 	plSantaMaria: "Pl. de Santa Maria",
 	escorxador: "Escorxador",
+	preso: "La Presó",
 };
 
 export const MOCK_EVENTS: RawEvent[] = [
@@ -74,8 +77,8 @@ export const MOCK_EVENTS: RawEvent[] = [
 		start: d(18, 19),
 		end: d(18, 21),
 		kind: "static",
-		location: { lat: 41.5372, lng: 2.4431 },
-		locationName: "La Presó",
+		location: LOC.preso,
+		locationName: NAME.preso,
 	},
 	{
 		id: "e02",
@@ -88,8 +91,8 @@ export const MOCK_EVENTS: RawEvent[] = [
 		start: d(18, 20),
 		end: d(18, 22),
 		kind: "static",
-		location: LOC.teatre,
-		locationName: NAME.teatre,
+		location: LOC.monumental,
+		locationName: NAME.monumental,
 	},
 	{
 		id: "e03",
@@ -491,8 +494,8 @@ export const MOCK_EVENTS: RawEvent[] = [
 		start: d(27, 19, 30),
 		end: d(27, 21, 30),
 		kind: "static",
-		location: LOC.teatre,
-		locationName: NAME.teatre,
+		location: LOC.monumental,
+		locationName: NAME.monumental,
 	},
 	{
 		id: "e26",

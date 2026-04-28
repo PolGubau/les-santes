@@ -2,8 +2,8 @@ import type { Event } from '@/entities/event';
 import { Colors } from '@/shared/constants';
 import { formatTime } from '@/shared/lib';
 import { EventIcon } from '@/shared/ui';
-import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { ChevronRight, MapPin, PersonStanding } from 'lucide-react-native';
 import React, { useEffect, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -61,11 +61,9 @@ export function NowEventItem({ event, onPress }: Props) {
         <Text style={styles.title} numberOfLines={1}>{event.title}</Text>
         <Text style={styles.desc} numberOfLines={1}>{event.shortDescription}</Text>
         <View style={styles.metaRow}>
-          <Ionicons
-            name={event.kind === 'mobile' ? 'walk' : 'location'}
-            size={11}
-            color={Colors.textDim}
-          />
+          {event.kind === 'mobile'
+            ? <PersonStanding size={11} color={Colors.textDim} />
+            : <MapPin size={11} color={Colors.textDim} />}
           <Text style={styles.meta}>
             {event.kind === 'mobile'
               ? 'Itinerant'
@@ -73,7 +71,7 @@ export function NowEventItem({ event, onPress }: Props) {
           </Text>
         </View>
       </View>
-      <Ionicons name="chevron-forward" size={18} color={Colors.textDim} />
+      <ChevronRight size={18} color={Colors.textDim} />
     </Pressable>
   );
 }
