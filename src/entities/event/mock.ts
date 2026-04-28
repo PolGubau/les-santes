@@ -1,5 +1,21 @@
 import type { RawEvent } from "./types";
 
+// Default blurhash per event type — warm festival tones
+const BH: Record<string, string> = {
+	correfoc: "L9C?Uo%M4,Iq~WNGE1WB4mWB9ZWB",
+	focsartificials: "LB9]mvIU0z%M~WWBRjof0KWBIUj[",
+	gegants: "L6Pj0^jE.AyE_3t7t7R**0o#DgR4",
+	castellera: "L7B:Ix%M4nxt~qWB%MWBIUofRjof",
+	concert: "L5H2EC=PM+yV0g-mq.wG9c010J}I",
+	cercavila: "L6Pj0^jE.AyE_3t7t7R**0o#DgR4",
+	havaneres: "L4B:ItM{00IU~Wj[oej[4nj[NHoe",
+	espectacle: "L9C?Uo%M4,Iq~WNGE1WB4mWB9ZWB",
+	sardanes: "L6Pj0^jE.AyE_3t7t7R**0o#DgR4",
+	exposicio: "L7C6P+%M4nxt~qWB%MWBxuofRjWB",
+	missa: "L5H2EC=PM+yV0g-mq.wG9c010J}I",
+	default: "L6Pj0^jE.AyE_3t7t7R**0o#DgR4",
+};
+
 // ISO helper – July 2026 dates, local time (month index 6 = July)
 const d = (day: number, hour: number, min = 0): string =>
 	new Date(2026, 6, day, hour, min, 0).toISOString();
@@ -51,7 +67,8 @@ export const MOCK_EVENTS: RawEvent[] = [
 		title: "Exposició de Kris Ubach",
 		type: "exposicio",
 		category: "cultural",
-		icon: { lib: "Ionicons", name: "image" },
+		icon: { name: "Image" },
+		blurhash: "L6PZfSi_.AyE_3t7t7R**0o#DgR4",
 		shortDescription:
 			"Fotografies de la festa major 2024. Es pot veure fins al 7 de setembre a La Presó.",
 		start: d(18, 19),
@@ -65,7 +82,8 @@ export const MOCK_EVENTS: RawEvent[] = [
 		title: "Concert 50 anys del Cor Madrigalista",
 		type: "concert",
 		category: "cultural",
-		icon: { lib: "Ionicons", name: "mic" },
+		icon: { name: "Mic" },
+		blurhash: "L4ADf900?bIU?bt7t7WB00-;RjWB",
 		shortDescription: "Acte gratuït amb invitació al Teatre Monumental.",
 		start: d(18, 20),
 		end: d(18, 22),
@@ -78,7 +96,8 @@ export const MOCK_EVENTS: RawEvent[] = [
 		title: "Assaig Castellers Capgrossos",
 		type: "castellera",
 		category: "tradicional",
-		icon: { lib: "MaterialCommunityIcons", name: "account-group" },
+		icon: { name: "Users" },
+		blurhash: "L5H2EC=PM+yV0g-mq.wG9c010J}I",
 		shortDescription:
 			"Últim assaig general dels Capgrossos de Mataró abans de l'actuació de Les Santes.",
 		start: d(18, 20),
@@ -92,7 +111,8 @@ export const MOCK_EVENTS: RawEvent[] = [
 		title: "Música: Ignorantes + Boom Boom Fighters",
 		type: "concert",
 		category: "nocturn",
-		icon: { lib: "Ionicons", name: "musical-notes" },
+		icon: { name: "Music" },
+		blurhash: "L03_jN?bofj[~qj[j[j[D%j[Rjj[",
 		shortDescription:
 			"Concert a la plaça Santa Anna organitzat pels Capgrossos.",
 		start: d(18, 23),
@@ -107,7 +127,8 @@ export const MOCK_EVENTS: RawEvent[] = [
 		title: "Proclama de Festa Major",
 		type: "cercavila",
 		category: "tradicional",
-		icon: { lib: "Ionicons", name: "megaphone" },
+		icon: { name: "Megaphone" },
+		blurhash: "L6B;DR-;IU?bx]t7t7WB-;_3t7WB",
 		shortDescription:
 			"L'alcalde encarrega a l'Herald la proclama de Festa Major. Recorregut per la Riera i places del centre.",
 		start: d(19, 12),
@@ -126,7 +147,8 @@ export const MOCK_EVENTS: RawEvent[] = [
 		title: "Diada Castellera",
 		type: "castellera",
 		category: "tradicional",
-		icon: { lib: "MaterialCommunityIcons", name: "account-group" },
+		icon: { name: "Users" },
+		blurhash: "L5H2EC=PM+yV0g-mq.wG9c010J}I",
 		shortDescription:
 			"Amb la Colla Castellera Capgrossos de Mataró, els Minyons de Terrassa i els Castellers de Vilafranca.",
 		start: d(19, 18),
@@ -141,8 +163,8 @@ export const MOCK_EVENTS: RawEvent[] = [
 		title: "L'Encesa",
 		type: "correfoc",
 		category: "nocturn",
-		icon: { lib: "MaterialCommunityIcons", name: "fire" },
-		imageUrl: "https://picsum.photos/seed/bonfire/800/450",
+		icon: { name: "Flame" },
+		blurhash: "L9C?:H-;M{oL~qRjt7t7xuRjt7t7",
 		shortDescription:
 			"Balls parlats, cercavila de foc i encesa final amb el Ball de Diables de Mataró. Convidats: Seguici Festiu de Tarragona i els Basiliscs de Reus.",
 		start: d(20, 18, 30),
@@ -162,8 +184,8 @@ export const MOCK_EVENTS: RawEvent[] = [
 		title: "Gegantada",
 		type: "gegants",
 		category: "tradicional",
-		icon: { lib: "MaterialCommunityIcons", name: "crown" },
-		imageUrl: "https://picsum.photos/seed/parade/800/450",
+		icon: { name: "Crown" },
+		blurhash: "L6B;DR-;IU?bx]t7t7WB-;_3t7WB",
 		shortDescription:
 			"Tots els gegants, nans i figures de la ciutat en una cercavila multitudinària. Sortida des de la Ronda O'Donnell.",
 		start: d(24, 18),
@@ -183,7 +205,8 @@ export const MOCK_EVENTS: RawEvent[] = [
 		title: "Concert GospelSons",
 		type: "concert",
 		category: "cultural",
-		icon: { lib: "Ionicons", name: "mic" },
+		icon: { name: "Mic" },
+		blurhash: "L4ADf900?bIU?bt7t7WB00-;RjWB",
 		shortDescription:
 			"Concert de gospel a càrrec de la formació Gospelsons, que aquest any compleix 20 anys.",
 		start: d(24, 20),
@@ -197,7 +220,8 @@ export const MOCK_EVENTS: RawEvent[] = [
 		title: "Havaneres i rom cremat",
 		type: "havaneres",
 		category: "tradicional",
-		icon: { lib: "Ionicons", name: "boat" },
+		icon: { name: "Sailboat" },
+		blurhash: "L4CQ:W?b0KMx~qt7t7WB00?bIU?b",
 		shortDescription:
 			"Amb Les Cremats i Arjau. No faltarà l'habitual rom cremat.",
 		start: d(24, 22),
