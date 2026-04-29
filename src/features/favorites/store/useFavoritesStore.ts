@@ -18,13 +18,15 @@ interface FavoritesState {
 	toggleFavorite: (eventId: string) => void;
 }
 
-async function maybeRequestReview(totalAdded: number, lastReviewTs: number) {
-	if (totalAdded < REVIEW_THRESHOLD) return;
-	if (Date.now() - lastReviewTs < REVIEW_COOLDOWN_MS) return;
+async function maybeRequestReview(totalAdded: number, lastReviewTs: number): Promise<boolean> {
+	if (totalAdded < REVIEW_THRESHOLD) return false;
+	if (Date.now() - lastReviewTs < REVIEW_COOLDOWN_MS) return false;
 	const isAvailable = await StoreReview.isAvailableAsync();
 	if (isAvailable) {
 		await StoreReview.requestReview();
+		return true;
 	}
+	return false;
 }
 
 export const useFavoritesStore = create<FavoritesState>()(
@@ -51,10 +53,13 @@ export const useFavoritesStore = create<FavoritesState>()(
 					const lastReviewTs = s.lastReviewTs;
 
 					if (isAdding) {
-						maybeRequestReview(totalAdded, lastReviewTs).then(() => {
-							// Update lastReviewTs after successful request
-							useFavoritesStore.setState({ lastReviewTs: Date.now() });
-						});
+						maybeRequestReview(totalAdded, lastReviewTs)
+							.then((requested) => {
+								if (requested) useFavoritesStore.setState({ lastReviewTs: Date.now() });
+							})
+							.catch(() => {
+								// Review prompts are opportunistic; never break favorite toggling.
+							});
 					}
 
 					return { favorites: next, totalAdded };

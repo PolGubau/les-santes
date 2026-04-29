@@ -5,10 +5,7 @@ import { BottomSheet, EventIcon } from '@/shared/ui';
 import { router } from 'expo-router';
 import { ArrowRight, ChevronRight } from 'lucide-react-native';
 import React from 'react';
-import { Dimensions, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
-
-const { height: SCREEN_H } = Dimensions.get('window');
-
+import { FlatList, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
 interface Props {
   events: Event[];
@@ -40,10 +37,11 @@ function EventRow({ event }: { event: Event }) {
 }
 
 export function MapEventsDrawer({ events, selectedDay, onClose }: Props) {
+  const { height } = useWindowDimensions();
   const nowCount = events.filter((e) => e.state === 'now').length;
 
   return (
-    <BottomSheet onClose={onClose} height={SCREEN_H * 0.75}>
+    <BottomSheet onClose={onClose} height={height * 0.75}>
       <View style={styles.header}>
         <Text style={styles.title}>{formatDayShort(selectedDay)}</Text>
         <Text style={styles.count}>{events.length} actes</Text>
@@ -59,7 +57,7 @@ export function MapEventsDrawer({ events, selectedDay, onClose }: Props) {
         data={events}
         keyExtractor={(e) => e.id}
         renderItem={({ item }) => <EventRow event={item} />}
-        style={styles.list}
+        style={[styles.list, { maxHeight: height * 0.48 }]}
         showsVerticalScrollIndicator={false}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
       />
@@ -86,7 +84,7 @@ const styles = StyleSheet.create({
   },
   nowDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: Colors.stateNow },
   nowText: { color: Colors.stateNow, fontSize: 12, fontWeight: '600' },
-  list: { maxHeight: SCREEN_H * 0.48 },
+  list: {},
   separator: { height: 1, backgroundColor: Colors.border, marginHorizontal: 4 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 12 },
   rowPressed: { opacity: 0.6 },

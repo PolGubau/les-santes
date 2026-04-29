@@ -294,15 +294,24 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
 ) {
   const webviewRef = useRef<WebView>(null);
   const [mapReady, setMapReady] = useState(false);
+  const pendingFocusId = useRef<string | null>(null);
   const eventsRef = useRef(events);
   eventsRef.current = events;
 
+  const injectFocus = useCallback((id: string) => {
+    const js = `window.focusOnEvent(${JSON.stringify(id)}, ${JSON.stringify(eventsRef.current)}); true;`;
+    webviewRef.current?.injectJavaScript(js);
+  }, []);
+
   useImperativeHandle(ref, () => ({
     focusOnEvent: (id: string) => {
-      const js = `window.focusOnEvent(${JSON.stringify(id)}, ${JSON.stringify(eventsRef.current)}); true;`;
-      webviewRef.current?.injectJavaScript(js);
+      if (!mapReady) {
+        pendingFocusId.current = id;
+        return;
+      }
+      injectFocus(id);
     },
-  }));
+  }), [injectFocus, mapReady]);
 
   // Keep screen on while map is visible
   useEffect(() => {
@@ -315,6 +324,12 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
     const js = `window.updateEvents(${JSON.stringify(events)}); true;`;
     webviewRef.current?.injectJavaScript(js);
   }, [events, mapReady]);
+
+  useEffect(() => {
+    if (!mapReady || !pendingFocusId.current) return;
+    injectFocus(pendingFocusId.current);
+    pendingFocusId.current = null;
+  }, [injectFocus, mapReady]);
 
   // Native location → WebView bridge
   useEffect(() => {

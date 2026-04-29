@@ -4,7 +4,8 @@
  * Currently backed by static mock data.
  * Swap `fetchEvents` implementation to hit Supabase when ready:
  *
- *   import { supabase } from '@/shared/lib/supabase';
+ *   import { getSupabaseClient } from '@/shared/lib/supabase';
+ *   const supabase = getSupabaseClient();
  *   const { data } = await supabase.from('events').select('*');
  */
 

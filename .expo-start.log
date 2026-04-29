@@ -1,0 +1,11 @@
+
+> les-santes-app@1.0.0 start C:\Users\pol.gubau\dev\projects\les-santes
+> expo start "--" "--clear"
+
+env: load .env
+env: export EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_ANON_KEY SUPABASE_PASSWORD
+Starting project at C:\Users\pol.gubau\dev\projects\les-santes
+Starting Metro Bundler
+warning: Bundler cache is empty, rebuilding (this may take a minute)
+Waiting on http://localhost:8081
+Logs for your project will appear below.

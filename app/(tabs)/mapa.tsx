@@ -3,6 +3,7 @@ import { MOCK_EVENTS } from '@/entities/event';
 import { EventDetailSheet, EventMap, MapEventsDrawer, MapHeader, useMapEvents } from '@/features/map';
 import type { EventMapHandle } from '@/features/map/components/EventMap';
 import { useMapFocusStore } from '@/features/map/store/useMapFocusStore';
+import { toDateKey } from '@/shared/lib/time';
 import { Screen } from '@/shared/ui';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
@@ -12,16 +13,29 @@ export default function MapaScreen() {
 
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [showDrawer, setShowDrawer] = useState(false);
+  const [pendingFocusId, setPendingFocusId] = useState<string | null>(null);
 
   const { focusedEventId, clearFocus } = useMapFocusStore();
   const mapRef = useRef<EventMapHandle | null>(null);
 
   useEffect(() => {
-    if (focusedEventId && mapRef.current) {
-      mapRef.current.focusOnEvent(focusedEventId);
+    if (focusedEventId) {
+      const focusedEvent = MOCK_EVENTS.find((event) => event.id === focusedEventId);
+      if (focusedEvent) {
+        setDay(toDateKey(new Date(focusedEvent.start)));
+        setPendingFocusId(focusedEventId);
+      }
       clearFocus();
     }
-  }, [focusedEventId, clearFocus]);
+  }, [focusedEventId, clearFocus, setDay]);
+
+  useEffect(() => {
+    if (!pendingFocusId || !mapRef.current) return;
+    const eventIsRendered = mapEvents.some((event) => event.id === pendingFocusId);
+    if (!eventIsRendered) return;
+    mapRef.current.focusOnEvent(pendingFocusId);
+    setPendingFocusId(null);
+  }, [mapEvents, pendingFocusId]);
 
   const liveCount = useMemo(
     () => mapEvents.filter((e) => e.kind === 'mobile' && e.state === 'now').length,
