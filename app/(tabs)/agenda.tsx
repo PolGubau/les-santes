@@ -47,7 +47,9 @@ export default function AgendaScreen() {
   const flatRef = useRef<FlatList<string>>(null);
   const isScrollingFromPicker = useRef(false);
 
-  const { events, loading: refreshing, refresh } = useEvents();
+  const { events, loading, refresh } = useEvents();
+  // `loading` is true on first fetch; use it as pull-to-refresh indicator only after first data
+  const refreshing = loading && events.length > 0;
 
   const { isFavorite } = useFavoritesStore();
   const favoriteEvents = useMemo(
@@ -200,7 +202,9 @@ export default function AgendaScreen() {
           userCoords={userCoords}
           onRefresh={handleRefresh}
           refreshing={refreshing}
+          loading={loading}
           emptyText="Encara no tens cap acte preferit"
+          emptySubtext="Afegeix actes als favorits des de l'agenda"
         />
       ) : (
         <FlatList
@@ -225,6 +229,8 @@ export default function AgendaScreen() {
                 userCoords={userCoords}
                 onRefresh={handleRefresh}
                 refreshing={refreshing}
+                loading={loading}
+                emptySubtext={filters.type || filters.nearMe ? 'Prova a canviar els filtres' : undefined}
               />
             </View>
           )}

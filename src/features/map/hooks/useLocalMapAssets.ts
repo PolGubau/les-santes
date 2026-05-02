@@ -1,0 +1,76 @@
+/**
+ * Copies map library assets (MapLibre, Supercluster) from the app bundle
+ * into the device cache directory so the WebView can load them via file:// URIs.
+ *
+ * Returns the URI of the generated index.html once ready.
+ */
+import { Asset } from "expo-asset";
+import * as FileSystem from "expo-file-system/legacy";
+import { useEffect, useState } from "react";
+
+// Metro requires static require() — no dynamic paths
+const MAP_ASSETS = {
+	js: require("../../../assets/web/maplibre-gl.js"),
+	css: require("../../../assets/web/maplibre-gl.css"),
+	supercluster: require("../../../assets/web/supercluster.min.js"),
+} as const;
+
+const MAP_DIR = `${FileSystem.cacheDirectory}map/`;
+
+async function prepareMapAssets(htmlContent: string): Promise<string> {
+	// Ensure the cache directory exists
+	const dirInfo = await FileSystem.getInfoAsync(MAP_DIR);
+	if (!dirInfo.exists) {
+		await FileSystem.makeDirectoryAsync(MAP_DIR, { intermediates: true });
+	}
+
+	// Download each asset from the bundle and copy to the cache dir
+	const [jsAsset, cssAsset, scAsset] = await Promise.all([
+		Asset.fromModule(MAP_ASSETS.js).downloadAsync(),
+		Asset.fromModule(MAP_ASSETS.css).downloadAsync(),
+		Asset.fromModule(MAP_ASSETS.supercluster).downloadAsync(),
+	]);
+
+	if (!jsAsset.localUri || !cssAsset.localUri || !scAsset.localUri) {
+		throw new Error(
+			"[useLocalMapAssets] Asset localUri is null after downloadAsync",
+		);
+	}
+
+	await Promise.all([
+		FileSystem.copyAsync({
+			from: jsAsset.localUri,
+			to: `${MAP_DIR}maplibre-gl.js`,
+		}),
+		FileSystem.copyAsync({
+			from: cssAsset.localUri,
+			to: `${MAP_DIR}maplibre-gl.css`,
+		}),
+		FileSystem.copyAsync({
+			from: scAsset.localUri,
+			to: `${MAP_DIR}supercluster.min.js`,
+		}),
+	]);
+
+	// Write the HTML file alongside the assets so relative paths resolve
+	const htmlUri = `${MAP_DIR}index.html`;
+	await FileSystem.writeAsStringAsync(htmlUri, htmlContent, {
+		encoding: FileSystem.EncodingType.UTF8,
+	});
+
+	return htmlUri;
+}
+
+export function useLocalMapAssets(htmlContent: string): string | null {
+	const [htmlUri, setHtmlUri] = useState<string | null>(null);
+
+	useEffect(() => {
+		prepareMapAssets(htmlContent)
+			.then(setHtmlUri)
+			.catch((err) => console.error("[useLocalMapAssets]", err));
+		// htmlContent is a module-level constant — safe to omit from deps
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+
+	return htmlUri;
+}

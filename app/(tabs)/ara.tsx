@@ -4,7 +4,7 @@ import { useMapFocusStore } from '@/features/map/store/useMapFocusStore';
 import { LiveClock, useNowEvents } from '@/features/now';
 import { Colors } from '@/shared/constants';
 import { formatTime } from '@/shared/lib';
-import { EventIcon, Screen } from '@/shared/ui';
+import { EventIcon, LoadingState, Screen } from '@/shared/ui';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -126,7 +126,7 @@ function SectionHeader({ title, count }: { title: string; count?: number }) {
 // ─── Screen ──────────────────────────────────────────────────────────────────
 export default function AraScreen() {
   useWindowDimensions(); // keeps layout reactive on rotation
-  const { events } = useEvents();
+  const { events, loading } = useEvents();
   const { now, upcoming } = useNowEvents(events);
   const focusEvent = useMapFocusStore((s) => s.focusEvent);
 
@@ -149,8 +149,10 @@ export default function AraScreen() {
         <LiveClock />
       </View>
 
+      {loading && events.length === 0 && <LoadingState label="Carregant actes…" />}
+
       <ScrollView
-        style={styles.scroll}
+        style={[styles.scroll, loading && events.length === 0 && { display: 'none' }]}
         contentContainerStyle={[styles.scrollContent, { paddingBottom: 32 }]}
         showsVerticalScrollIndicator={false}
       >

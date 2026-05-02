@@ -1,8 +1,10 @@
 import type { Event } from '@/entities/event';
+import { useLocalMapAssets } from '@/features/map/hooks/useLocalMapAssets';
+import { Colors } from '@/shared/constants';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import * as Location from 'expo-location';
 import React, { forwardRef, memo, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { StyleSheet } from 'react-native';
+import { ActivityIndicator, Animated, StyleSheet, Text, View } from 'react-native';
 import WebView, { type WebViewMessageEvent } from 'react-native-webview';
 
 const CENTER_LNG = 2.444;
@@ -15,9 +17,9 @@ const BASE_HTML = `<!DOCTYPE html>
 <html>
 <head>
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-  <link href="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.css" rel="stylesheet">
-  <script src="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.js"></script>
-  <script src="https://unpkg.com/supercluster@8/dist/supercluster.min.js"></script>
+  <link href="./maplibre-gl.css" rel="stylesheet">
+  <script src="./maplibre-gl.js"></script>
+  <script src="./supercluster.min.js"></script>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     body,#map { width:100%; height:100vh; background:#0d0d0d; }
@@ -99,10 +101,20 @@ function makeClusterEl(count, onClick) {
 }
 
 // ── Map ───────────────────────────────────────────────────────────────────────
+const MAPTILER_KEY = 'xvhIdcAsn7WrwOYPt8W2';
+const STYLE_PRIMARY  = \`https://api.maptiler.com/maps/streets-v2/style.json?key=\${MAPTILER_KEY}\`;
+const STYLE_FALLBACK = 'https://tiles.openfreemap.org/styles/liberty';
+let _styleFailed = false;
 const map = new maplibregl.Map({
-  container:'map', style:'https://tiles.openfreemap.org/styles/liberty',
+  container:'map', style:STYLE_PRIMARY,
   center:[${CENTER_LNG}, ${CENTER_LAT}], zoom:14.5, minZoom:12, maxZoom:19,
   maxBounds:[[2.37,41.49],[2.53,41.59]], attributionControl:false,
+});
+map.on('error', (e) => {
+  if (!_styleFailed && e?.error?.status && e.error.status >= 400) {
+    _styleFailed = true;
+    map.setStyle(STYLE_FALLBACK);
+  }
 });
 
 // ── State ─────────────────────────────────────────────────────────────────────
@@ -271,11 +283,14 @@ window.updateUserLocation = function(lat, lng) {
   _userMarker = new maplibregl.Marker({ element:el }).setLngLat(ll).addTo(map);
 };
 
-map.on('load', () => {
+map.on('style.load', () => {
   addArrowImage();
-  _mapReady = true;
+  if (!_mapReady) {
+    _mapReady = true;
+    post({ type:'MAP_READY' });
+  }
   if (_pending) { renderEvents(_pending); _pending = null; }
-  post({ type:'MAP_READY' });
+  else if (_scLoaded) renderClusters();
 });
 </script>
 </body>
@@ -294,8 +309,10 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
   { events, onEventPress },
   ref,
 ) {
+  const htmlUri = useLocalMapAssets(BASE_HTML);
   const webviewRef = useRef<WebView>(null);
   const [mapReady, setMapReady] = useState(false);
+  const loaderOpacity = useRef(new Animated.Value(1)).current;
   const pendingFocusId = useRef<string | null>(null);
   const eventsRef = useRef(events);
   eventsRef.current = events;
@@ -355,26 +372,57 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
       const data = JSON.parse(e.nativeEvent.data);
       if (data.type === 'MAP_READY') {
         setMapReady(true);
+        Animated.timing(loaderOpacity, {
+          toValue: 0,
+          duration: 400,
+          useNativeDriver: true,
+        }).start();
       } else if (data.type === 'EVENT_PRESS' && onEventPress) {
         onEventPress(data.event as Event);
       }
     } catch { /* ignore */ }
-  }, [onEventPress]);
+  }, [loaderOpacity, onEventPress]);
 
   return (
-    <WebView
-      ref={webviewRef}
-      style={styles.map}
-      source={{ html: BASE_HTML }}
-      originWhitelist={['*']}
-      javaScriptEnabled
-      domStorageEnabled
-      allowUniversalAccessFromFileURLs
-      onMessage={handleMessage}
-    />
+    <View style={styles.map}>
+      {htmlUri && (
+        <WebView
+          ref={webviewRef}
+          style={StyleSheet.absoluteFill}
+          source={{ uri: htmlUri }}
+          originWhitelist={['file://*', '*']}
+          javaScriptEnabled
+          domStorageEnabled
+          allowFileAccess
+          allowFileAccessFromFileURLs
+          allowUniversalAccessFromFileURLs
+          onMessage={handleMessage}
+        />
+      )}
+
+      {/* Loader overlay — fades out when MAP_READY fires */}
+      <Animated.View
+        style={[styles.loader, { opacity: loaderOpacity }]}
+        pointerEvents={mapReady ? 'none' : 'auto'}
+      >
+        <ActivityIndicator size="large" color={Colors.primary} />
+        <Text style={styles.loaderText}>Carregant el mapa…</Text>
+      </Animated.View>
+    </View>
   );
 }));
 
 const styles = StyleSheet.create({
   map: { flex: 1 },
+  loader: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: Colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  loaderText: {
+    color: Colors.textMuted,
+    fontSize: 13,
+  },
 });

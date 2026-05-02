@@ -3,6 +3,7 @@ import { STATE_COLOR } from '@/entities/event';
 import { Colors } from '@/shared/constants';
 import type { UserCoords } from '@/shared/hooks';
 import { haversineDistance } from '@/shared/lib';
+import { LoadingState } from '@/shared/ui/LoadingState';
 import { CalendarOff } from 'lucide-react-native';
 import React, { useEffect } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -21,7 +22,9 @@ interface Props {
   onEventPress?: (event: Event) => void;
   onRefresh?: () => void;
   refreshing?: boolean;
+  loading?: boolean;
   emptyText?: string;
+  emptySubtext?: string;
 }
 
 function SectionCard({
@@ -91,15 +94,22 @@ export function AgendaList({
   onEventPress,
   onRefresh,
   refreshing = false,
+  loading = false,
   emptyText = 'Cap acte trobat',
+  emptySubtext,
 }: Props) {
   const sections = buildSections(events);
+
+  if (loading && sections.length === 0) {
+    return <LoadingState label="Carregant actes…" />;
+  }
 
   if (sections.length === 0) {
     return (
       <View style={styles.empty}>
-        <CalendarOff size={40} color={Colors.textDim} />
+        <CalendarOff size={44} color={Colors.textDim} />
         <Text style={styles.emptyText}>{emptyText}</Text>
+        {emptySubtext && <Text style={styles.emptySubtext}>{emptySubtext}</Text>}
       </View>
     );
   }
@@ -187,6 +197,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
+    paddingHorizontal: 40,
   },
-  emptyText: { color: Colors.textMuted, fontSize: 16, marginTop: 4 },
+  emptyText: { color: Colors.text, fontSize: 16, fontWeight: '600', textAlign: 'center', marginTop: 4 },
+  emptySubtext: { color: Colors.textMuted, fontSize: 13, textAlign: 'center', lineHeight: 18 },
 });
