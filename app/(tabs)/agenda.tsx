@@ -1,9 +1,9 @@
 import type { EventType } from "@/entities/event";
-import { MOCK_EVENTS, withState } from "@/entities/event";
+import { useEvents } from "@/entities/event";
 import { AgendaList, DayPicker, useAgenda } from "@/features/agenda";
 import { useFavoritesStore } from "@/features/favorites";
 import { Colors } from "@/shared/constants";
-import { useNow, useUserLocation } from "@/shared/hooks";
+import { useUserLocation } from "@/shared/hooks";
 import { Screen } from "@/shared/ui";
 import * as Haptics from "expo-haptics";
 import {
@@ -42,18 +42,17 @@ const TYPE_FILTERS: Array<{
 
 export default function AgendaScreen() {
   const { width: SCREEN_WIDTH } = useWindowDimensions();
-  const [refreshing, setRefreshing] = useState(false);
   const [showFavorites, setShowFavorites] = useState(false);
   const userCoords = useUserLocation();
   const flatRef = useRef<FlatList<string>>(null);
   const isScrollingFromPicker = useRef(false);
-  const now = useNow();
 
-  const { favorites, isFavorite } = useFavoritesStore();
+  const { events, loading: refreshing, refresh } = useEvents();
+
+  const { isFavorite } = useFavoritesStore();
   const favoriteEvents = useMemo(
-    () => MOCK_EVENTS.filter((e) => isFavorite(e.id)).map((e) => withState(e, now)),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [favorites, now],
+    () => events.filter((e) => isFavorite(e.id)),
+    [events, isFavorite],
   );
 
   const {
@@ -65,7 +64,7 @@ export default function AgendaScreen() {
     availableDays,
     todayKey,
     setDay,
-  } = useAgenda(MOCK_EVENTS, userCoords);
+  } = useAgenda(events, userCoords);
 
   const dayCount = showFavorites
     ? favoriteEvents.length
@@ -99,9 +98,8 @@ export default function AgendaScreen() {
   );
 
   const handleRefresh = useCallback(() => {
-    setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 800);
-  }, []);
+    refresh();
+  }, [refresh]);
 
   return (
     <Screen>

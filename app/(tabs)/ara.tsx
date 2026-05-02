@@ -1,10 +1,10 @@
 import type { Event } from '@/entities/event';
-import { MOCK_EVENTS } from '@/entities/event';
+import { useEvents } from '@/entities/event';
 import { useMapFocusStore } from '@/features/map/store/useMapFocusStore';
 import { LiveClock, useNowEvents } from '@/features/now';
 import { Colors } from '@/shared/constants';
 import { formatTime } from '@/shared/lib';
-import { EventIcon } from '@/shared/ui';
+import { EventIcon, Screen } from '@/shared/ui';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -18,26 +18,8 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
-// Fallback images per event type
-const TYPE_IMAGE: Record<string, string> = {
-  correfoc: 'https://picsum.photos/seed/bonfire/800/450',
-  focsartificials: 'https://picsum.photos/seed/fireworks/800/450',
-  gegants: 'https://picsum.photos/seed/parade/800/450',
-  castellera: 'https://picsum.photos/seed/acrobats/800/450',
-  concert: 'https://picsum.photos/seed/concert/800/450',
-  cercavila: 'https://picsum.photos/seed/procession/800/450',
-  havaneres: 'https://picsum.photos/seed/seashanty/800/450',
-  espectacle: 'https://picsum.photos/seed/circus/800/450',
-  sardanes: 'https://picsum.photos/seed/dance/800/450',
-  exposicio: 'https://picsum.photos/seed/gallery/800/450',
-  default: 'https://picsum.photos/seed/festival/800/450',
-};
-
-function eventImage(event: Event): string {
-  return event.imageUrl ?? TYPE_IMAGE[event.type] ?? TYPE_IMAGE.default;
-}
+const DEFAULT_BLURHASH = 'L6Pj0^jE.AyE_3t7t7R**0o#DgR4';
 
 // ─── Hero Card ───────────────────────────────────────────────────────────────
 function HeroCard({ event, onPress }: { event: Event; onPress: () => void }) {
@@ -45,11 +27,11 @@ function HeroCard({ event, onPress }: { event: Event; onPress: () => void }) {
   return (
     <Pressable style={styles.hero} onPress={onPress} accessibilityRole="button">
       <Image
-        source={{ uri: eventImage(event) }}
+        source={event.imageUrl ? { uri: event.imageUrl } : undefined}
         style={styles.heroImage}
         contentFit="cover"
         transition={400}
-        placeholder={{ blurhash: 'L6Pj0^jE.AyE_3t7t7R**0o#DgR4' }}
+        placeholder={{ blurhash: event.blurhash ?? DEFAULT_BLURHASH }}
       />
       <LinearGradient
         colors={['transparent', 'rgba(0,0,0,0.75)']}
@@ -90,11 +72,11 @@ function NowCard({ event, onPress }: { event: Event; onPress: () => void }) {
   return (
     <Pressable style={styles.nowCard} onPress={onPress} accessibilityRole="button">
       <Image
-        source={{ uri: eventImage(event) }}
+        source={event.imageUrl ? { uri: event.imageUrl } : undefined}
         style={styles.nowCardImage}
         contentFit="cover"
         transition={300}
-        placeholder={{ blurhash: 'L6Pj0^jE.AyE_3t7t7R**0o#DgR4' }}
+        placeholder={{ blurhash: event.blurhash ?? DEFAULT_BLURHASH }}
       />
       <LinearGradient
         colors={['transparent', 'rgba(0,0,0,0.8)']}
@@ -144,7 +126,8 @@ function SectionHeader({ title, count }: { title: string; count?: number }) {
 // ─── Screen ──────────────────────────────────────────────────────────────────
 export default function AraScreen() {
   useWindowDimensions(); // keeps layout reactive on rotation
-  const { now, upcoming } = useNowEvents(MOCK_EVENTS);
+  const { events } = useEvents();
+  const { now, upcoming } = useNowEvents(events);
   const focusEvent = useMapFocusStore((s) => s.focusEvent);
 
   const handlePress = useCallback((event: Event) => {
@@ -156,7 +139,7 @@ export default function AraScreen() {
   const hero = now[0] ?? upcoming[0];
 
   return (
-    <SafeAreaView style={styles.root} edges={['top']}>
+    <Screen style={styles.root} edges={['top']}>
       {/* Fixed header */}
       <View style={styles.header}>
         <View>
@@ -219,7 +202,7 @@ export default function AraScreen() {
           </View>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }
 

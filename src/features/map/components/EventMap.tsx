@@ -18,7 +18,6 @@ const BASE_HTML = `<!DOCTYPE html>
   <link href="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.css" rel="stylesheet">
   <script src="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.js"></script>
   <script src="https://unpkg.com/supercluster@8/dist/supercluster.min.js"></script>
-  <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     body,#map { width:100%; height:100vh; background:#0d0d0d; }
@@ -28,7 +27,7 @@ const BASE_HTML = `<!DOCTYPE html>
       justify-content:center; border:2.5px solid rgba(255,255,255,0.35);
       box-shadow:0 2px 8px rgba(0,0,0,0.5); transition:transform .12s; }
     .m-pin.finished { opacity:0.35; filter:grayscale(0.65); }
-    .m-pin ion-icon { font-size:18px; color:#fff; --ionicon-stroke-width:40; }
+    .m-pin .pin-icon { font-size:16px; line-height:1; user-select:none; }
     .m-label { margin-top:3px; font-size:10px; font-weight:700; color:#fff;
       text-shadow:0 1px 4px rgba(0,0,0,0.9); max-width:76px; text-align:center;
       white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:.01em; }
@@ -53,15 +52,17 @@ function routeColor(eventId) {
   for (let i = 0; i < eventId.length; i++) h = (Math.imul(31, h) + eventId.charCodeAt(i)) | 0;
   return ROUTE_PALETTE[Math.abs(h) % ROUTE_PALETTE.length];
 }
-// MaterialCommunityIcons → Ionicons name mapping
-const ICON_MAP = { 'account-group':'people', 'fire':'flame', 'crown':'trophy',
-  'flag':'flag', 'candle':'flame', 'church':'business', 'bell-ring':'notifications',
-  'firework':'sparkles', 'hat-fedora':'ticket-outline', 'fireworks':'sparkles' };
-
+// Lucide icon name → emoji (zero external deps)
+const ICON_EMOJI = {
+  Image:'📸', Mic:'🎤', Users:'👥', Music:'🎵', Megaphone:'📢',
+  Flag:'🚩', Flame:'🔥', Crown:'👑', Sailboat:'⛵', Bell:'🔔',
+  Church:'⛪', Smile:'😊', BookOpen:'📖', Wand2:'✨', Sparkles:'✨',
+  Star:'⭐', MapPin:'📍',
+};
 function resolveIcon(icon) {
-  if (!icon) return 'location';
-  const n = typeof icon === 'string' ? icon : (icon.name || 'location');
-  return ICON_MAP[n] || n;
+  if (!icon) return '📍';
+  const n = typeof icon === 'string' ? icon : (icon.name || '');
+  return ICON_EMOJI[n] || '📍';
 }
 function post(msg) {
   if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(JSON.stringify(msg));
@@ -77,8 +78,9 @@ function makeMarkerEl(event, overrideColor) {
   pin.className = 'm-pin' + (finished ? ' finished' : '');
   pin.style.background = color;
   pin.style.borderColor = finished ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.45)';
-  const ic = document.createElement('ion-icon');
-  ic.setAttribute('name', resolveIcon(event.icon));
+  const ic = document.createElement('span');
+  ic.className = 'pin-icon';
+  ic.textContent = resolveIcon(event.icon);
   pin.appendChild(ic);
   const lbl = document.createElement('div');
   lbl.className = 'm-label';
