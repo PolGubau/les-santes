@@ -13,14 +13,6 @@ export const Colors = {
 	stateNow: "#00C896", // verd "ara"
 	stateUpcoming: "#4A9EFF", // blau "pròxim"
 	stateFinished: "#555555", // gris "finalitzat"
-
-	// event types
-	correfoc: "#FF4500",
-	concert: "#9B59B6",
-	cercavila: "#F39C12",
-	gegants: "#E74C3C",
-	teatre: "#1ABC9C",
-	altres: "#7F8C8D",
 } as const;
 
 export type ColorKey = keyof typeof Colors;

@@ -1,7 +1,7 @@
 import { Colors } from '@/shared/constants';
 import * as Haptics from 'expo-haptics';
 import { Tabs } from 'expo-router';
-import { CalendarDays, Map as MapIcon, Zap } from 'lucide-react-native';
+import { BookOpen, CalendarDays, Map as MapIcon, Zap } from 'lucide-react-native';
 
 const tabPress = () =>
   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -53,6 +53,14 @@ export default function TabsLayout() {
         options={{
           title: 'Agenda',
           tabBarIcon: ({ color }) => <CalendarDays size={22} color={color} />,
+        }}
+        listeners={{ tabPress }}
+      />
+      <Tabs.Screen
+        name="recursos"
+        options={{
+          title: 'Recursos',
+          tabBarIcon: ({ color }) => <BookOpen size={22} color={color} />,
         }}
         listeners={{ tabPress }}
       />

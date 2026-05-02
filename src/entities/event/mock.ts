@@ -436,7 +436,7 @@ export const MOCK_EVENTS: RawEvent[] = [
 		title: "La Processó de les Santes",
 		type: "cercavila",
 		category: "tradicional",
-		icon: { name: "Candle" },
+		icon: { name: "Star" },
 		blurhash: "L6PZfSi_.AyE_3t7t7R**0o#DgR4",
 		shortDescription:
 			"Cercavila solemne amb les relíquies de les Santes pels carrers del centre",
@@ -488,7 +488,7 @@ export const MOCK_EVENTS: RawEvent[] = [
 		title: "Artilusio - Màgia i Circ",
 		type: "espectacle",
 		category: "familiar",
-		icon: { name: "Wand" },
+		icon: { name: "Wand2" },
 		blurhash: "L5H2EC=PM+yV0g-mq.wG9c010J}I",
 		shortDescription:
 			"Espectacle de circ i màgia al Teatre Municipal. Per a tots els públics",
