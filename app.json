@@ -14,17 +14,23 @@
 			"backgroundColor": "#0D0D0D"
 		},
 		"ios": {
-			"supportsTablet": true,
+			"bundleIdentifier": "com.mataro.lessantes",
+			"supportsTablet": false,
+			"usesNonExemptEncryption": false,
 			"infoPlist": {
-				"NSLocationWhenInUseUsageDescription": "La app necesita la teva ubicació per mostrar-la al mapa del festival."
+				"NSLocationWhenInUseUsageDescription": "La app necessita la teva ubicació per mostrar-la al mapa del festival i filtrar actes propers."
 			}
 		},
 		"android": {
+			"package": "com.mataro.lessantes",
 			"adaptiveIcon": {
 				"foregroundImage": "./assets/adaptive-icon.png",
 				"backgroundColor": "#0D0D0D"
 			},
-			"permissions": ["android.permission.ACCESS_FINE_LOCATION"],
+			"permissions": [
+				"android.permission.ACCESS_FINE_LOCATION",
+				"android.permission.ACCESS_COARSE_LOCATION"
+			],
 			"edgeToEdgeEnabled": true,
 			"predictiveBackGestureEnabled": true
 		},
