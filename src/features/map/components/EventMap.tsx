@@ -13,6 +13,11 @@ const CENTER_LAT = 41.5378;
 // Mataró bounding box — restricts map panning
 const BOUNDS = [[2.39, 41.51], [2.51, 41.57]];
 
+// MapTiler key — set EXPO_PUBLIC_MAPTILER_KEY in EAS secrets / .env
+// Falls back to bundled key so the map works even without the env var.
+declare const process: { env: Record<string, string | undefined> };
+const MAPTILER_KEY = process.env.EXPO_PUBLIC_MAPTILER_KEY ?? 'xvhIdcAsn7WrwOYPt8W2';
+
 const BASE_HTML = `<!DOCTYPE html>
 <html>
 <head>
@@ -101,8 +106,7 @@ function makeClusterEl(count, onClick) {
 }
 
 // ── Map ───────────────────────────────────────────────────────────────────────
-const MAPTILER_KEY = 'xvhIdcAsn7WrwOYPt8W2';
-const STYLE_PRIMARY  = \`https://api.maptiler.com/maps/streets-v2/style.json?key=\${MAPTILER_KEY}\`;
+const STYLE_PRIMARY  = 'https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}';
 const STYLE_FALLBACK = 'https://tiles.openfreemap.org/styles/liberty';
 let _styleFailed = false;
 const map = new maplibregl.Map({

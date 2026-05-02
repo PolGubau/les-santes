@@ -4,7 +4,7 @@ import { useMapFocusStore } from '@/features/map/store/useMapFocusStore';
 import { LiveClock, useNowEvents } from '@/features/now';
 import { Colors } from '@/shared/constants';
 import { formatTime } from '@/shared/lib';
-import { EventIcon, LoadingState, Screen } from '@/shared/ui';
+import { ErrorState, EventIcon, LoadingState, Screen } from '@/shared/ui';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -126,7 +126,7 @@ function SectionHeader({ title, count }: { title: string; count?: number }) {
 // ─── Screen ──────────────────────────────────────────────────────────────────
 export default function AraScreen() {
   useWindowDimensions(); // keeps layout reactive on rotation
-  const { events, loading } = useEvents();
+  const { events, loading, error, refresh } = useEvents();
   const { now, upcoming } = useNowEvents(events);
   const focusEvent = useMapFocusStore((s) => s.focusEvent);
 
@@ -137,6 +137,17 @@ export default function AraScreen() {
 
   // Hero = first live event, or first upcoming if nothing is live
   const hero = now[0] ?? upcoming[0];
+
+  if (error && events.length === 0) {
+    return (
+      <Screen style={styles.root} edges={['top']}>
+        <ErrorState
+          message="No s'han pogut carregar els actes del festival."
+          onRetry={refresh}
+        />
+      </Screen>
+    );
+  }
 
   return (
     <Screen style={styles.root} edges={['top']}>
