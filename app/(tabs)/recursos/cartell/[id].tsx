@@ -1,15 +1,9 @@
 import { POSTERS } from '@/features/recursos';
 import { Colors } from '@/shared/constants';
-import { RichText, Screen } from '@/shared/ui';
-import { Asset } from 'expo-asset';
+import { BackButton, RichText, Screen } from '@/shared/ui';
 import { Image } from 'expo-image';
-import * as MediaLibrary from 'expo-media-library';
-import { router, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, Download } from 'lucide-react-native';
-import { useState } from 'react';
+import { useLocalSearchParams } from 'expo-router';
 import {
-  Alert,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -22,8 +16,6 @@ export default function CartellDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const [saving, setSaving] = useState(false);
-  const [permissionResponse, requestPermission] = MediaLibrary.usePermissions({ granularPermissions: ['photo'] });
 
   const poster = POSTERS.find((p) => p.id === id);
 
@@ -38,27 +30,6 @@ export default function CartellDetailScreen() {
   }
 
   const imageHeight = width * 1.4; // ~3:4 poster ratio
-
-  const handleSave = async () => {
-    if (!poster.asset) return;
-    setSaving(true);
-    try {
-      let perm = permissionResponse;
-      if (!perm?.granted) perm = await requestPermission();
-      if (!perm?.granted) {
-        Alert.alert('Permís denegat', 'Cal accés a la galeria per desar la imatge.');
-        return;
-      }
-      const [asset] = await Asset.loadAsync(poster.asset);
-      const uri = asset.localUri ?? asset.uri;
-      await MediaLibrary.saveToLibraryAsync(uri);
-      Alert.alert('Desat!', `Cartell ${poster.year} desat a la galeria.`);
-    } catch {
-      Alert.alert('Error', "No s'ha pogut desar la imatge.");
-    } finally {
-      setSaving(false);
-    }
-  };
 
   return (
     <Screen safe={false}>
@@ -83,15 +54,10 @@ export default function CartellDetailScreen() {
           )}
 
           {/* Back button overlay */}
-          <Pressable
-            style={[styles.backBtn, { top: insets.top + 12 }]}
-            onPress={() => router.back()}
-            hitSlop={12}
-            accessibilityRole="button"
-            accessibilityLabel="Tornar"
-          >
-            <ArrowLeft size={20} color="#fff" />
-          </Pressable>
+          <BackButton
+            variant="overlay"
+            style={{ position: 'absolute', top: insets.top + 12, left: 16 }}
+          />
         </View>
 
         {/* Content */}
@@ -101,22 +67,6 @@ export default function CartellDetailScreen() {
               <Text style={styles.year}>{poster.year}</Text>
               <Text style={styles.titleLabel}>Cartell de Les Santes</Text>
             </View>
-
-            {/* Save button */}
-            {poster.asset && (
-              <Pressable
-                style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
-                onPress={handleSave}
-                disabled={saving}
-                accessibilityRole="button"
-                accessibilityLabel={`Desar cartell ${poster.year}`}
-              >
-                <Download size={16} color="#fff" />
-                <Text style={styles.saveBtnText}>
-                  {saving ? 'Desant…' : 'Desa'}
-                </Text>
-              </Pressable>
-            )}
           </View>
 
           {poster.author && (
@@ -148,17 +98,6 @@ const styles = StyleSheet.create({
   },
   placeholderYear: { color: Colors.textDim, fontSize: 40, fontWeight: '800' },
   placeholderText: { color: Colors.textDim, fontSize: 13 },
-  backBtn: {
-    position: 'absolute',
-    top: 0,          // overridden inline with insets.top
-    left: 16,
-    backgroundColor: 'rgba(0,0,0,0.55)',
-    borderRadius: 20,
-    width: 36,
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   content: { paddingHorizontal: 20, paddingTop: 20 },
   titleRow: {
     flexDirection: 'row',
@@ -181,18 +120,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: Colors.border,
   },
-  saveBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: Colors.primary,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    marginTop: 4,
-  },
-  saveBtnDisabled: { opacity: 0.5 },
-  saveBtnText: { color: '#fff', fontSize: 13, fontWeight: '700' },
   notFound: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   notFoundText: { color: Colors.textMuted, fontSize: 15 },
 });

@@ -1,12 +1,10 @@
 import { POSTAL_ASSETS } from '@/entities/postal';
 import { Colors } from '@/shared/constants';
-import { Asset } from 'expo-asset';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
-import * as MediaLibrary from 'expo-media-library';
-import { ChevronLeft, ChevronRight, Download, ImageOff, X } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, ImageOff, X } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
-import { Alert, Modal, Pressable, StatusBar, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Modal, Pressable, StatusBar, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   Easing,
@@ -31,11 +29,7 @@ const SNAP_EASING = Easing.out(Easing.quad);
 
 export function PostalCard({ postal, width }: Props) {
   const [showDors, setShowDors] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [lightbox, setLightbox] = useState(false);
-  const [permissionResponse, requestPermission] = MediaLibrary.usePermissions({
-    granularPermissions: ['photo'],
-  });
   const { width: screenW, height: screenH } = useWindowDimensions();
 
   const cardHeight = width * 0.68;
@@ -118,27 +112,6 @@ export function PostalCard({ postal, width }: Props) {
         slideX.value = withTiming(atCara ? 0 : -width, { duration: 160, easing: SNAP_EASING });
       }
     });
-
-  const handleSave = async () => {
-    if (!activeModule) return;
-    setSaving(true);
-    try {
-      let perm = permissionResponse;
-      if (!perm?.granted) perm = await requestPermission();
-      if (!perm?.granted) {
-        Alert.alert('Permís denegat', 'Cal accés a la galeria per guardar la imatge.');
-        return;
-      }
-      const [asset] = await Asset.loadAsync(activeModule);
-      const uri = asset.localUri ?? asset.uri;
-      await MediaLibrary.saveToLibraryAsync(uri);
-      Alert.alert('Guardat!', `Postal ${postal.year} guardada a la galeria.`);
-    } catch {
-      Alert.alert('Error', "No s'ha pogut guardar la imatge.");
-    } finally {
-      setSaving(false);
-    }
-  };
 
   return (
     <View style={[styles.card, { width, height: cardHeight + 56 }]}>
@@ -250,16 +223,7 @@ export function PostalCard({ postal, width }: Props) {
               <ChevronRight size={14} color={showDors ? '#fff' : Colors.textDim} />
             </Pressable>
           )}
-          {activeModule && (
-            <Pressable
-              style={[styles.flipBtn, saving && styles.flipBtnDisabled]}
-              onPress={handleSave}
-              disabled={saving}
-              accessibilityLabel="Guardar a galeria"
-            >
-              <Download size={14} color={Colors.textDim} />
-            </Pressable>
-          )}
+
         </View>
       </View>
     </View>
@@ -317,7 +281,6 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
   },
   flipBtnActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  flipBtnDisabled: { opacity: 0.4 },
   flipLabel: { color: Colors.textDim, fontSize: 11, fontWeight: '600' },
   flipLabelActive: { color: '#fff' },
   dots: {

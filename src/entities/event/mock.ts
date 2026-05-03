@@ -108,22 +108,41 @@ const NAME = {
 	canMarfa: "Can Marfà",
 } satisfies Record<keyof typeof LOC, string>;
 
+const ROUTES_PRIMITIVES = {
+	riera: [LOC.ajuntament, 
+		{ lat: 41.53967408030377, lng: 2.444709907423828 },
+		{ lat: 41.539175994444776, lng: 2.444857486113847 },
+		{ lat: 41.53865982884221, lng: 2.4449111510907926 },
+		{ lat: 41.53822600553849, lng: 2.4448789521039203 },
+		LOC.plSantaAnna]
+}
+const ROUTE_HELPERS = {
+	rieraDown: ROUTES_PRIMITIVES.riera,
+	rieraUp: ROUTES_PRIMITIVES.riera.slice().reverse(),
+}
+
 const ROUTE = {
-	rieraDown: [LOC.ajuntament, { lat: 41.5389, lng: 2.4447 }, { lat: 41.53825, lng: 2.44445 }, LOC.plSantaAnna],
+	rieraDown:ROUTE_HELPERS.rieraDown,
 	fireCenter: [LOC.ajuntament, { lat: 41.5388, lng: 2.4446 }, { lat: 41.5381, lng: 2.4441 }, LOC.canXammar, LOC.plSantaMaria, { lat: 41.5401, lng: 2.4458 }, LOC.ajuntament],
 	ajuntamentToParc: [LOC.ajuntament, { lat: 41.5402, lng: 2.4437 }, { lat: 41.5411, lng: 2.4418 }, LOC.espaiFiral],
 	ofici: [LOC.ajuntament, LOC.plSantaMaria, LOC.basilica],
 	desfilada: [LOC.plSantaMaria, { lat: 41.5402, lng: 2.4459 }, LOC.ajuntament],
 	passada: [
 		LOC.ajuntament,
-		{ lat: 41.53955, lng: 2.4442 },
-		{ lat: 41.54115, lng: 2.44402 },
-		{ lat: 41.54062, lng: 2.44012 },
-		{ lat: 41.53886, lng: 2.44204 },
-		{ lat: 41.53651, lng: 2.44352 },
-		{ lat: 41.53746, lng: 2.44442 },
-		{ lat: 41.53845, lng: 2.44491 },
-		LOC.ajuntament,
+		{ lat: 41.53978244827795, lng: 2.444649239656343 },
+		{ lat: 41.54114869982419, lng: 2.4440106498155387 },
+		{ lat: 41.540603048644044, lng: 2.4401112959255045 },
+		{ lat: 41.53886877788818, lng: 2.4420496703954484 },
+		{ lat: 41.53858536824569, lng: 2.441512802830374 },
+		{ lat: 41.538483848071905, lng: 2.44152410530549 },
+		{ lat: 41.53799739502716, lng: 2.442021414207744 },
+		{ lat: 41.537938174406975, lng: 2.442038367920361 },
+		{ lat: 41.53715561111494, lng: 2.442835192410996 },
+		{ lat: 41.53650840296828, lng: 2.4435189921507856 },
+		{ lat: 41.53696525644989, lng: 2.4439993473404513 },
+		{ lat: 41.537252903282706, lng: 2.4446831470802977 },
+		{ lat: 41.53743902702237, lng: 2.444411887679621 },
+		...ROUTE_HELPERS.rieraUp
 	],
 	residencia: [LOC.ajuntament, { lat: 41.5386, lng: 2.4435 }, LOC.residencia],
 	residenciaBack: [LOC.residencia, { lat: 41.5386, lng: 2.4435 }, LOC.ajuntament],

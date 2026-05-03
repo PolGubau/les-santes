@@ -1,3 +1,4 @@
+export * from "./BackButton";
 export * from "./BottomSheet";
 export * from "./ErrorBoundary";
 export * from "./ErrorState";
@@ -6,5 +7,6 @@ export * from "./LoadingState";
 export * from "./OfflineBanner";
 export * from "./RichText";
 export * from "./Screen";
+export * from "./ScreenHeader";
 export * from "./SectionHeader";
 export * from "./StateBadge";

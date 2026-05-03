@@ -1,11 +1,11 @@
 import { POSTERS } from "@/features/recursos";
 import type { PosterEntry } from "@/features/recursos";
 import { Colors } from "@/shared/constants";
-import { Screen, stripMarkdown } from "@/shared/ui";
+import { Screen, ScreenHeader, stripMarkdown } from "@/shared/ui";
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import { ArrowLeft, ImageOff } from "lucide-react-native";
+import { ImageOff } from "lucide-react-native";
 import { memo, useCallback } from "react";
 import {
   FlatList,
@@ -92,23 +92,10 @@ export default function CartellsScreen() {
 
   return (
     <Screen>
-      <View style={styles.header}>
-        <Pressable
-          onPress={() => router.back()}
-          hitSlop={12}
-          accessibilityRole="button"
-          accessibilityLabel="Tornar"
-          style={styles.backBtn}
-        >
-          <ArrowLeft size={22} color={Colors.text} />
-        </Pressable>
-        <View style={styles.headerText}>
-          <Text style={styles.title}>Cartells Oficials</Text>
-          <Text style={styles.subtitle}>
-            {POSTERS.length} cartells · festa major de Mataró
-          </Text>
-        </View>
-      </View>
+      <ScreenHeader
+        title="Cartells Oficials"
+        subtitle={`${POSTERS.length} cartells · festa major de Mataró`}
+      />
 
       <FlatList
         data={POSTERS}
@@ -127,19 +114,6 @@ export default function CartellsScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  backBtn: { padding: 4 },
-  headerText: { flex: 1 },
-  title: { color: Colors.text, fontSize: 18, fontWeight: "700" },
-  subtitle: { color: Colors.textMuted, fontSize: 12, marginTop: 2 },
   list: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 40 },
   row: {
     flexDirection: "row",
