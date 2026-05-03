@@ -14,13 +14,15 @@ interface Props {
   searchQuery?: string;
   /** Overrides the header title — used for co-located cluster pickers */
   clusterTitle?: string;
+  /** Called when the user taps an event row — shows it on the map */
+  onEventPress?: (event: Event) => void;
 }
 
-function EventRow({ event }: { event: Event }) {
+function EventRow({ event, onPress }: { event: Event; onPress: () => void }) {
   return (
     <Pressable
       style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
-      onPress={() => { router.push('/(tabs)/agenda'); }}
+      onPress={onPress}
     >
       <View style={[styles.stateDot, { backgroundColor: STATE_COLOR[event.state] }]} />
       <View style={styles.iconBox}>
@@ -39,7 +41,7 @@ function EventRow({ event }: { event: Event }) {
   );
 }
 
-export function MapEventsDrawer({ events, selectedDay, onClose, searchQuery, clusterTitle }: Props) {
+export function MapEventsDrawer({ events, selectedDay, onClose, searchQuery, clusterTitle, onEventPress }: Props) {
   const { height } = useWindowDimensions();
   const nowCount = events.filter((e) => e.state === 'now').length;
 
@@ -82,7 +84,12 @@ export function MapEventsDrawer({ events, selectedDay, onClose, searchQuery, clu
       <FlatList
         data={events}
         keyExtractor={(e) => e.id}
-        renderItem={({ item }) => <EventRow event={item} />}
+        renderItem={({ item }) => (
+          <EventRow
+            event={item}
+            onPress={() => { onEventPress ? onEventPress(item) : router.push('/(tabs)/agenda'); }}
+          />
+        )}
         style={[styles.list, { maxHeight: height * 0.48 }]}
         showsVerticalScrollIndicator={false}
         ItemSeparatorComponent={() => <View style={styles.separator} />}

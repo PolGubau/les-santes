@@ -505,7 +505,7 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
         }).start();
       }
     } catch { /* ignore */ }
-  }, [loaderOpacity, onEventPress]);
+  }, [loaderOpacity, onEventPress, onClusterPress]);
 
   return (
     <View style={styles.map}>

@@ -50,6 +50,15 @@ export function toDateKey(date: Date): string {
 	return `${y}-${mo}-${d}`;
 }
 
+/**
+ * Festival day key — same as toDateKey but midnight–06:00 belongs to the previous day.
+ * Events at 01:00 AM Sunday are considered "Saturday night" of the festival.
+ */
+export function toFestivalDayKey(date: Date): string {
+	const adjusted = new Date(date.getTime() - 6 * 60 * 60 * 1000);
+	return toDateKey(adjusted);
+}
+
 /** Returns short Catalan label: "Ds 27" */
 export function formatDayChip(date: Date): string {
 	const day = date.getDate();

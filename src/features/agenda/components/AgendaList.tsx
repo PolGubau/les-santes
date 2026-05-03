@@ -46,23 +46,37 @@ const SectionCard = memo(function SectionCard({
       {/* Divider */}
       <View style={styles.headerDivider} />
 
-      {/* Event rows */}
-      {section.data.map((item, idx) => {
-        const distanceMeters =
-          userCoords && item.kind === 'static' && item.location
-            ? haversineDistance(userCoords.lat, userCoords.lng, item.location.lat, item.location.lng)
-            : undefined;
-        return (
-          <React.Fragment key={item.id}>
-            <EventCard
-              event={item}
-              onPress={() => onEventPress?.(item)}
-              distanceMeters={distanceMeters}
-            />
-            {idx < section.data.length - 1 && <View style={styles.itemDivider} />}
-          </React.Fragment>
+      {/* Event rows — with a 🌙 Nit separator before the first post-midnight event */}
+      {(() => {
+        const nitIndex = section.data.findIndex(
+          (e) => new Date(e.start).getHours() < 6,
         );
-      })}
+        return section.data.map((item, idx) => {
+          const distanceMeters =
+            userCoords && item.kind === 'static' && item.location
+              ? haversineDistance(userCoords.lat, userCoords.lng, item.location.lat, item.location.lng)
+              : undefined;
+          return (
+            <React.Fragment key={item.id}>
+              {idx === nitIndex && (
+                <View style={styles.nitSeparator}>
+                  <View style={styles.nitLine} />
+                  <Text style={styles.nitLabel}>🌙 Nit</Text>
+                  <View style={styles.nitLine} />
+                </View>
+              )}
+              <EventCard
+                event={item}
+                onPress={() => onEventPress?.(item)}
+                distanceMeters={distanceMeters}
+              />
+              {idx < section.data.length - 1 && idx !== nitIndex - 1 && (
+                <View style={styles.itemDivider} />
+              )}
+            </React.Fragment>
+          );
+        });
+      })()}
     </View>
   );
 });
@@ -180,4 +194,14 @@ const styles = StyleSheet.create({
   },
   emptyText: { color: Colors.text, fontSize: 16, fontWeight: '600', textAlign: 'center', marginTop: 4 },
   emptySubtext: { color: Colors.textMuted, fontSize: 13, textAlign: 'center', lineHeight: 18 },
+  nitSeparator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    backgroundColor: Colors.surfaceHigh,
+  },
+  nitLine: { flex: 1, height: 1, backgroundColor: Colors.border },
+  nitLabel: { color: Colors.textMuted, fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
 });

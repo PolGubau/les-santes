@@ -7,7 +7,7 @@ import type {
 import { withState } from "@/entities/event";
 import type { UserCoords } from "@/shared/hooks";
 import { useNow } from "@/shared/hooks";
-import { haversineDistance, toDateKey } from "@/shared/lib";
+import { haversineDistance, toDateKey, toFestivalDayKey } from "@/shared/lib";
 import { useMemo, useState } from "react";
 
 function applyFilters(
@@ -70,13 +70,13 @@ export function useAgenda(
 	favoriteIds?: Set<string>,
 ) {
 	const now = useNow();
-	const nowKey = toDateKey(now);
+	const nowKey = toFestivalDayKey(now);
 	const [filters, setFilters] = useState<AgendaFilters>({});
 	const [selectedDay, setDay] = useState<string>(nowKey);
 
 	/** All days that have at least one event, sorted ascending */
 	const availableDays = useMemo(() => {
-		const keys = new Set(events.map((e) => toDateKey(new Date(e.start))));
+		const keys = new Set(events.map((e) => toFestivalDayKey(new Date(e.start))));
 		return Array.from(keys).sort();
 	}, [events]);
 
@@ -107,7 +107,7 @@ export function useAgenda(
 		const map = new Map<string, Event[]>();
 		for (const day of availableDays) {
 			const forDay = withStates.filter(
-				(e) => toDateKey(new Date(e.start)) === day,
+				(e) => toFestivalDayKey(new Date(e.start)) === day,
 			);
 			map.set(day, applyFilters(forDay, filters, userCoords, favoriteIds));
 		}

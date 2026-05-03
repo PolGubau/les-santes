@@ -10,7 +10,7 @@ import {
 } from '@/features/map';
 import type { EventMapHandle } from '@/features/map/components/EventMap';
 import { useMapFocusStore } from '@/features/map/store/useMapFocusStore';
-import { toDateKey } from '@/shared/lib/time';
+import { toFestivalDayKey } from '@/shared/lib/time';
 import { Screen } from '@/shared/ui';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
@@ -39,7 +39,7 @@ export default function MapaScreen() {
     if (focusedEventId) {
       const focusedEvent = MOCK_EVENTS.find((event) => event.id === focusedEventId);
       if (focusedEvent) {
-        setDay(toDateKey(new Date(focusedEvent.start)));
+        setDay(toFestivalDayKey(new Date(focusedEvent.start)));
         setPendingFocusId(focusedEventId);
       }
       clearFocus();
@@ -48,9 +48,12 @@ export default function MapaScreen() {
 
   useEffect(() => {
     if (!pendingFocusId || !mapRef.current) return;
-    const eventIsRendered = mapEvents.some((event) => event.id === pendingFocusId);
-    if (!eventIsRendered) return;
+    const focusedEvent = mapEvents.find((event) => event.id === pendingFocusId);
+    if (!focusedEvent) return;
     mapRef.current.focusOnEvent(pendingFocusId);
+    setSelectedEvent(focusedEvent);
+    setShowDetail(false);
+    setShowDrawer(false);
     setPendingFocusId(null);
   }, [mapEvents, pendingFocusId]);
 
@@ -62,6 +65,7 @@ export default function MapaScreen() {
   const isSearching = searchText.trim().length > 0;
 
   const handleEventPress = useCallback((event: Event) => {
+    setShowDrawer(false);
     setClusterEvents(null);
     setShowDetail(false);
     setSelectedEvent(event);
@@ -119,6 +123,7 @@ export default function MapaScreen() {
           selectedDay={selectedDay}
           searchQuery={isSearching ? searchText.trim() : undefined}
           onClose={handleDrawerClose}
+          onEventPress={handleEventPress}
         />
       )}
 
@@ -129,6 +134,7 @@ export default function MapaScreen() {
           selectedDay={selectedDay}
           clusterTitle={`${clusterEvents.length} actes al mateix lloc`}
           onClose={handleClusterDrawerClose}
+          onEventPress={handleEventPress}
         />
       )}
 
