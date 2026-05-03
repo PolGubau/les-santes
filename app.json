@@ -1,72 +1,82 @@
 {
-	"expo": {
-		"name": "Les Santes",
-		"slug": "santes-live",
-		"scheme": "santes-live",
-		"version": "1.0.0",
-		"orientation": "portrait",
-		"icon": "./assets/icon.png",
-		"userInterfaceStyle": "dark",
-		"newArchEnabled": true,
-		"splash": {
-			"image": "./assets/splash-icon.png",
-			"resizeMode": "contain",
-			"backgroundColor": "#0D0D0D"
-		},
-		"ios": {
-			"bundleIdentifier": "com.mataro.lessantes",
-			"supportsTablet": false,
-			"usesNonExemptEncryption": false,
-			"infoPlist": {
-				"NSLocationWhenInUseUsageDescription": "La app necessita la teva ubicació per mostrar-la al mapa del festival i filtrar actes propers."
-			}
-		},
-		"android": {
-			"package": "com.mataro.lessantes",
-			"adaptiveIcon": {
-				"foregroundImage": "./assets/adaptive-icon.png",
-				"backgroundColor": "#0D0D0D"
-			},
-			"permissions": [
-				"android.permission.ACCESS_FINE_LOCATION",
-				"android.permission.ACCESS_COARSE_LOCATION"
-			],
-			"edgeToEdgeEnabled": true,
-			"predictiveBackGestureEnabled": true
-		},
-		"web": {
-			"bundler": "metro",
-			"favicon": "./assets/favicon.png"
-		},
-		"extra": {
-			"eas": {
-				"projectId": "dffc30d5-6870-47b8-979f-a842d6848eb5"
-			}
-		},
-		"plugins": [
-			"expo-router",
-			[
-				"expo-location",
-				{
-					"locationWhenInUsePermission": "La app necessita la teva ubicació per mostrar-la al mapa del festival i filtrar actes propers."
-				}
-			],
-			[
-				"expo-calendar",
-				{
-					"calendarPermission": "La app vol afegir actes del festival al teu calendari."
-				}
-			],
-			"expo-font",
-			"expo-asset",
-			[
-				"expo-media-library",
-				{
-					"photosPermission": "La app necessita accés a les fotos per guardar cartells i postals del festival.",
-					"savePhotosPermission": "La app necessita permís per guardar imatges a la galeria.",
-					"isAccessMediaLocationEnabled": true
-				}
-			]
-		]
-	}
+  "expo": {
+    "name": "Les Santes",
+    "slug": "app",
+    "scheme": "les-santes",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0D0D0D"
+    },
+    "ios": {
+      "bundleIdentifier": "com.mataro.lessantes",
+      "supportsTablet": false,
+      "usesNonExemptEncryption": false,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "La app necessita la teva ubicació per mostrar-la al mapa del festival i filtrar actes propers."
+      }
+    },
+    "android": {
+      "package": "com.mataro.lessantes",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0D0D0D"
+      },
+      "permissions": [
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.READ_CALENDAR",
+        "android.permission.WRITE_CALENDAR",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
+        "android.permission.ACCESS_MEDIA_LOCATION",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.READ_MEDIA_AUDIO"
+      ],
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": true
+    },
+    "web": {
+      "bundler": "metro",
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "dffc30d5-6870-47b8-979f-a842d6848eb5"
+      }
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "La app necessita la teva ubicació per mostrar-la al mapa del festival i filtrar actes propers."
+        }
+      ],
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "La app vol afegir actes del festival al teu calendari."
+        }
+      ],
+      "expo-font",
+      "expo-asset",
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "La app necessita accés a les fotos per guardar cartells i postals del festival.",
+          "savePhotosPermission": "La app necessita permís per guardar imatges a la galeria.",
+          "isAccessMediaLocationEnabled": true
+        }
+      ]
+    ],
+    "owner": "polgubau"
+  }
 }
