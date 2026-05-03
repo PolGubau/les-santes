@@ -14,7 +14,7 @@
       "backgroundColor": "#0D0D0D"
     },
     "ios": {
-      "bundleIdentifier": "com.mataro.lessantes",
+      "bundleIdentifier": "com.polgubau.lessantes",
       "supportsTablet": false,
       "usesNonExemptEncryption": false,
       "infoPlist": {
@@ -22,7 +22,7 @@
       }
     },
     "android": {
-      "package": "com.mataro.lessantes",
+      "package": "com.polgubau.lessantes",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0D0D0D"
