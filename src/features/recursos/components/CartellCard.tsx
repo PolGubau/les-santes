@@ -14,13 +14,17 @@ interface Props {
 
 export function CartellCard({ cartell, width }: Props) {
   const [saving, setSaving] = useState(false);
+  const [permissionResponse, requestPermission] = MediaLibrary.usePermissions({
+    granularPermissions: ['photo'],
+  });
 
   const handleSave = async () => {
     if (!cartell.asset) return;
     setSaving(true);
     try {
-      const { status } = await MediaLibrary.requestPermissionsAsync();
-      if (status !== 'granted') {
+      let perm = permissionResponse;
+      if (!perm?.granted) perm = await requestPermission();
+      if (!perm?.granted) {
         Alert.alert('Permís denegat', 'Cal accés a la galeria per desar la imatge.');
         return;
       }
@@ -29,7 +33,7 @@ export function CartellCard({ cartell, width }: Props) {
       await MediaLibrary.saveToLibraryAsync(uri);
       Alert.alert('Desat!', `Cartell ${cartell.year} desat a la galeria.`);
     } catch {
-      Alert.alert('Error', 'No s\'ha pogut desar la imatge.');
+      Alert.alert('Error', "No s'ha pogut desar la imatge.");
     } finally {
       setSaving(false);
     }

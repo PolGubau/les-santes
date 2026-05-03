@@ -33,6 +33,9 @@ export function PostalCard({ postal, width }: Props) {
   const [showDors, setShowDors] = useState(false);
   const [saving, setSaving] = useState(false);
   const [lightbox, setLightbox] = useState(false);
+  const [permissionResponse, requestPermission] = MediaLibrary.usePermissions({
+    granularPermissions: ['photo'],
+  });
   const { width: screenW, height: screenH } = useWindowDimensions();
 
   const cardHeight = width * 0.68;
@@ -120,8 +123,9 @@ export function PostalCard({ postal, width }: Props) {
     if (!activeModule) return;
     setSaving(true);
     try {
-      const { status } = await MediaLibrary.requestPermissionsAsync();
-      if (status !== 'granted') {
+      let perm = permissionResponse;
+      if (!perm?.granted) perm = await requestPermission();
+      if (!perm?.granted) {
         Alert.alert('Permís denegat', 'Cal accés a la galeria per guardar la imatge.');
         return;
       }
