@@ -1,5 +1,25 @@
 import type { EventCategory, EventIconDef, EventKind, EventType, RawEvent, RoutePoint, StaticLocation } from "./types";
 
+/** Curated Unsplash photos per event type — free to hotlink with attribution */
+export const IMAGE_BY_TYPE: Record<EventType, string> = {
+	correfoc:       "https://uploads.lessantes.cat/uploads/medium/bbef407c8987d205751b00506f5b8d24.jpeg",  
+	focsartificials:"https://uploads.lessantes.cat/uploads/medium/d4482e719acddb6243435e2fc6743087.jpeg",  
+	gegants:        "https://uploads.lessantes.cat/uploads/big/4046d84b2488e6f22f2215aabda59ec6.jpeg?p=992",  
+	castellera:     "https://uploads.lessantes.cat/uploads/medium/56a2f26b3193a14374e05c0654733ffb.jpeg", 
+	concert:        "https://uploads.lessantes.cat/uploads/medium/30f3585c1a41e84e54d5ba9fb773dfb8.jpeg",
+	cercavila:      "https://uploads.lessantes.cat/uploads/big/084294079db4bef328a2067a9c02ef84.jpeg?p=992",  
+	havaneres:      "https://uploads.lessantes.cat/uploads/big/d51cb1d7276befa35d6efe62c17b9d2a.jpeg?p=992", 
+	espectacle:     "https://uploads.lessantes.cat/uploads/medium/aef92804f2316232d534be8cbdf98ddd.jpeg",  
+	sardanes:       "https://uploads.lessantes.cat/uploads/big/2864ecff970e16456bce811ca68129a5.jpeg?p=992", 
+	exposicio:      "https://uploads.lessantes.cat/uploads/big/fcf2e18ce104464c6dbd16e62d51755f.jpeg?p=992", 
+	missa:          "https://uploads.lessantes.cat/uploads/medium/ddbe51719b0d8445032c027c3cd99e52.jpeg",  
+	cursa:          "https://uploads.lessantes.cat/uploads/big/d9eb5690322743e6d2d65fc6f7c1b073.jpeg?p=992", 
+	jocs:           "https://uploads.lessantes.cat/uploads/medium/65ac14de2374353ad8c7d946d26bf767.jpeg",  
+	contes:         "https://uploads.lessantes.cat/uploads/big/f7a9b5e06fe745c8a5d0e0ca49716ae5.jpeg?p=992", // storytelling / books
+	barram:         "https://uploads.lessantes.cat/uploads/medium/842af0a80231abf733635778daa03be6.jpeg",  
+	altres:         "https://uploads.lessantes.cat/uploads/medium/725fa18ecf54436ad936e6b9719f4ed4.jpeg", 
+};
+
 const BH: Record<EventType | "default", string> = {
 	correfoc: "L9C?Uo%M4,Iq~WNGE1WB4mWB9ZWB",
 	focsartificials: "LB9]mvIU0z%M~WWBRjof0KWBIUj[",
@@ -172,7 +192,7 @@ const event = ({
 		shortDescription,
 		start,
 		end,
-		imageUrl,
+		imageUrl: imageUrl ?? IMAGE_BY_TYPE[type],
 	};
 
 	if (kind === "mobile") {

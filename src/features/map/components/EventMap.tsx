@@ -43,7 +43,7 @@ const BASE_HTML = `<!DOCTYPE html>
       white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:.01em;
       transition:font-size .15s ease; }
     .m-label.selected { font-size:11.5px; font-weight:800; color:#0A0908; }
-    .m-cluster-wrap { cursor:pointer; user-select:none; }
+    .m-cluster-wrap { display:inline-flex; cursor:pointer; user-select:none; }
     .m-cluster { width:42px; height:42px; border-radius:50%; background:#1D4ED8;
       border:3px solid #fff; display:flex; align-items:center; justify-content:center;
       font-size:13px; font-weight:800; color:#fff;
