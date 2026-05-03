@@ -1,11 +1,20 @@
 import { POSTAL_ASSETS } from '@/entities/postal';
 import { Colors } from '@/shared/constants';
 import { Asset } from 'expo-asset';
+import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import * as MediaLibrary from 'expo-media-library';
 import { ChevronLeft, ChevronRight, Download, ImageOff } from 'lucide-react-native';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
+import { runOnJS } from 'react-native-worklets';
 import type { Postal } from '../types';
 
 interface Props {
@@ -15,16 +24,80 @@ interface Props {
 
 const DEFAULT_BH = 'L6B;DR-;IU?bx]t7t7WB-;_3t7WB';
 
+const SWIPE_THRESHOLD = 60;
+const RUBBER_BAND_FACTOR = 0.25;
+
 export function PostalCard({ postal, width }: Props) {
   const [showDors, setShowDors] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [permissionResponse, requestPermission] = MediaLibrary.usePermissions();
+  const [permissionResponse, requestPermission] = MediaLibrary.usePermissions({ granularPermissions: ['photo'] });
 
   const cardHeight = width * 0.68;
   const assets = POSTAL_ASSETS[postal.id];
   const activeModule = showDors ? assets?.back : (assets?.front ?? assets?.back);
   const hasFront = Boolean(assets?.front);
   const hasBack = Boolean(assets?.back);
+
+  const dragX = useSharedValue(0);
+
+  const flipToBack = useCallback(() => {
+    setShowDors(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  }, []);
+
+  const flipToFront = useCallback(() => {
+    setShowDors(false);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  }, []);
+
+  // Animated style: translate the image area horizontally
+  const imageAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: dragX.value }],
+  }));
+
+  const pan = Gesture.Pan()
+    .activeOffsetX([-10, 10])
+    .failOffsetY([-8, 8])
+    .onUpdate((e) => {
+      'worklet';
+      const dx = e.translationX;
+      // Apply rubber-band resistance at the limits:
+      // dragging left when on cara (no previous) or dragging right when on dors (no next)
+      const atLeftEdge = !showDors;
+      const atRightEdge = showDors;
+
+      if ((dx < 0 && atRightEdge) || (dx > 0 && atLeftEdge)) {
+        // Rubberband: resist motion that goes "out of bounds"
+        dragX.value = dx * RUBBER_BAND_FACTOR;
+      } else {
+        dragX.value = dx;
+      }
+    })
+    .onEnd((e) => {
+      'worklet';
+      const dx = e.translationX;
+      const vx = e.velocityX;
+      const isFlick = Math.abs(vx) > 400;
+
+      if ((dx < -SWIPE_THRESHOLD || (isFlick && vx < 0)) && !showDors && hasBack) {
+        // Swipe left → show dors
+        dragX.value = withTiming(-width, { duration: 160 }, () => {
+          dragX.value = width;
+          runOnJS(flipToBack)();
+          dragX.value = withSpring(0, { damping: 20, stiffness: 200 });
+        });
+      } else if ((dx > SWIPE_THRESHOLD || (isFlick && vx > 0)) && showDors && hasFront) {
+        // Swipe right → show cara
+        dragX.value = withTiming(width, { duration: 160 }, () => {
+          dragX.value = -width;
+          runOnJS(flipToFront)();
+          dragX.value = withSpring(0, { damping: 20, stiffness: 200 });
+        });
+      } else {
+        // Snap back
+        dragX.value = withSpring(0, { damping: 18, stiffness: 250 });
+      }
+    });
 
   const handleSave = async () => {
     if (!activeModule) return;
@@ -49,31 +122,43 @@ export function PostalCard({ postal, width }: Props) {
 
   return (
     <View style={[styles.card, { width, height: cardHeight + 56 }]}>
-      {/* Image area */}
-      <View style={[styles.imageArea, { height: cardHeight }]}>
-        {activeModule ? (
-          <Image
-            source={activeModule}
-            placeholder={{ blurhash: DEFAULT_BH }}
-            contentFit="cover"
-            style={StyleSheet.absoluteFill}
-            transition={250}
-          />
-        ) : (
-          <View style={styles.placeholder}>
-            <ImageOff size={28} color={Colors.textDim} />
-            <Text style={styles.placeholderText}>
-              {postal.year} — {showDors ? 'Dors' : 'Cara'}
-            </Text>
-            <Text style={styles.placeholderSub}>Imatge no disponible</Text>
-          </View>
-        )}
+      {/* Image area — wrapped in GestureDetector for swipe-to-flip */}
+      <GestureDetector gesture={pan}>
+        <View style={[styles.imageArea, { height: cardHeight }]}>
+          <Animated.View style={[StyleSheet.absoluteFill, imageAnimStyle]}>
+            {activeModule ? (
+              <Image
+                source={activeModule}
+                placeholder={{ blurhash: DEFAULT_BH }}
+                contentFit="cover"
+                style={StyleSheet.absoluteFill}
+                transition={200}
+              />
+            ) : (
+              <View style={styles.placeholder}>
+                <ImageOff size={28} color={Colors.textDim} />
+                <Text style={styles.placeholderText}>
+                  {postal.year} — {showDors ? 'Dors' : 'Cara'}
+                </Text>
+                <Text style={styles.placeholderSub}>Imatge no disponible</Text>
+              </View>
+            )}
+          </Animated.View>
 
-        {/* Side badge */}
-        <View style={styles.sideBadge}>
-          <Text style={styles.sideBadgeText}>{showDors ? 'Dors' : 'Cara'}</Text>
+          {/* Side badge */}
+          <View style={styles.sideBadge}>
+            <Text style={styles.sideBadgeText}>{showDors ? 'Dors' : 'Cara'}</Text>
+          </View>
+
+          {/* Swipe hint dots — only when both sides exist */}
+          {hasFront && hasBack && (
+            <View style={styles.dots}>
+              <View style={[styles.dot, !showDors && styles.dotActive]} />
+              <View style={[styles.dot, showDors && styles.dotActive]} />
+            </View>
+          )}
         </View>
-      </View>
+      </GestureDetector>
 
       {/* Info + flip controls */}
       <View style={styles.footer}>
@@ -172,4 +257,23 @@ const styles = StyleSheet.create({
   flipBtnDisabled: { opacity: 0.4 },
   flipLabel: { color: Colors.textDim, fontSize: 11, fontWeight: '600' },
   flipLabelActive: { color: '#fff' },
+  dots: {
+    position: 'absolute',
+    bottom: 8,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 5,
+  },
+  dot: {
+    width: 5,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: 'rgba(255,255,255,0.45)',
+  },
+  dotActive: {
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    width: 14,
+  },
 });

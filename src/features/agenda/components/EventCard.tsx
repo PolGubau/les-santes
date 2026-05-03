@@ -5,9 +5,10 @@ import { addEventToCalendar, formatTime } from '@/shared/lib';
 import { EventIcon } from '@/shared/ui';
 import * as Haptics from 'expo-haptics';
 import { CalendarPlus, Ellipsis, Heart, HeartOff, Share2, X } from 'lucide-react-native';
-import React, { memo, useState } from 'react';
+import React, { useState } from 'react';
 import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
 import Animated, {
+  Easing,
   useSharedValue,
   useAnimatedStyle,
   withSpring,
@@ -20,9 +21,14 @@ interface Props {
   distanceMeters?: number;
 }
 
+const ACTION_BAR_HEIGHT = 44;
+const OPEN_EASING = Easing.bezier(0.25, 0.46, 0.45, 0.94);
+const CLOSE_EASING = Easing.bezier(0.55, 0.06, 0.68, 0.19);
+
 export function EventCard({ event, onPress, distanceMeters }: Props) {
   const scale = useSharedValue(1);
   const expandHeight = useSharedValue(0);
+  const expandOpacity = useSharedValue(0);
   const [expanded, setExpanded] = useState(false);
   const isFinished = event.state === 'finished';
   const stateLabel = event.state === 'now' ? 'En curs' : event.state === 'upcoming' ? 'Proximament' : 'Acabat';
@@ -36,7 +42,7 @@ export function EventCard({ event, onPress, distanceMeters }: Props) {
 
   const animatedBar = useAnimatedStyle(() => ({
     height: expandHeight.value,
-    overflow: 'hidden',
+    opacity: expandOpacity.value,
   }));
 
   const handlePressIn = () => {
@@ -57,7 +63,13 @@ export function EventCard({ event, onPress, distanceMeters }: Props) {
     Haptics.selectionAsync();
     const next = !expanded;
     setExpanded(next);
-    expandHeight.value = withSpring(next ? 40 : 0, { damping: 12, stiffness: 150 });
+    if (next) {
+      expandHeight.value = withTiming(ACTION_BAR_HEIGHT, { duration: 220, easing: OPEN_EASING });
+      expandOpacity.value = withTiming(1, { duration: 180, easing: OPEN_EASING });
+    } else {
+      expandOpacity.value = withTiming(0, { duration: 120, easing: CLOSE_EASING });
+      expandHeight.value = withTiming(0, { duration: 180, easing: CLOSE_EASING });
+    }
   };
 
   const handleCalendar = () => {
@@ -174,16 +186,14 @@ const styles = StyleSheet.create({
   desc: { color: Colors.textMuted, fontSize: 12, lineHeight: 17 },
   time: { color: Colors.textDim, fontSize: 12, fontWeight: '500', flexShrink: 0, fontVariant: ['tabular-nums'] },
   actionBar: {
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.surfaceHigh,
+    overflow: 'hidden',
   },
   actionBarInner: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 0,
   },
   actionBtn: {
     flex: 1,
@@ -193,6 +203,6 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingVertical: 10,
   },
-  actionBtnText: { color: Colors.textDim, fontSize: 13, fontWeight: '500' },
-  actionSep: { width: 1, height: 18, backgroundColor: Colors.border },
+  actionBtnText: { color: Colors.textMuted, fontSize: 13, fontWeight: '500' },
+  actionSep: { width: 1, height: 16, backgroundColor: Colors.border },
 });

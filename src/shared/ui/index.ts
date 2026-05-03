@@ -5,4 +5,5 @@ export * from "./EventIcon";
 export * from "./LoadingState";
 export * from "./OfflineBanner";
 export * from "./Screen";
+export * from "./RichText";
 export * from "./StateBadge";

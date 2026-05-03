@@ -1,6 +1,6 @@
 import { POSTERS } from '@/features/recursos';
 import { Colors } from '@/shared/constants';
-import { Screen } from '@/shared/ui';
+import { RichText, Screen } from '@/shared/ui';
 import { Asset } from 'expo-asset';
 import { Image } from 'expo-image';
 import * as MediaLibrary from 'expo-media-library';
@@ -23,7 +23,7 @@ export default function CartellDetailScreen() {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const [saving, setSaving] = useState(false);
-  const [permissionResponse, requestPermission] = MediaLibrary.usePermissions();
+  const [permissionResponse, requestPermission] = MediaLibrary.usePermissions({ granularPermissions: ['photo'] });
 
   const poster = POSTERS.find((p) => p.id === id);
 
@@ -124,7 +124,9 @@ export default function CartellDetailScreen() {
           )}
 
           {poster.description && (
-            <Text style={styles.description}>{poster.description}</Text>
+            <View style={styles.descriptionContainer}>
+              <RichText content={poster.description} />
+            </View>
           )}
         </View>
       </ScrollView>
@@ -173,11 +175,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginTop: 12,
   },
-  description: {
-    color: Colors.text,
-    fontSize: 14,
-    lineHeight: 22,
-    marginTop: 16,
+  descriptionContainer: {
+    marginTop: 20,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
   },
   saveBtn: {
     flexDirection: 'row',

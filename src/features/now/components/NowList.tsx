@@ -40,7 +40,7 @@ export function NowList({ now, upcoming, onEventPress }: Props) {
             <Text style={styles.sectionTitle}>A continuació</Text>
           </View>
           {upcoming.map((event) => (
-            <UpcomingItem key={event.id} event={event} />
+            <UpcomingItem key={event.id} event={event} onPress={() => onEventPress?.(event)} />
           ))}
         </>
       )}

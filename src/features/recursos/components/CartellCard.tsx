@@ -14,7 +14,7 @@ interface Props {
 
 export function CartellCard({ cartell, width }: Props) {
   const [saving, setSaving] = useState(false);
-  const [permissionResponse, requestPermission] = MediaLibrary.usePermissions();
+  const [permissionResponse, requestPermission] = MediaLibrary.usePermissions({ granularPermissions: ['photo'] });
 
   const handleSave = async () => {
     if (!cartell.asset) return;

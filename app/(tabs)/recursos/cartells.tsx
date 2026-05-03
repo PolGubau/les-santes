@@ -1,7 +1,7 @@
 import { POSTERS } from "@/features/recursos";
 import type { PosterEntry } from "@/features/recursos";
 import { Colors } from "@/shared/constants";
-import { Screen } from "@/shared/ui";
+import { Screen, stripMarkdown } from "@/shared/ui";
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import { router } from "expo-router";
@@ -65,7 +65,7 @@ const PosterRow = memo(function PosterRow({
         )}
         {poster.description && (
           <Text style={styles.desc} numberOfLines={2}>
-            {poster.description}
+            {stripMarkdown(poster.description)}
           </Text>
         )}
       </View>

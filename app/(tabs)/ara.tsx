@@ -161,7 +161,7 @@ export default function AraScreen() {
 
   const handlePress = useCallback((event: Event) => {
     focusEvent(event.id);
-    router.navigate('/(tabs)/mapa');
+    router.push('/(tabs)/mapa');
   }, [focusEvent]);
 
   // Hero = first live event, or first upcoming if nothing is live

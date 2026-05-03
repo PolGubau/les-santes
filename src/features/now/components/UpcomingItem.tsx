@@ -3,15 +3,21 @@ import { Colors } from '@/shared/constants';
 import { formatTime } from '@/shared/lib';
 import { EventIcon } from '@/shared/ui';
 import React from 'react';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
 interface Props {
   event: Event;
+  onPress?: () => void;
 }
 
-export function UpcomingItem({ event }: Props) {
+export function UpcomingItem({ event, onPress }: Props) {
   return (
-    <View style={styles.item}>
+    <Pressable
+      style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={event.title}
+    >
       <View style={styles.icon}>
         <EventIcon icon={event.icon} size={16} color={Colors.stateUpcoming} />
       </View>
@@ -24,11 +30,12 @@ export function UpcomingItem({ event }: Props) {
       <View style={styles.timeBadge}>
         <Text style={styles.timeBadgeText}>{formatTime(event.start)}</Text>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
+  itemPressed: { opacity: 0.65 },
   item: {
     flexDirection: 'row',
     alignItems: 'center',
