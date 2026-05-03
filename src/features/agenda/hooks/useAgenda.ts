@@ -14,8 +14,10 @@ function applyFilters(
 	events: Event[],
 	filters: AgendaFilters,
 	userCoords: UserCoords | null | undefined,
+	favoriteIds?: Set<string>,
 ): Event[] {
 	let result = events.filter((e) => {
+		if (filters.onlyFavorites && !favoriteIds?.has(e.id)) return false;
 		if (filters.type && e.type !== filters.type) return false;
 		if (filters.category && e.category !== filters.category) return false;
 		if (filters.nearMe && userCoords && e.kind === "static" && e.location) {
@@ -59,9 +61,14 @@ export interface AgendaFilters {
 	type?: EventType;
 	category?: EventCategory;
 	nearMe?: boolean;
+	onlyFavorites?: boolean;
 }
 
-export function useAgenda(events: RawEvent[], userCoords?: UserCoords | null) {
+export function useAgenda(
+	events: RawEvent[],
+	userCoords?: UserCoords | null,
+	favoriteIds?: Set<string>,
+) {
 	const now = useNow();
 	const nowKey = toDateKey(now);
 	const [filters, setFilters] = useState<AgendaFilters>({});
@@ -102,10 +109,10 @@ export function useAgenda(events: RawEvent[], userCoords?: UserCoords | null) {
 			const forDay = withStates.filter(
 				(e) => toDateKey(new Date(e.start)) === day,
 			);
-			map.set(day, applyFilters(forDay, filters, userCoords));
+			map.set(day, applyFilters(forDay, filters, userCoords, favoriteIds));
 		}
 		return map;
-	}, [withStates, availableDays, filters, userCoords]);
+	}, [withStates, availableDays, filters, userCoords, favoriteIds]);
 
 	const filtered = useMemo(
 		() => filteredByDay.get(effectiveDay) ?? [],
@@ -120,6 +127,9 @@ export function useAgenda(events: RawEvent[], userCoords?: UserCoords | null) {
 
 	const toggleNearMe = () => setFilters((f) => ({ ...f, nearMe: !f.nearMe }));
 
+	const toggleFavorites = () =>
+		setFilters((f) => ({ ...f, onlyFavorites: !f.onlyFavorites }));
+
 	const clearFilters = () => setFilters({});
 
 	return {
@@ -133,6 +143,7 @@ export function useAgenda(events: RawEvent[], userCoords?: UserCoords | null) {
 		setType,
 		setCategory,
 		toggleNearMe,
+		toggleFavorites,
 		clearFilters,
 	};
 }

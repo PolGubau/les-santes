@@ -1,16 +1,18 @@
-import type { EventType } from "@/entities/event";
+import type { Event, EventType } from "@/entities/event";
 import { useEvents } from "@/entities/event";
 import { AgendaList, DayPicker, useAgenda } from "@/features/agenda";
 import { useFavoritesStore } from "@/features/favorites";
+import { useMapFocusStore } from "@/features/map";
 import { Colors } from "@/shared/constants";
 import { useUserLocation } from "@/shared/hooks";
 import { ErrorState, OfflineBanner, Screen } from "@/shared/ui";
 import * as Haptics from "expo-haptics";
+import { router } from "expo-router";
 import {
   Crown, Flag, Flame, Heart, MapPin, Mic, Music, Sailboat, Smile, Ticket, Users,
 } from "lucide-react-native";
 import type React from "react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import type { NativeScrollEvent, NativeSyntheticEvent } from "react-native";
 import {
   FlatList,
@@ -42,7 +44,8 @@ const TYPE_FILTERS: Array<{
 
 export default function AgendaScreen() {
   const { width: SCREEN_WIDTH } = useWindowDimensions();
-  const [showFavorites, setShowFavorites] = useState(false);
+  const { focusEvent } = useMapFocusStore();
+
   const userCoords = useUserLocation();
   const flatRef = useRef<FlatList<string>>(null);
   const isScrollingFromPicker = useRef(false);
@@ -51,26 +54,23 @@ export default function AgendaScreen() {
   // `loading` is true on first fetch; use it as pull-to-refresh indicator only after first data
   const refreshing = loading && events.length > 0;
 
-  const { isFavorite } = useFavoritesStore();
-  const favoriteEvents = useMemo(
-    () => events.filter((e) => isFavorite(e.id)),
-    [events, isFavorite],
-  );
+  const { favorites } = useFavoritesStore();
+  const favoriteIds = useMemo(() => new Set(Object.keys(favorites)), [favorites]);
+  const totalFavorites = favoriteIds.size;
 
   const {
     filteredByDay,
     filters,
     setType,
     toggleNearMe,
+    toggleFavorites,
     selectedDay,
     availableDays,
     todayKey,
     setDay,
-  } = useAgenda(events, userCoords);
+  } = useAgenda(events, userCoords, favoriteIds);
 
-  const dayCount = showFavorites
-    ? favoriteEvents.length
-    : filteredByDay.get(selectedDay)?.length ?? 0;
+  const dayCount = filteredByDay.get(selectedDay)?.length ?? 0;
 
   // Sync FlatList position when DayPicker selection changes
   useEffect(() => {
@@ -103,6 +103,11 @@ export default function AgendaScreen() {
     refresh();
   }, [refresh]);
 
+  const handleEventPress = useCallback((event: Event) => {
+    focusEvent(event.id);
+    router.push('/(tabs)/mapa');
+  }, [focusEvent]);
+
   if (error && events.length === 0) {
     return (
       <Screen>
@@ -122,14 +127,12 @@ export default function AgendaScreen() {
           <Text style={styles.count}>{dayCount} actes</Text>
         </View>
 
-        {!showFavorites && (
-          <DayPicker
-            days={availableDays}
-            selected={selectedDay}
-            todayKey={todayKey}
-            onSelect={setDay}
-          />
-        )}
+        <DayPicker
+          days={availableDays}
+          selected={selectedDay}
+          todayKey={todayKey}
+          onSelect={setDay}
+        />
 
         <ScrollView
           horizontal
@@ -138,27 +141,27 @@ export default function AgendaScreen() {
         >
           {/* "Favorits" chip */}
           <Pressable
-            style={[styles.chip, showFavorites && styles.chipFavorites]}
+            style={[styles.chip, filters.onlyFavorites && styles.chipFavorites]}
             onPress={() => {
               Haptics.selectionAsync();
-              setShowFavorites((v) => !v);
+              toggleFavorites();
             }}
             accessibilityRole="tab"
             accessibilityLabel="Filtre: Favorits"
-            accessibilityState={{ selected: showFavorites }}
+            accessibilityState={{ selected: !!filters.onlyFavorites }}
           >
             <Heart
               size={15}
-              color={showFavorites ? "#fff" : Colors.primary}
-              fill={showFavorites ? "#fff" : "none"}
+              color={filters.onlyFavorites ? "#fff" : Colors.primary}
+              fill={filters.onlyFavorites ? "#fff" : "none"}
             />
-            <Text style={[styles.chipText, showFavorites && styles.chipTextActive]}>
+            <Text style={[styles.chipText, filters.onlyFavorites && styles.chipTextActive]}>
               Favorits
             </Text>
-            {favoriteEvents.length > 0 && (
-              <View style={[styles.favBadge, showFavorites && styles.favBadgeActive]}>
-                <Text style={[styles.favBadgeText, showFavorites && styles.favBadgeTextActive]}>
-                  {favoriteEvents.length}
+            {totalFavorites > 0 && (
+              <View style={[styles.favBadge, filters.onlyFavorites && styles.favBadgeActive]}>
+                <Text style={[styles.favBadgeText, filters.onlyFavorites && styles.favBadgeTextActive]}>
+                  {totalFavorites}
                 </Text>
               </View>
             )}
@@ -211,46 +214,42 @@ export default function AgendaScreen() {
         <OfflineBanner cacheTimestamp={cacheTimestamp} onRefresh={refresh} />
       )}
 
-      {showFavorites ? (
-        <AgendaList
-          events={favoriteEvents}
-          userCoords={userCoords}
-          onRefresh={handleRefresh}
-          refreshing={refreshing}
-          loading={loading}
-          emptyText="Encara no tens cap acte preferit"
-          emptySubtext="Afegeix actes als favorits des de l'agenda"
-        />
-      ) : (
-        <FlatList
-          ref={flatRef}
-          data={availableDays}
-          keyExtractor={(day) => day}
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          style={styles.pager}
-          initialScrollIndex={Math.max(0, availableDays.indexOf(selectedDay))}
-          getItemLayout={(_, index) => ({
-            length: SCREEN_WIDTH,
-            offset: SCREEN_WIDTH * index,
-            index,
-          })}
-          onMomentumScrollEnd={handleFlatListScroll}
-          renderItem={({ item: day }) => (
-            <View style={[styles.page, { width: SCREEN_WIDTH }]}>
-              <AgendaList
-                events={filteredByDay.get(day) ?? []}
-                userCoords={userCoords}
-                onRefresh={handleRefresh}
-                refreshing={refreshing}
-                loading={loading}
-                emptySubtext={filters.type || filters.nearMe ? 'Prova a canviar els filtres' : undefined}
-              />
-            </View>
-          )}
-        />
-      )}
+      <FlatList
+        ref={flatRef}
+        data={availableDays}
+        keyExtractor={(day) => day}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        style={styles.pager}
+        initialScrollIndex={Math.max(0, availableDays.indexOf(selectedDay))}
+        getItemLayout={(_, index) => ({
+          length: SCREEN_WIDTH,
+          offset: SCREEN_WIDTH * index,
+          index,
+        })}
+        onMomentumScrollEnd={handleFlatListScroll}
+        renderItem={({ item: day }) => (
+          <View style={[styles.page, { width: SCREEN_WIDTH }]}>
+            <AgendaList
+              events={filteredByDay.get(day) ?? []}
+              userCoords={userCoords}
+              onEventPress={handleEventPress}
+              onRefresh={handleRefresh}
+              refreshing={refreshing}
+              loading={loading}
+              emptyText={filters.onlyFavorites ? 'Cap favorit aquest dia' : 'Cap acte trobat'}
+              emptySubtext={
+                filters.onlyFavorites
+                  ? 'Afegeix actes als favorits des de l\'agenda'
+                  : filters.type || filters.nearMe
+                    ? 'Prova a canviar els filtres'
+                    : undefined
+              }
+            />
+          </View>
+        )}
+      />
     </Screen>
   );
 }

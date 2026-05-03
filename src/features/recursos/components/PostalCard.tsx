@@ -4,9 +4,9 @@ import { Asset } from 'expo-asset';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import * as MediaLibrary from 'expo-media-library';
-import { ChevronLeft, ChevronRight, Download, ImageOff } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, Download, ImageOff, X } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Modal, Pressable, StatusBar, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   useAnimatedStyle,
@@ -30,7 +30,9 @@ const RUBBER_BAND_FACTOR = 0.25;
 export function PostalCard({ postal, width }: Props) {
   const [showDors, setShowDors] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [lightbox, setLightbox] = useState(false);
   const [permissionResponse, requestPermission] = MediaLibrary.usePermissions({ granularPermissions: ['photo'] });
+  const { width: screenW, height: screenH } = useWindowDimensions();
 
   const cardHeight = width * 0.68;
   const assets = POSTAL_ASSETS[postal.id];
@@ -50,10 +52,16 @@ export function PostalCard({ postal, width }: Props) {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   }, []);
 
+  const openLightbox = useCallback(() => setLightbox(true), []);
+
   // Animated style: translate the image area horizontally
   const imageAnimStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: dragX.value }],
   }));
+
+  const tap = Gesture.Tap()
+    .maxDistance(8)
+    .onEnd(() => { 'worklet'; runOnJS(openLightbox)(); });
 
   const pan = Gesture.Pan()
     .activeOffsetX([-10, 10])
@@ -122,8 +130,31 @@ export function PostalCard({ postal, width }: Props) {
 
   return (
     <View style={[styles.card, { width, height: cardHeight + 56 }]}>
-      {/* Image area — wrapped in GestureDetector for swipe-to-flip */}
-      <GestureDetector gesture={pan}>
+      {/* ── Lightbox modal ── */}
+      {activeModule && (
+        <Modal
+          visible={lightbox}
+          transparent
+          statusBarTranslucent
+          animationType="fade"
+          onRequestClose={() => setLightbox(false)}
+        >
+          <StatusBar hidden />
+          <Pressable style={styles.lbBackdrop} onPress={() => setLightbox(false)}>
+            <Image
+              source={activeModule}
+              contentFit="contain"
+              style={{ width: screenW, height: screenH }}
+            />
+          </Pressable>
+          <Pressable style={styles.lbClose} onPress={() => setLightbox(false)} hitSlop={12}>
+            <X size={20} color="#fff" />
+          </Pressable>
+        </Modal>
+      )}
+
+      {/* Image area — wrapped in GestureDetector for swipe-to-flip + tap to lightbox */}
+      <GestureDetector gesture={Gesture.Race(tap, pan)}>
         <View style={[styles.imageArea, { height: cardHeight }]}>
           <Animated.View style={[StyleSheet.absoluteFill, imageAnimStyle]}>
             {activeModule ? (
@@ -131,6 +162,7 @@ export function PostalCard({ postal, width }: Props) {
                 source={activeModule}
                 placeholder={{ blurhash: DEFAULT_BH }}
                 contentFit="cover"
+                contentPosition="top"
                 style={StyleSheet.absoluteFill}
                 transition={200}
               />
@@ -275,5 +307,23 @@ const styles = StyleSheet.create({
   dotActive: {
     backgroundColor: 'rgba(255,255,255,0.95)',
     width: 14,
+  },
+  /* Lightbox */
+  lbBackdrop: {
+    flex: 1,
+    backgroundColor: '#000',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  lbClose: {
+    position: 'absolute',
+    top: 52,
+    right: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
