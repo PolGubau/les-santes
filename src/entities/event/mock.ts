@@ -47,7 +47,7 @@ const dn = (day: number, hour: number, min = 0): string =>
 	new Date(2026, 6, day + 1, hour, min, 0).toISOString();
 
 const LOC = {
-	ajuntament: { lat: 41.539813, lng: 2.444905 },
+ 	ajuntament: { lat: 41.5397828848703, lng: 2.444718276586209 },
 	basilica: { lat: 41.540979, lng: 2.446309 },
 	plSantaAnna: { lat: 41.537687, lng: 2.444657 },
 	plSantaMaria: { lat: 41.540778, lng: 2.446272 },

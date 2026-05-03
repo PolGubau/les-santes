@@ -3,10 +3,14 @@ import { useFavoritesStore } from '@/features/favorites';
 import { Colors } from '@/shared/constants';
 import { addEventToCalendar, formatTime } from '@/shared/lib';
 import { EventIcon } from '@/shared/ui';
+import { Image } from 'expo-image';
 import * as Haptics from 'expo-haptics';
 import { CalendarPlus, Ellipsis, Heart, HeartOff, Share2, X } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
+
+const DEFAULT_BLURHASH = 'L6Pj0^jE.AyE_3t7t7R**0o#DgR4';
+const THUMB = 52;
 import Animated, {
   Easing,
   useSharedValue,
@@ -94,8 +98,25 @@ export function EventCard({ event, onPress, distanceMeters }: Props) {
         accessibilityLabel={`${event.title}. ${stateLabel}. De ${formatTime(event.start)} a ${formatTime(event.end)}`}
         accessibilityState={{ disabled: isFinished }}
       >
-        <View style={styles.iconBox}>
-          <EventIcon icon={event.icon} size={20} color={isFinished ? Colors.textDim : Colors.text} />
+        {/* Thumbnail: image if available, icon fallback */}
+        <View style={[styles.thumb, isFinished && styles.thumbDim]}>
+          {event.imageUrl ? (
+            <>
+              <Image
+                source={{ uri: event.imageUrl }}
+                style={StyleSheet.absoluteFill}
+                contentFit="cover"
+                transition={200}
+                placeholder={{ blurhash: event.blurhash ?? DEFAULT_BLURHASH }}
+              />
+              {/* Icon badge over image */}
+              <View style={styles.thumbBadge}>
+                <EventIcon icon={event.icon} size={10} color="#fff" />
+              </View>
+            </>
+          ) : (
+            <EventIcon icon={event.icon} size={20} color={isFinished ? Colors.textDim : Colors.text} />
+          )}
         </View>
         <View style={styles.content}>
           <View style={styles.header}>
@@ -159,14 +180,27 @@ const styles = StyleSheet.create({
   },
   rowDim: { opacity: 0.45 },
   rowPressed: { backgroundColor: Colors.surfaceHigh },
-  iconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 9,
+  thumb: {
+    width: THUMB,
+    height: THUMB,
+    borderRadius: 10,
     backgroundColor: Colors.surfaceHigh,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
+    overflow: 'hidden',
+  },
+  thumbDim: { opacity: 0.5 },
+  thumbBadge: {
+    position: 'absolute',
+    bottom: 4,
+    right: 4,
+    width: 18,
+    height: 18,
+    borderRadius: 5,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   content: { flex: 1, gap: 2 },
   actions: {

@@ -179,7 +179,14 @@ function renderClusters() {
       const cid = f.properties.cluster_id;
       const el = makeClusterEl(count, () => {
         const z = sc.getClusterExpansionZoom(cid);
-        map.easeTo({ center:[lng,lat], zoom:z+0.5, duration:350 });
+        if (z > sc.options.maxZoom) {
+          // Co-located events — cannot expand further, send picker to RN
+          const leaves = sc.getLeaves(cid, Infinity);
+          const events = leaves.map(l => l.properties._event);
+          post({ type:'CLUSTER_PRESS', events });
+        } else {
+          map.easeTo({ center:[lng,lat], zoom:z+0.5, duration:350 });
+        }
       });
       _clusterMarkers.push(new maplibregl.Marker({ element:el }).setLngLat([lng,lat]).addTo(map));
     } else {
@@ -364,10 +371,11 @@ export interface EventMapHandle {
 interface Props {
   events: Event[];
   onEventPress?: (event: Event) => void;
+  onClusterPress?: (events: Event[]) => void;
 }
 
 export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap(
-  { events, onEventPress },
+  { events, onEventPress, onClusterPress },
   ref,
 ) {
   const webviewRef = useRef<WebView>(null);
@@ -443,6 +451,8 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
         }).start();
       } else if (data.type === 'EVENT_PRESS' && onEventPress) {
         onEventPress(data.event as Event);
+      } else if (data.type === 'CLUSTER_PRESS' && onClusterPress) {
+        onClusterPress(data.events as Event[]);
       } else if (data.type === 'MAP_OFFLINE') {
         setMapOffline(true);
         // Fade out the loader (prevents it from staying on top of offline overlay)

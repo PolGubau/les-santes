@@ -132,6 +132,9 @@ export default function AgendaScreen() {
           offset: SCREEN_WIDTH * index,
           index,
         })}
+        windowSize={3}
+        maxToRenderPerBatch={1}
+        initialNumToRender={1}
         onMomentumScrollEnd={handleFlatListScroll}
         renderItem={({ item: day }) => (
           <View style={[styles.page, { width: SCREEN_WIDTH }]}>

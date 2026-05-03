@@ -5,14 +5,8 @@ import type { UserCoords } from '@/shared/hooks';
 import { haversineDistance } from '@/shared/lib';
 import { LoadingState } from '@/shared/ui/LoadingState';
 import { CalendarOff } from 'lucide-react-native';
-import React, { useEffect } from 'react';
+import React, { memo } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withDelay,
-} from 'react-native-reanimated';
 import { buildSections } from '../lib/sections';
 import { EventCard } from './EventCard';
 
@@ -27,32 +21,17 @@ interface Props {
   emptySubtext?: string;
 }
 
-function SectionCard({
+const SectionCard = memo(function SectionCard({
   section,
-  index,
   userCoords,
   onEventPress,
 }: {
   section: ReturnType<typeof buildSections>[number];
-  index: number;
   userCoords?: UserCoords | null;
   onEventPress?: (event: Event) => void;
 }) {
-  const opacity = useSharedValue(0);
-  const translateY = useSharedValue(20);
-
-  useEffect(() => {
-    opacity.value = withDelay(index * 70, withSpring(1, { damping: 18, stiffness: 120 }));
-    translateY.value = withDelay(index * 70, withSpring(0, { damping: 18, stiffness: 120 }));
-  }, [index, opacity, translateY]);
-
-  const animStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-    transform: [{ translateY: translateY.value }],
-  }));
-
   return (
-    <Animated.View style={[styles.sectionCard, animStyle]}>
+    <View style={styles.sectionCard}>
       {/* Header */}
       <View style={styles.sectionHeader}>
         <View style={[styles.accentBar, { backgroundColor: STATE_COLOR[section.state] }]} />
@@ -84,9 +63,9 @@ function SectionCard({
           </React.Fragment>
         );
       })}
-    </Animated.View>
+    </View>
   );
-}
+});
 
 export function AgendaList({
   events,
@@ -130,11 +109,10 @@ export function AgendaList({
         ) : undefined
       }
     >
-      {sections.map((section, i) => (
+      {sections.map((section) => (
         <SectionCard
           key={section.state}
           section={section}
-          index={i}
           userCoords={userCoords}
           onEventPress={onEventPress}
         />

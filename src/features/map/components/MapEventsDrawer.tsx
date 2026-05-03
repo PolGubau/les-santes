@@ -12,6 +12,8 @@ interface Props {
   selectedDay: string;
   onClose: () => void;
   searchQuery?: string;
+  /** Overrides the header title — used for co-located cluster pickers */
+  clusterTitle?: string;
 }
 
 function EventRow({ event }: { event: Event }) {
@@ -37,14 +39,24 @@ function EventRow({ event }: { event: Event }) {
   );
 }
 
-export function MapEventsDrawer({ events, selectedDay, onClose, searchQuery }: Props) {
+export function MapEventsDrawer({ events, selectedDay, onClose, searchQuery, clusterTitle }: Props) {
   const { height } = useWindowDimensions();
   const nowCount = events.filter((e) => e.state === 'now').length;
 
   return (
     <BottomSheet onClose={onClose} height={height * 0.75}>
       <View style={styles.header}>
-        {searchQuery ? (
+        {clusterTitle ? (
+          <>
+            <Text style={styles.title} numberOfLines={1}>{clusterTitle}</Text>
+            {nowCount > 0 && (
+              <View style={styles.nowPill}>
+                <View style={styles.nowDot} />
+                <Text style={styles.nowText}>{nowCount} en curs</Text>
+              </View>
+            )}
+          </>
+        ) : searchQuery ? (
           <>
             <Text style={styles.title} numberOfLines={1}>
               «{searchQuery}»

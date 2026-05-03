@@ -21,6 +21,7 @@ export default function MapaScreen() {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [showDetail, setShowDetail] = useState(false);
   const [showDrawer, setShowDrawer] = useState(false);
+  const [clusterEvents, setClusterEvents] = useState<Event[] | null>(null);
   const [searchText, setSearchText] = useState('');
   const [pendingFocusId, setPendingFocusId] = useState<string | null>(null);
 
@@ -61,20 +62,28 @@ export default function MapaScreen() {
   const isSearching = searchText.trim().length > 0;
 
   const handleEventPress = useCallback((event: Event) => {
+    setClusterEvents(null);
     setShowDetail(false);
     setSelectedEvent(event);
+  }, []);
+  const handleClusterPress = useCallback((events: Event[]) => {
+    setSelectedEvent(null);
+    setShowDetail(false);
+    setClusterEvents(events);
   }, []);
   const handleSearchChange = useCallback((text: string) => {
     setSearchText(text);
     setSelectedEvent(null);
+    setClusterEvents(null);
     setShowDetail(false);
     setShowDrawer(text.trim().length > 0);
   }, []);
   const handleSearchFocus = useCallback(() => {
     if (searchText.trim().length > 0) setShowDrawer(true);
   }, [searchText]);
-  const handleListPress = useCallback(() => setShowDrawer(true), []);
+  const handleListPress = useCallback(() => { setClusterEvents(null); setShowDrawer(true); }, []);
   const handleDrawerClose = useCallback(() => setShowDrawer(false), []);
+  const handleClusterDrawerClose = useCallback(() => setClusterEvents(null), []);
   const deselect = useCallback(() => {
     mapRef.current?.deselect();
   }, []);
@@ -84,7 +93,12 @@ export default function MapaScreen() {
 
   return (
     <Screen safe={false}>
-      <EventMap ref={mapRef} events={filteredMapEvents} onEventPress={handleEventPress} />
+      <EventMap
+        ref={mapRef}
+        events={filteredMapEvents}
+        onEventPress={handleEventPress}
+        onClusterPress={handleClusterPress}
+      />
 
       <MapHeader
         selectedDay={selectedDay}
@@ -105,6 +119,16 @@ export default function MapaScreen() {
           selectedDay={selectedDay}
           searchQuery={isSearching ? searchText.trim() : undefined}
           onClose={handleDrawerClose}
+        />
+      )}
+
+      {/* Co-located events picker — shown when tapping a cluster that can't expand */}
+      {!showDrawer && clusterEvents && (
+        <MapEventsDrawer
+          events={clusterEvents}
+          selectedDay={selectedDay}
+          clusterTitle={`${clusterEvents.length} actes al mateix lloc`}
+          onClose={handleClusterDrawerClose}
         />
       )}
 
