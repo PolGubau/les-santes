@@ -165,6 +165,39 @@ function clearRoutes() {
   _routeMarkers.forEach(m => m.remove()); _routeMarkers = [];
 }
 
+// ── Jitter: spread co-located points in a circle ─────────────────────────────
+// ~0.00009° ≈ 10m at festival latitude — imperceptible on the map, enough to separate pins
+const JITTER_DEG = 0.00009;
+function jitterCoords(features) {
+  // Group by rounded coordinate key (6 decimal places = ~0.1m precision)
+  const groups = {};
+  features.forEach(f => {
+    const [lng, lat] = f.geometry.coordinates;
+    const key = lat.toFixed(5) + ',' + lng.toFixed(5);
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(f);
+  });
+  // For groups with >1 point, sort by event id for stable ordering, then apply circular offset
+  return features.map(f => {
+    const [lng, lat] = f.geometry.coordinates;
+    const key = lat.toFixed(5) + ',' + lng.toFixed(5);
+    const group = groups[key];
+    if (group.length < 2) return { ...f, _jLng: lng, _jLat: lat };
+    const sorted = [...group].sort((a, b) => {
+      const idA = a.properties._event?.id ?? '';
+      const idB = b.properties._event?.id ?? '';
+      return String(idA).localeCompare(String(idB));
+    });
+    const idx = sorted.indexOf(f);
+    const angle = (2 * Math.PI * idx) / group.length;
+    return {
+      ...f,
+      _jLng: lng + JITTER_DEG * Math.cos(angle),
+      _jLat: lat + JITTER_DEG * Math.sin(angle),
+    };
+  });
+}
+
 // ── Cluster update ────────────────────────────────────────────────────────────
 function renderClusters() {
   if (!_scLoaded) return;
@@ -172,7 +205,15 @@ function renderClusters() {
   const b = map.getBounds();
   const bbox = [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()];
   const zoom = Math.floor(map.getZoom());
-  sc.getClusters(bbox, zoom).forEach(f => {
+  const features = sc.getClusters(bbox, zoom);
+
+  // Split clusters vs individual points, jitter the individual points
+  const pointFeatures = features.filter(f => !f.properties.cluster);
+  const jittered = jitterCoords(pointFeatures);
+  // Build a lookup from feature index to jittered coords
+  let jitterIdx = 0;
+
+  features.forEach(f => {
     const [lng, lat] = f.geometry.coordinates;
     if (f.properties.cluster) {
       const count = f.properties.point_count;
@@ -190,9 +231,10 @@ function renderClusters() {
       });
       _clusterMarkers.push(new maplibregl.Marker({ element:el }).setLngLat([lng,lat]).addTo(map));
     } else {
+      const jf = jittered[jitterIdx++];
       const event = f.properties._event;
       const el = makeMarkerEl(event);
-      _staticMarkers.push(new maplibregl.Marker({ element:el }).setLngLat([lng,lat]).addTo(map));
+      _staticMarkers.push(new maplibregl.Marker({ element:el }).setLngLat([jf._jLng, jf._jLat]).addTo(map));
     }
   });
 }
