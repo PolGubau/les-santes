@@ -33,7 +33,8 @@ export interface RoutePoint {
 /** Lucide icon name — see lucide-react-native icon list */
 export type EventIconDef = { name: string };
 
-export interface Event {
+/** Fields shared by every event regardless of kind */
+interface EventBase {
 	id: string;
 	title: string;
 	type: EventType;
@@ -41,17 +42,29 @@ export interface Event {
 	icon: EventIconDef;
 	shortDescription: string;
 	start: string; // ISO 8601
-	end: string; // ISO 8601
-	state: EventState;
-	kind: EventKind;
-	imageUrl?: string; // optional CDN photo (Supabase Storage)
-	blurhash?: string; // offline placeholder shown while image loads
-	// static events
-	location?: StaticLocation;
-	locationName?: string; // human-readable venue name
-	// mobile events
-	route?: RoutePoint[];
+	end: string;   // ISO 8601
+	imageUrl?: string;
+	blurhash?: string;
 }
 
-/** Event without a computed state - used in mock data and data layer */
-export type RawEvent = Omit<Event, "state">;
+/** Fixed-location event — location is required */
+export interface StaticRawEvent extends EventBase {
+	kind: "static";
+	location: StaticLocation;
+	locationName?: string;
+}
+
+/** Moving event — route is required (≥ 2 points) */
+export interface MobileRawEvent extends EventBase {
+	kind: "mobile";
+	route: RoutePoint[];
+	locationName?: string;
+}
+
+/** Discriminated union — without computed state */
+export type RawEvent = StaticRawEvent | MobileRawEvent;
+
+/** Discriminated union — with computed state (runtime result) */
+export type StaticEvent = StaticRawEvent & { state: EventState };
+export type MobileEvent = MobileRawEvent & { state: EventState };
+export type Event = StaticEvent | MobileEvent;

@@ -12,5 +12,7 @@ export function computeEventState(
 }
 
 export function withState(event: RawEvent, now: Date): Event {
-  return { ...event, state: computeEventState(event, now) };
+  // Spreading a union loses the discriminant for the compiler; cast is safe
+  // because the spread preserves `kind` at runtime.
+  return { ...event, state: computeEventState(event, now) } as Event;
 }

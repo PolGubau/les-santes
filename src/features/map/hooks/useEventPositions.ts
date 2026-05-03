@@ -13,17 +13,11 @@ export function useEventPositions(events: Event[]): MobilePosition[] {
 
 	return useMemo(() => {
 		return events
-			.filter(
-				(e) =>
-					e.kind === "mobile" && Array.isArray(e.route) && e.route.length > 0,
+			.filter((e): e is Extract<typeof e, { kind: 'mobile' }> =>
+				e.kind === "mobile" && e.route.length > 0,
 			)
 			.flatMap((e) => {
-				// route existence guaranteed by filter above
-				const pos = interpolatePosition(
-					e.route as NonNullable<typeof e.route>,
-					e.start,
-					e.end,
-				);
+				const pos = interpolatePosition(e.route, e.start, e.end);
 				if (!pos) return [];
 				return [{ eventId: e.id, position: pos }];
 			});

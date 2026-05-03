@@ -43,11 +43,12 @@ const BASE_HTML = `<!DOCTYPE html>
       white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:.01em;
       transition:font-size .15s ease; }
     .m-label.selected { font-size:11.5px; font-weight:800; color:#0A0908; }
+    .m-cluster-wrap { cursor:pointer; user-select:none; }
     .m-cluster { width:42px; height:42px; border-radius:50%; background:#1D4ED8;
       border:3px solid #fff; display:flex; align-items:center; justify-content:center;
-      font-size:13px; font-weight:800; color:#fff; cursor:pointer;
+      font-size:13px; font-weight:800; color:#fff;
       box-shadow:0 2px 10px rgba(0,0,0,0.2); transition:transform .1s; font-family:sans-serif; }
-    .m-cluster:active { transform:scale(1.1); }
+    .m-cluster-wrap:active .m-cluster { transform:scale(1.1); }
   </style>
 </head>
 <body>
@@ -109,11 +110,14 @@ function makeMarkerEl(event, overrideColor) {
   return wrap;
 }
 function makeClusterEl(count, onClick) {
+  const wrap = document.createElement('div');
+  wrap.className = 'm-cluster-wrap';
   const el = document.createElement('div');
   el.className = 'm-cluster';
   el.textContent = '+' + count;
-  el.addEventListener('click', onClick);
-  return el;
+  wrap.appendChild(el);
+  wrap.addEventListener('click', onClick);
+  return wrap;
 }
 
 // ── Map ───────────────────────────────────────────────────────────────────────
