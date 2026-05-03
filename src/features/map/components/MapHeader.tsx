@@ -12,9 +12,11 @@ interface Props {
   todayKey: string;
   liveCount: number;
   searchText: string;
+  isFiltering: boolean;
   onDayChange: (day: string) => void;
   onListPress: () => void;
   onSearchChange: (text: string) => void;
+  onSearchFocus: () => void;
 }
 
 export const MapHeader = React.memo(function MapHeader({
@@ -23,9 +25,11 @@ export const MapHeader = React.memo(function MapHeader({
   todayKey,
   liveCount,
   searchText,
+  isFiltering,
   onDayChange,
   onListPress,
   onSearchChange,
+  onSearchFocus,
 }: Props) {
   const insets = useSafeAreaInsets();
 
@@ -44,14 +48,15 @@ export const MapHeader = React.memo(function MapHeader({
 
       {/* ── Search row ── */}
       <View style={styles.searchRow} pointerEvents="box-none">
-        <View style={styles.searchPill} pointerEvents="auto">
-          <Search size={16} color={Colors.textMuted} />
+        <View style={[styles.searchPill, isFiltering && styles.searchPillActive]} pointerEvents="auto">
+          <Search size={16} color={isFiltering ? Colors.primary : Colors.textMuted} />
           <TextInput
             style={styles.searchInput}
             placeholder="Cerca actes…"
             placeholderTextColor={Colors.textDim}
             value={searchText}
             onChangeText={onSearchChange}
+            onFocus={onSearchFocus}
             returnKeyType="search"
             clearButtonMode="never"
           />
@@ -118,6 +123,10 @@ const styles = StyleSheet.create({
     elevation: 4,
     borderWidth: 1,
     borderColor: Colors.border,
+  },
+  searchPillActive: {
+    borderColor: Colors.primary,
+    borderWidth: 1.5,
   },
   searchInput: {
     flex: 1,

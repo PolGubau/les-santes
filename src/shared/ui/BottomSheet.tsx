@@ -1,7 +1,7 @@
 import { Colors } from '@/shared/constants';
 import { useBottomSheet } from '@/shared/hooks';
-import React, { useEffect } from 'react';
-import { Animated, Pressable, StyleSheet, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Animated, Keyboard, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface Props {
@@ -17,12 +17,22 @@ export function BottomSheet({ onClose, height = 420, children }: Props) {
     onClose,
   });
 
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
   useEffect(() => {
     open();
   }, [open]);
 
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    const show = Keyboard.addListener(showEvent, (e) => setKeyboardHeight(e.endCoordinates.height));
+    const hide = Keyboard.addListener(hideEvent, () => setKeyboardHeight(0));
+    return () => { show.remove(); hide.remove(); };
+  }, []);
+
   return (
-    <Animated.View style={[styles.overlay, { opacity: overlayOpacity }]}>
+    <Animated.View style={[styles.overlay, { opacity: overlayOpacity, bottom: keyboardHeight }]}>
       <Pressable style={StyleSheet.absoluteFill} onPress={dismiss} />
       <Animated.View
         style={[

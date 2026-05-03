@@ -8,11 +8,13 @@ import { Asset } from "expo-asset";
 import * as FileSystem from "expo-file-system";
 import { useEffect, useState } from "react";
 
-// Metro requires static require() — no dynamic paths
+// Metro requires static require() — no dynamic paths.
+// .js files are treated as source modules by Metro, so we use the .pack
+// extension (registered in metro.config.js assetExts) for the JS bundles.
 const MAP_ASSETS = {
-	js: require("../../../../assets/web/maplibre-gl.js"),
+	js: require("../../../../assets/web/maplibre-gl.pack"),
 	css: require("../../../../assets/web/maplibre-gl.css"),
-	supercluster: require("../../../../assets/web/supercluster.min.js"),
+	supercluster: require("../../../../assets/web/supercluster.pack"),
 } as const;
 
 async function prepareMapAssets(htmlContent: string): Promise<string> {

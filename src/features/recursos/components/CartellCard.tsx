@@ -14,22 +14,16 @@ interface Props {
 
 export function CartellCard({ cartell, width }: Props) {
   const [saving, setSaving] = useState(false);
-  const [permissionResponse, requestPermission] = MediaLibrary.usePermissions({ granularPermissions: ['photo'] });
 
   const handleSave = async () => {
     if (!cartell.asset) return;
-
     setSaving(true);
     try {
-      let perm = permissionResponse;
-      if (!perm?.granted) {
-        perm = await requestPermission();
-      }
-      if (!perm?.granted) {
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status !== 'granted') {
         Alert.alert('Permís denegat', 'Cal accés a la galeria per desar la imatge.');
         return;
       }
-      // expo-image source resolved to a local URI by the bundler
       const [asset] = await Asset.loadAsync(cartell.asset);
       const uri = asset.localUri ?? asset.uri;
       await MediaLibrary.saveToLibraryAsync(uri);

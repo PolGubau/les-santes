@@ -9,12 +9,12 @@ import { useCallback, useState } from 'react';
 import { Alert, Modal, Pressable, StatusBar, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
+  Easing,
+  runOnJS,
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
   withTiming,
 } from 'react-native-reanimated';
-import { runOnJS } from 'react-native-worklets';
 import type { Postal } from '../types';
 
 interface Props {
@@ -24,23 +24,32 @@ interface Props {
 
 const DEFAULT_BH = 'L6B;DR-;IU?bx]t7t7WB-;_3t7WB';
 
-const SWIPE_THRESHOLD = 60;
-const RUBBER_BAND_FACTOR = 0.25;
+const SWIPE_THRESHOLD = 50;
+const RUBBER_BAND_FACTOR = 0.18;
+const SLIDE_DURATION = 210;
+const SNAP_EASING = Easing.out(Easing.quad);
 
 export function PostalCard({ postal, width }: Props) {
   const [showDors, setShowDors] = useState(false);
   const [saving, setSaving] = useState(false);
   const [lightbox, setLightbox] = useState(false);
-  const [permissionResponse, requestPermission] = MediaLibrary.usePermissions({ granularPermissions: ['photo'] });
   const { width: screenW, height: screenH } = useWindowDimensions();
 
   const cardHeight = width * 0.68;
   const assets = POSTAL_ASSETS[postal.id];
-  const activeModule = showDors ? assets?.back : (assets?.front ?? assets?.back);
-  const hasFront = Boolean(assets?.front);
-  const hasBack = Boolean(assets?.back);
+  const caraModule = assets?.front;
+  const dorsModule = assets?.back;
+  const hasFront = Boolean(caraModule);
+  const hasBack = Boolean(dorsModule);
+  // Active image for lightbox: whichever side is currently shown
+  const activeModule = showDors ? (dorsModule ?? caraModule) : (caraModule ?? dorsModule);
 
-  const dragX = useSharedValue(0);
+  // Absolute position of the 2×width slide container:
+  //   0      = showing cara
+  //   -width = showing dors
+  const slideX = useSharedValue(0);
+  // Captured at gesture start so onEnd never needs React state
+  const gestureStartX = useSharedValue(0);
 
   const flipToBack = useCallback(() => {
     setShowDors(true);
@@ -52,11 +61,17 @@ export function PostalCard({ postal, width }: Props) {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   }, []);
 
+  // Called from footer buttons — animates then syncs state
+  const goToPage = useCallback((page: 0 | 1) => {
+    slideX.value = withTiming(page === 0 ? 0 : -width, { duration: SLIDE_DURATION, easing: SNAP_EASING });
+    setShowDors(page === 1);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  }, [slideX, width]);
+
   const openLightbox = useCallback(() => setLightbox(true), []);
 
-  // Animated style: translate the image area horizontally
-  const imageAnimStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: dragX.value }],
+  const containerStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: slideX.value }],
   }));
 
   const tap = Gesture.Tap()
@@ -66,44 +81,38 @@ export function PostalCard({ postal, width }: Props) {
   const pan = Gesture.Pan()
     .activeOffsetX([-10, 10])
     .failOffsetY([-8, 8])
+    .onStart(() => {
+      'worklet';
+      gestureStartX.value = slideX.value;
+    })
     .onUpdate((e) => {
       'worklet';
-      const dx = e.translationX;
-      // Apply rubber-band resistance at the limits:
-      // dragging left when on cara (no previous) or dragging right when on dors (no next)
-      const atLeftEdge = !showDors;
-      const atRightEdge = showDors;
-
-      if ((dx < 0 && atRightEdge) || (dx > 0 && atLeftEdge)) {
-        // Rubberband: resist motion that goes "out of bounds"
-        dragX.value = dx * RUBBER_BAND_FACTOR;
+      const target = gestureStartX.value + e.translationX;
+      if (target > 0) {
+        slideX.value = target * RUBBER_BAND_FACTOR;
+      } else if (target < -width) {
+        slideX.value = -width + (target + width) * RUBBER_BAND_FACTOR;
       } else {
-        dragX.value = dx;
+        slideX.value = target;
       }
     })
     .onEnd((e) => {
       'worklet';
       const dx = e.translationX;
       const vx = e.velocityX;
-      const isFlick = Math.abs(vx) > 400;
+      const isFlick = Math.abs(vx) > 350;
+      const atCara = gestureStartX.value > -(width / 2);
 
-      if ((dx < -SWIPE_THRESHOLD || (isFlick && vx < 0)) && !showDors && hasBack) {
-        // Swipe left → show dors
-        dragX.value = withTiming(-width, { duration: 160 }, () => {
-          dragX.value = width;
+      if ((dx < -SWIPE_THRESHOLD || (isFlick && vx < 0)) && atCara && hasBack) {
+        slideX.value = withTiming(-width, { duration: SLIDE_DURATION, easing: SNAP_EASING }, () => {
           runOnJS(flipToBack)();
-          dragX.value = withSpring(0, { damping: 20, stiffness: 200 });
         });
-      } else if ((dx > SWIPE_THRESHOLD || (isFlick && vx > 0)) && showDors && hasFront) {
-        // Swipe right → show cara
-        dragX.value = withTiming(width, { duration: 160 }, () => {
-          dragX.value = -width;
+      } else if ((dx > SWIPE_THRESHOLD || (isFlick && vx > 0)) && !atCara && hasFront) {
+        slideX.value = withTiming(0, { duration: SLIDE_DURATION, easing: SNAP_EASING }, () => {
           runOnJS(flipToFront)();
-          dragX.value = withSpring(0, { damping: 20, stiffness: 200 });
         });
       } else {
-        // Snap back
-        dragX.value = withSpring(0, { damping: 18, stiffness: 250 });
+        slideX.value = withTiming(atCara ? 0 : -width, { duration: 160, easing: SNAP_EASING });
       }
     });
 
@@ -111,9 +120,8 @@ export function PostalCard({ postal, width }: Props) {
     if (!activeModule) return;
     setSaving(true);
     try {
-      let perm = permissionResponse;
-      if (!perm?.granted) perm = await requestPermission();
-      if (!perm?.granted) {
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status !== 'granted') {
         Alert.alert('Permís denegat', 'Cal accés a la galeria per guardar la imatge.');
         return;
       }
@@ -153,28 +161,47 @@ export function PostalCard({ postal, width }: Props) {
         </Modal>
       )}
 
-      {/* Image area — wrapped in GestureDetector for swipe-to-flip + tap to lightbox */}
+      {/* Image area — two images side by side, clipped to card width */}
       <GestureDetector gesture={Gesture.Race(tap, pan)}>
         <View style={[styles.imageArea, { height: cardHeight }]}>
-          <Animated.View style={[StyleSheet.absoluteFill, imageAnimStyle]}>
-            {activeModule ? (
-              <Image
-                source={activeModule}
-                placeholder={{ blurhash: DEFAULT_BH }}
-                contentFit="cover"
-                contentPosition="top"
-                style={StyleSheet.absoluteFill}
-                transition={200}
-              />
-            ) : (
-              <View style={styles.placeholder}>
-                <ImageOff size={28} color={Colors.textDim} />
-                <Text style={styles.placeholderText}>
-                  {postal.year} — {showDors ? 'Dors' : 'Cara'}
-                </Text>
-                <Text style={styles.placeholderSub}>Imatge no disponible</Text>
-              </View>
-            )}
+          {/* Slide container: width*2 so both faces are always rendered */}
+          <Animated.View style={[{ width: width * 2, height: cardHeight, flexDirection: 'row' }, containerStyle]}>
+            {/* Cara */}
+            <View style={{ width, height: cardHeight }}>
+              {caraModule ? (
+                <Image
+                  source={caraModule}
+                  placeholder={{ blurhash: DEFAULT_BH }}
+                  contentFit="cover"
+                  contentPosition="top"
+                  style={StyleSheet.absoluteFill}
+                />
+              ) : (
+                <View style={styles.placeholder}>
+                  <ImageOff size={28} color={Colors.textDim} />
+                  <Text style={styles.placeholderText}>{postal.year} — Cara</Text>
+                  <Text style={styles.placeholderSub}>Imatge no disponible</Text>
+                </View>
+              )}
+            </View>
+            {/* Dors */}
+            <View style={{ width, height: cardHeight }}>
+              {dorsModule ? (
+                <Image
+                  source={dorsModule}
+                  placeholder={{ blurhash: DEFAULT_BH }}
+                  contentFit="cover"
+                  contentPosition="top"
+                  style={StyleSheet.absoluteFill}
+                />
+              ) : (
+                <View style={styles.placeholder}>
+                  <ImageOff size={28} color={Colors.textDim} />
+                  <Text style={styles.placeholderText}>{postal.year} — Dors</Text>
+                  <Text style={styles.placeholderSub}>Imatge no disponible</Text>
+                </View>
+              )}
+            </View>
           </Animated.View>
 
           {/* Side badge */}
@@ -202,7 +229,7 @@ export function PostalCard({ postal, width }: Props) {
           {hasFront && (
             <Pressable
               style={[styles.flipBtn, !showDors && styles.flipBtnActive]}
-              onPress={() => setShowDors(false)}
+              onPress={() => goToPage(0)}
               accessibilityLabel="Veure cara"
             >
               <ChevronLeft size={14} color={!showDors ? '#fff' : Colors.textDim} />
@@ -212,7 +239,7 @@ export function PostalCard({ postal, width }: Props) {
           {hasBack && (
             <Pressable
               style={[styles.flipBtn, showDors && styles.flipBtnActive]}
-              onPress={() => setShowDors(true)}
+              onPress={() => goToPage(1)}
               accessibilityLabel="Veure dors"
             >
               <Text style={[styles.flipLabel, showDors && styles.flipLabelActive]}>Dors</Text>
@@ -243,7 +270,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  imageArea: { position: 'relative' },
+  imageArea: { position: 'relative', overflow: 'hidden' },
   placeholder: {
     flex: 1,
     alignItems: 'center',

@@ -19,8 +19,8 @@ const BANNER = require('../../../assets/media/posters-banner.avif');
 
 const POSTAL_PREVIEWS: { key: string; src: number }[] = [
   { key: '2024', src: require('../../../assets/resources/postals/2024-c.avif') },
-  { key: '2010', src: require('../../../assets/resources/postals/2010-c.avif') },
-  { key: '1999', src: require('../../../assets/resources/postals/1999-c.avif') },
+  { key: '2010', src: require('../../../assets/resources/postals/2010-d.avif') },
+  { key: '1999', src: require('../../../assets/resources/postals/1999-d.avif') },
   { key: '1990', src: require('../../../assets/resources/postals/1990-c.avif') },
 ];
 
@@ -69,14 +69,6 @@ function HeroCard({
 
   return (
     <Animated.View style={[styles.heroCard, anim]}>
-      <Pressable
-        style={StyleSheet.absoluteFill}
-        onPress={() => router.push(href as never)}
-        onPressIn={() => { scale.value = withTiming(0.975, { duration: 80 }); }}
-        onPressOut={() => { scale.value = withSpring(1, { damping: 12, stiffness: 220 }); }}
-        accessibilityRole="button"
-        accessibilityLabel={title}
-      />
       {renderVisual()}
       <LinearGradient
         colors={['transparent', 'rgba(0,0,0,0.6)', 'rgba(0,0,0,0.82)']}
@@ -84,7 +76,7 @@ function HeroCard({
         style={StyleSheet.absoluteFill}
         pointerEvents="none"
       />
-      <View style={styles.heroContent}>
+      <View style={styles.heroContent} pointerEvents="none">
         <View>
           <Text style={styles.heroLabel}>{count} peces</Text>
           <Text style={styles.heroTitle}>{title}</Text>
@@ -95,6 +87,14 @@ function HeroCard({
           <ArrowRight size={14} color="#fff" />
         </View>
       </View>
+      <Pressable
+        style={StyleSheet.absoluteFill}
+        onPress={() => router.push(href as never)}
+        onPressIn={() => { scale.value = withTiming(0.975, { duration: 80 }); }}
+        onPressOut={() => { scale.value = withSpring(1, { damping: 12, stiffness: 220 }); }}
+        accessibilityRole="button"
+        accessibilityLabel={title}
+      />
     </Animated.View>
   );
 }
@@ -110,17 +110,8 @@ function PostalsCard({
 
   return (
     <Animated.View style={[styles.postalsCard, anim]}>
-      <Pressable
-        style={StyleSheet.absoluteFill}
-        onPress={() => router.push(href as never)}
-        onPressIn={() => { scale.value = withTiming(0.975, { duration: 80 }); }}
-        onPressOut={() => { scale.value = withSpring(1, { damping: 12, stiffness: 220 }); }}
-        accessibilityRole="button"
-        accessibilityLabel={title}
-      />
-
       {/* Left: mosaic */}
-      <View style={styles.mosaic}>
+      <View style={styles.mosaic} pointerEvents="none">
         {POSTAL_PREVIEWS.map(({ key, src }) => (
           <View key={key} style={styles.mosaicCell}>
             <Image source={src} contentFit="cover" style={{ width: CELL_SIZE, height: CELL_SIZE }} transition={200} />
@@ -129,7 +120,7 @@ function PostalsCard({
       </View>
 
       {/* Right: text */}
-      <View style={styles.postalsContent}>
+      <View style={styles.postalsContent} pointerEvents="none">
         <View>
           <Text style={styles.postalsLabel}>{count} postals</Text>
           <Text style={styles.postalsTitle}>{title}</Text>
@@ -140,6 +131,15 @@ function PostalsCard({
           <ArrowRight size={13} color={Colors.primary} />
         </View>
       </View>
+
+      <Pressable
+        style={StyleSheet.absoluteFill}
+        onPress={() => router.push(href as never)}
+        onPressIn={() => { scale.value = withTiming(0.975, { duration: 80 }); }}
+        onPressOut={() => { scale.value = withSpring(1, { damping: 12, stiffness: 220 }); }}
+        accessibilityRole="button"
+        accessibilityLabel={title}
+      />
     </Animated.View>
   );
 }

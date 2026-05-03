@@ -58,6 +58,8 @@ export default function MapaScreen() {
     [mapEvents],
   );
 
+  const isSearching = searchText.trim().length > 0;
+
   const handleEventPress = useCallback((event: Event) => {
     setShowDetail(false);
     setSelectedEvent(event);
@@ -66,12 +68,19 @@ export default function MapaScreen() {
     setSearchText(text);
     setSelectedEvent(null);
     setShowDetail(false);
+    setShowDrawer(text.trim().length > 0);
   }, []);
+  const handleSearchFocus = useCallback(() => {
+    if (searchText.trim().length > 0) setShowDrawer(true);
+  }, [searchText]);
   const handleListPress = useCallback(() => setShowDrawer(true), []);
   const handleDrawerClose = useCallback(() => setShowDrawer(false), []);
-  const handleCardClose = useCallback(() => { setSelectedEvent(null); setShowDetail(false); }, []);
+  const deselect = useCallback(() => {
+    mapRef.current?.deselect();
+  }, []);
+  const handleCardClose = useCallback(() => { setSelectedEvent(null); setShowDetail(false); deselect(); }, [deselect]);
   const handleCardExpand = useCallback(() => setShowDetail(true), []);
-  const handleDetailClose = useCallback(() => setShowDetail(false), []);
+  const handleDetailClose = useCallback(() => { setShowDetail(false); deselect(); }, [deselect]);
 
   return (
     <Screen safe={false}>
@@ -83,15 +92,18 @@ export default function MapaScreen() {
         todayKey={todayKey}
         liveCount={liveCount}
         searchText={searchText}
+        isFiltering={isSearching}
         onDayChange={setDay}
         onListPress={handleListPress}
         onSearchChange={handleSearchChange}
+        onSearchFocus={handleSearchFocus}
       />
 
       {showDrawer && (
         <MapEventsDrawer
-          events={drawerEvents}
+          events={isSearching ? filteredMapEvents : drawerEvents}
           selectedDay={selectedDay}
+          searchQuery={isSearching ? searchText.trim() : undefined}
           onClose={handleDrawerClose}
         />
       )}

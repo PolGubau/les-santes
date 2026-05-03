@@ -11,6 +11,7 @@ interface Props {
   events: Event[];
   selectedDay: string;
   onClose: () => void;
+  searchQuery?: string;
 }
 
 function EventRow({ event }: { event: Event }) {
@@ -36,20 +37,33 @@ function EventRow({ event }: { event: Event }) {
   );
 }
 
-export function MapEventsDrawer({ events, selectedDay, onClose }: Props) {
+export function MapEventsDrawer({ events, selectedDay, onClose, searchQuery }: Props) {
   const { height } = useWindowDimensions();
   const nowCount = events.filter((e) => e.state === 'now').length;
 
   return (
     <BottomSheet onClose={onClose} height={height * 0.75}>
       <View style={styles.header}>
-        <Text style={styles.title}>{formatDayShort(selectedDay)}</Text>
-        <Text style={styles.count}>{events.length} actes</Text>
-        {nowCount > 0 && (
-          <View style={styles.nowPill}>
-            <View style={styles.nowDot} />
-            <Text style={styles.nowText}>{nowCount} en curs</Text>
-          </View>
+        {searchQuery ? (
+          <>
+            <Text style={styles.title} numberOfLines={1}>
+              «{searchQuery}»
+            </Text>
+            <Text style={styles.count}>
+              {events.length} {events.length === 1 ? 'resultat' : 'resultats'}
+            </Text>
+          </>
+        ) : (
+          <>
+            <Text style={styles.title}>{formatDayShort(selectedDay)}</Text>
+            <Text style={styles.count}>{events.length} actes</Text>
+            {nowCount > 0 && (
+              <View style={styles.nowPill}>
+                <View style={styles.nowDot} />
+                <Text style={styles.nowText}>{nowCount} en curs</Text>
+              </View>
+            )}
+          </>
         )}
       </View>
 

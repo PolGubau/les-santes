@@ -1,0 +1,122 @@
+import type { EventType } from '@/entities/event';
+import { Colors } from '@/shared/constants';
+import type { UserCoords } from '@/shared/hooks';
+import * as Haptics from 'expo-haptics';
+import {
+  Crown, Flag, Flame, Heart, MapPin, Mic, Music, Sailboat, Smile, Ticket, Users,
+} from 'lucide-react-native';
+import type { LucideIcon } from 'lucide-react-native';
+import React from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import type { AgendaFilters } from '../hooks/useAgenda';
+
+const TYPE_FILTERS: Array<{ label: string; value: EventType; Icon?: LucideIcon }> = [
+  { label: 'Correfoc', value: 'correfoc', Icon: Flame },
+  { label: 'Concerts', value: 'concert', Icon: Mic },
+  { label: 'Sardanes', value: 'sardanes', Icon: Music },
+  { label: 'Gegants', value: 'gegants', Icon: Crown },
+  { label: 'Castellers', value: 'castellera', Icon: Users },
+  { label: 'Cercavila', value: 'cercavila', Icon: Flag },
+  { label: 'Havaneres', value: 'havaneres', Icon: Sailboat },
+  { label: 'Espectacle', value: 'espectacle', Icon: Ticket },
+  { label: 'Familiar', value: 'jocs', Icon: Smile },
+];
+
+interface Props {
+  filters: AgendaFilters;
+  totalFavorites: number;
+  userCoords?: UserCoords | null;
+  onToggleFavorites: () => void;
+  onToggleNearMe: () => void;
+  onSetType: (type: EventType | undefined) => void;
+}
+
+export function AgendaFilterBar({
+  filters, totalFavorites, userCoords,
+  onToggleFavorites, onToggleNearMe, onSetType,
+}: Props) {
+  return (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.container}
+    >
+      {/* Favorits */}
+      <Pressable
+        style={[styles.chip, filters.onlyFavorites && styles.chipFavorites]}
+        onPress={() => { Haptics.selectionAsync(); onToggleFavorites(); }}
+        accessibilityRole="tab"
+        accessibilityLabel="Filtre: Favorits"
+        accessibilityState={{ selected: !!filters.onlyFavorites }}
+      >
+        <Heart
+          size={15}
+          color={filters.onlyFavorites ? '#fff' : Colors.primary}
+          fill={filters.onlyFavorites ? '#fff' : 'none'}
+        />
+        <Text style={[styles.chipText, filters.onlyFavorites && styles.chipTextActive]}>Favorits</Text>
+        {totalFavorites > 0 && (
+          <View style={[styles.favBadge, filters.onlyFavorites && styles.favBadgeActive]}>
+            <Text style={[styles.favBadgeText, filters.onlyFavorites && styles.favBadgeTextActive]}>
+              {totalFavorites}
+            </Text>
+          </View>
+        )}
+      </Pressable>
+
+      {/* Aprop meu */}
+      {userCoords && (
+        <Pressable
+          style={[styles.chip, filters.nearMe && styles.chipNearMe]}
+          onPress={() => { Haptics.selectionAsync(); onToggleNearMe(); }}
+          accessibilityRole="tab"
+          accessibilityLabel="Filtre: Aprop meu"
+          accessibilityState={{ selected: !!filters.nearMe }}
+        >
+          <MapPin size={15} color={filters.nearMe ? '#fff' : Colors.primary} />
+          <Text style={[styles.chipText, filters.nearMe && styles.chipTextActive]}>Aprop meu</Text>
+        </Pressable>
+      )}
+
+      {/* Type filters */}
+      {TYPE_FILTERS.map((f) => {
+        const active = filters.type === f.value;
+        return (
+          <Pressable
+            key={f.label}
+            style={[styles.chip, active && styles.chipActive]}
+            onPress={() => onSetType(active ? undefined : f.value)}
+            accessibilityRole="tab"
+            accessibilityLabel={`Filtre: ${f.label}`}
+            accessibilityState={{ selected: active }}
+          >
+            {f.Icon && <f.Icon size={15} color={active ? '#fff' : Colors.textDim} />}
+            <Text style={[styles.chipText, active && styles.chipTextActive]}>{f.label}</Text>
+          </Pressable>
+        );
+      })}
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { paddingHorizontal: 12, paddingVertical: 10, gap: 8, alignItems: 'center' },
+  chip: {
+    flexShrink: 0, flexDirection: 'row', alignItems: 'center', gap: 5,
+    paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20,
+    backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border,
+  },
+  chipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
+  chipNearMe: { backgroundColor: Colors.primary, borderColor: Colors.primary },
+  chipFavorites: { backgroundColor: '#e11d48', borderColor: '#e11d48' },
+  chipText: { color: Colors.textMuted, fontSize: 13, fontWeight: '500', flexShrink: 0 },
+  chipTextActive: { color: '#fff', fontWeight: '700' },
+  favBadge: {
+    minWidth: 18, height: 18, borderRadius: 9,
+    backgroundColor: Colors.primary,
+    alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4,
+  },
+  favBadgeActive: { backgroundColor: 'rgba(255,255,255,0.3)' },
+  favBadgeText: { color: '#fff', fontSize: 10, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  favBadgeTextActive: { color: '#fff' },
+});

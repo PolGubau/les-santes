@@ -1,5 +1,4 @@
 import type { Event } from '@/entities/event';
-import { useLocalMapAssets } from '@/features/map/hooks/useLocalMapAssets';
 import { Colors } from '@/shared/constants';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import * as Location from 'expo-location';
@@ -23,22 +22,27 @@ const BASE_HTML = `<!DOCTYPE html>
 <html>
 <head>
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-  <link href="./maplibre-gl.css" rel="stylesheet">
-  <script src="./maplibre-gl.js"></script>
-  <script src="./supercluster.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/supercluster@8.0.1/dist/supercluster.min.js"></script>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     body,#map { width:100%; height:100vh; background:#FAF8F5; }
     .m-wrap { display:flex; flex-direction:column; align-items:center; cursor:pointer; user-select:none; }
-    .m-wrap:active .m-pin { transform:scale(1.18); }
-    .m-pin { width:38px; height:38px; border-radius:50%; display:flex; align-items:center;
-      justify-content:center; border:2.5px solid rgba(255,255,255,0.7);
-      box-shadow:0 2px 8px rgba(0,0,0,0.22); transition:transform .12s; }
+    .m-wrap:active .m-pin { transform:scale(1.12); }
+    .m-pin { width:34px; height:34px; border-radius:50%; display:flex; align-items:center;
+      justify-content:center; border:2px solid rgba(255,255,255,0.6);
+      box-shadow:0 2px 6px rgba(0,0,0,0.18); transition:transform .15s ease, box-shadow .15s ease; }
+    .m-pin.selected { transform:scale(1.38);
+      box-shadow:0 0 0 3px rgba(255,255,255,0.95), 0 4px 20px rgba(0,0,0,0.32);
+      border-color:rgba(255,255,255,0.95) !important; }
     .m-pin.finished { opacity:0.35; filter:grayscale(0.65); }
-    .m-pin .pin-icon { font-size:16px; line-height:1; user-select:none; }
+    .m-pin .pin-icon { font-size:15px; line-height:1; user-select:none; }
     .m-label { margin-top:3px; font-size:10px; font-weight:700; color:#1A1110;
       text-shadow:0 1px 3px rgba(250,248,245,0.95); max-width:76px; text-align:center;
-      white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:.01em; }
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:.01em;
+      transition:font-size .15s ease; }
+    .m-label.selected { font-size:11.5px; font-weight:800; color:#0A0908; }
     .m-cluster { width:42px; height:42px; border-radius:50%; background:#1D4ED8;
       border:3px solid #fff; display:flex; align-items:center; justify-content:center;
       font-size:13px; font-weight:800; color:#fff; cursor:pointer;
@@ -80,22 +84,28 @@ function post(msg) {
 function makeMarkerEl(event, overrideColor) {
   const color = overrideColor || STATE_COLOR[event.state] || '#888';
   const finished = event.state === 'finished';
+  const selected = event.id === _selectedId;
   const wrap = document.createElement('div');
   wrap.className = 'm-wrap';
+  wrap.dataset.eventId = event.id;
   const pin = document.createElement('div');
-  pin.className = 'm-pin' + (finished ? ' finished' : '');
+  pin.className = 'm-pin' + (finished ? ' finished' : '') + (selected ? ' selected' : '');
   pin.style.background = color;
-  pin.style.borderColor = finished ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.45)';
+  pin.style.borderColor = finished ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.55)';
   const ic = document.createElement('span');
   ic.className = 'pin-icon';
   ic.textContent = resolveIcon(event.icon);
   pin.appendChild(ic);
   const lbl = document.createElement('div');
-  lbl.className = 'm-label';
+  lbl.className = 'm-label' + (selected ? ' selected' : '');
   lbl.textContent = event.title;
   wrap.appendChild(pin);
   wrap.appendChild(lbl);
-  wrap.addEventListener('click', (e) => { e.stopPropagation(); post({ type:'EVENT_PRESS', event }); });
+  wrap.addEventListener('click', (e) => {
+    e.stopPropagation();
+    selectEvent(event.id);
+    post({ type:'EVENT_PRESS', event });
+  });
   return wrap;
 }
 function makeClusterEl(count, onClick) {
@@ -133,6 +143,7 @@ map.on('error', (e) => {
 let _staticMarkers = [], _clusterMarkers = [], _routeMarkers = [];
 let _routeLayerIds = [], _routeSourceIds = [];
 let _userMarker = null, _mapReady = false, _pending = null;
+let _selectedId = null;
 const sc = new Supercluster({ radius:55, maxZoom:16 });
 let _scLoaded = false;
 
@@ -208,6 +219,8 @@ function renderRoute(event) {
     data:{ type:'Feature', properties:{}, geometry:{ type:'LineString', coordinates:coords } },
   });
 
+  const isSelected = event.id === _selectedId;
+
   // Layer order: casing (bottom) → fill → arrows (top)
   // 1. White casing — metro "border" feel
   const casingId = srcId + '-casing';
@@ -215,7 +228,7 @@ function renderRoute(event) {
   map.addLayer({
     id:casingId, type:'line', source:srcId,
     layout:{ 'line-cap':'round', 'line-join':'round' },
-    paint:{ 'line-color':'#ffffff', 'line-width':14, 'line-opacity': finished ? 0.28 : 0.92 },
+    paint:{ 'line-color':'#ffffff', 'line-width': isSelected ? 18 : 8, 'line-opacity': finished ? 0.28 : 0.9 },
   });
 
   // 2. Vivid colored fill on top of casing
@@ -224,7 +237,7 @@ function renderRoute(event) {
   map.addLayer({
     id:lineId, type:'line', source:srcId,
     layout:{ 'line-cap':'round', 'line-join':'round' },
-    paint:{ 'line-color':color, 'line-width':9, 'line-opacity':opacity },
+    paint:{ 'line-color':color, 'line-width': isSelected ? 11 : 5, 'line-opacity':opacity },
   });
 
   // 3. Directional arrow symbols spaced along the line
@@ -246,8 +259,8 @@ function renderRoute(event) {
     });
   }
 
-  map.on('click', lineId,   () => post({ type:'EVENT_PRESS', event }));
-  map.on('click', casingId, () => post({ type:'EVENT_PRESS', event }));
+  map.on('click', lineId,   () => { selectEvent(event.id); post({ type:'EVENT_PRESS', event }); });
+  map.on('click', casingId, () => { selectEvent(event.id); post({ type:'EVENT_PRESS', event }); });
 
   // Start-of-route marker — tracked separately so renderClusters() doesn't wipe it
   const el = makeMarkerEl(event, color);
@@ -273,11 +286,42 @@ function renderEvents(events) {
 
 map.on('moveend', renderClusters);
 
+// ── Selection ─────────────────────────────────────────────────────────────────
+function selectEvent(id) {
+  const prev = _selectedId;
+  _selectedId = id;
+
+  // 1. Refresh cluster/static markers (makeMarkerEl reads _selectedId)
+  renderClusters();
+
+  // 2. Update route start markers
+  _routeMarkers.forEach(m => {
+    const el = m.getElement();
+    const eid = el.dataset.eventId;
+    el.querySelector('.m-pin')?.classList.toggle('selected', eid === id);
+    el.querySelector('.m-label')?.classList.toggle('selected', eid === id);
+  });
+
+  // 3. Animate route line widths via paint properties
+  const thin  = { casing: 8,  line: 5  };
+  const thick = { casing: 18, line: 11 };
+  [prev, id].forEach(eid => {
+    if (!eid) return;
+    const w = eid === id ? thick : thin;
+    const lId = 'route-' + eid + '-line';
+    const cId = 'route-' + eid + '-casing';
+    try { if (map.getLayer(lId)) map.setPaintProperty(lId, 'line-width', w.line); } catch(e) {}
+    try { if (map.getLayer(cId)) map.setPaintProperty(cId, 'line-width', w.casing); } catch(e) {}
+  });
+}
+
 // ── Public API ────────────────────────────────────────────────────────────────
 window.updateEvents = function(events) {
   if (_mapReady) renderEvents(events); else _pending = events;
 };
+window.selectEvent = function(id) { selectEvent(id); };
 window.focusOnEvent = function(id, allEvents) {
+  selectEvent(id);
   const ev = allEvents.find(e => e.id === id);
   if (!ev) return;
   const center = ev.kind === 'static' && ev.location
@@ -310,6 +354,7 @@ map.on('style.load', () => {
 
 export interface EventMapHandle {
   focusOnEvent: (id: string) => void;
+  deselect: () => void;
 }
 
 interface Props {
@@ -321,7 +366,6 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
   { events, onEventPress },
   ref,
 ) {
-  const htmlUri = useLocalMapAssets(BASE_HTML);
   const webviewRef = useRef<WebView>(null);
   const [mapReady, setMapReady] = useState(false);
   const [mapOffline, setMapOffline] = useState(false);
@@ -342,6 +386,9 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
         return;
       }
       injectFocus(id);
+    },
+    deselect: () => {
+      webviewRef.current?.injectJavaScript('window.selectEvent(null); true;');
     },
   }), [injectFocus, mapReady]);
 
@@ -406,20 +453,15 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
 
   return (
     <View style={styles.map}>
-      {htmlUri && (
-        <WebView
-          ref={webviewRef}
-          style={StyleSheet.absoluteFill}
-          source={{ uri: htmlUri }}
-          originWhitelist={['file://*', '*']}
-          javaScriptEnabled
-          domStorageEnabled
-          allowFileAccess
-          allowFileAccessFromFileURLs
-          allowUniversalAccessFromFileURLs
-          onMessage={handleMessage}
-        />
-      )}
+      <WebView
+        ref={webviewRef}
+        style={StyleSheet.absoluteFill}
+        source={{ html: BASE_HTML, baseUrl: 'https://localhost' }}
+        originWhitelist={['*']}
+        javaScriptEnabled
+        domStorageEnabled
+        onMessage={handleMessage}
+      />
 
       {/* Loader overlay — fades out when MAP_READY fires */}
       <Animated.View
