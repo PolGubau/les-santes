@@ -2,7 +2,7 @@ import { Colors, Typography } from '@/shared/constants';
 import { formatDayShort } from '@/shared/lib';
 import * as Haptics from 'expo-haptics';
 import { List, Search, X } from 'lucide-react-native';
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -32,6 +32,16 @@ export const MapHeader = React.memo(function MapHeader({
   onSearchFocus,
 }: Props) {
   const insets = useSafeAreaInsets();
+  const scrollRef = useRef<ScrollView>(null);
+  const chipOffsetsRef = useRef<Record<string, number>>({});
+  const scrollWidthRef = useRef(0);
+
+  // Centre the selected chip whenever selectedDay changes
+  useEffect(() => {
+    const x = chipOffsetsRef.current[selectedDay];
+    if (x == null) return;
+    scrollRef.current?.scrollTo({ x: x - scrollWidthRef.current / 2 + 40, animated: true });
+  }, [selectedDay]);
 
   const handleDaySelect = useCallback(
     (day: string) => {
@@ -75,11 +85,13 @@ export const MapHeader = React.memo(function MapHeader({
 
       {/* ── Day chips ── */}
       <ScrollView
+        ref={scrollRef}
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.chipsContent}
         style={styles.chipsRow}
         pointerEvents="auto"
+        onLayout={(e) => { scrollWidthRef.current = e.nativeEvent.layout.width; }}
       >
         {availableDays.map((day) => {
           const isSelected = day === selectedDay;
@@ -89,6 +101,7 @@ export const MapHeader = React.memo(function MapHeader({
               key={day}
               style={[styles.chip, isSelected && styles.chipSelected]}
               onPress={() => handleDaySelect(day)}
+              onLayout={(e) => { chipOffsetsRef.current[day] = e.nativeEvent.layout.x; }}
             >
               <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
                 {isToday ? 'Avui' : formatDayShort(day)}

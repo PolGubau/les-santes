@@ -115,6 +115,7 @@ export const MOCK_EVENTS: RawEvent[] = [
 		title: "Música: Ignorantes + Boom Boom Fighters",
 		type: "concert",
 		category: "nocturn",
+		imageUrl:"https://uploads.lessantes.cat/uploads/big/f82f48047fa772de712f6c9911d1299b.jpeg?p=992",
 		icon: { name: "Music" },
 		blurhash: "L03_jN?bofj[~qj[j[j[D%j[Rjj[",
 		shortDescription:
@@ -328,6 +329,7 @@ export const MOCK_EVENTS: RawEvent[] = [
 		id: "e16",
 		title: "Nit de Focs Artificials",
 		type: "focsartificials",
+		imageUrl:"https://uploads.lessantes.cat/uploads/medium/fb6f3968a0986d0cdabeeaee2838d2cd.jpeg",
 		category: "nocturn",
 		icon: { name: "Sparkles" },
 		blurhash: "L9C?:H-;M{oL~qRjt7t7xuRjt7t7",
@@ -359,6 +361,7 @@ export const MOCK_EVENTS: RawEvent[] = [
 		id: "e18",
 		title: "La Passada",
 		type: "cercavila",
+		imageUrl:"https://uploads.lessantes.cat/uploads/medium/5750dde8020cb6d952e5fe959a20a34d.jpeg",
 		category: "tradicional",
 		icon: { name: "Flag" },
 		blurhash: "L6B;DR-;IU?bx]t7t7WB-;_3t7WB",
@@ -389,6 +392,7 @@ export const MOCK_EVENTS: RawEvent[] = [
 	{
 		id: "e19",
 		title: "Missa de les Santes",
+		imageUrl:"https://uploads.lessantes.cat/uploads/medium/ddbe51719b0d8445032c027c3cd99e52.jpeg",
 		type: "missa",
 		category: "tradicional",
 		icon: { name: "Church" },
@@ -419,6 +423,7 @@ export const MOCK_EVENTS: RawEvent[] = [
 	{
 		id: "e21",
 		title: "Postal de Gegants",
+		imageUrl:"https://uploads.lessantes.cat/uploads/medium/c86b960347ebfaaf3909200b85db2ac1.jpeg",
 		type: "gegants",
 		category: "tradicional",
 		icon: { name: "Crown" },
@@ -436,6 +441,7 @@ export const MOCK_EVENTS: RawEvent[] = [
 		title: "La Processó de les Santes",
 		type: "cercavila",
 		category: "tradicional",
+		imageUrl:"https://uploads.lessantes.cat/uploads/big/0de7eae08fde5237d7aa19bf25e16223.jpeg?p=992",
 		icon: { name: "Star" },
 		blurhash: "L6PZfSi_.AyE_3t7t7R**0o#DgR4",
 		shortDescription:
@@ -455,9 +461,10 @@ export const MOCK_EVENTS: RawEvent[] = [
 	},
 	{
 		id: "e23",
-		title: "Espai Familiar - Nou Parc Central",
+		title: "Espai Familiar",
 		type: "jocs",
 		category: "familiar",
+		imageUrl:"https://uploads.lessantes.cat/uploads/big/9ce5358246380381f2a9679a36a319b0.jpeg?p=992",
 		icon: { name: "Smile" },
 		blurhash: "L5H2EC=PM+yV0g-mq.wG9c010J}I",
 		shortDescription:
@@ -487,6 +494,7 @@ export const MOCK_EVENTS: RawEvent[] = [
 		id: "e25",
 		title: "Artilusio - Màgia i Circ",
 		type: "espectacle",
+		imageUrl:"https://uploads.lessantes.cat/uploads/big/0b1e8c654351bdddc3eae67f832fa6c2.jpeg?p=992",
 		category: "familiar",
 		icon: { name: "Wand2" },
 		blurhash: "L5H2EC=PM+yV0g-mq.wG9c010J}I",

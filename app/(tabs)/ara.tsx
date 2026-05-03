@@ -23,6 +23,8 @@ export default function AraScreen() {
 
   // Hero = first live event, or first upcoming if nothing is live
   const hero = now[0] ?? upcoming[0];
+  // Strip excludes the hero so it doesn't appear twice
+  const nowStrip = now.slice(1);
 
   if (error && events.length === 0) {
     return (
@@ -70,8 +72,8 @@ export default function AraScreen() {
         {/* Hero */}
         {hero && <HeroCard event={hero} onPress={() => handlePress(hero)} />}
 
-        {/* Ara Mateix strip */}
-        {now.length > 0 && (
+        {/* Ara Mateix strip — skips hero (now[0]) to avoid duplication */}
+        {nowStrip.length > 0 && (
           <View style={styles.section}>
             <SectionHeader title="Ara Mateix" count={now.length} />
             <ScrollView
@@ -79,7 +81,7 @@ export default function AraScreen() {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.nowStrip}
             >
-              {now.map((e) => (
+              {nowStrip.map((e) => (
                 <NowCard key={e.id} event={e} onPress={() => handlePress(e)} />
               ))}
             </ScrollView>
