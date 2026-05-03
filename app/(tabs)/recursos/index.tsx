@@ -2,10 +2,11 @@ import { Colors } from '@/shared/constants';
 import { Screen } from '@/shared/ui';
 import { router } from 'expo-router';
 import { BookImage, ChevronRight, ImageIcon } from 'lucide-react-native';
-import type React from 'react';
 import type { LucideIcon } from 'lucide-react-native';
+import type React from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { POSTERS } from '@/features/recursos';
 import POSTALS from '@/shared/data/postals.json';
 
 interface ResourceItem {
@@ -34,7 +35,8 @@ const RESOURCES: ResourceItem[] = [
     subtitle: 'Pòsters oficials del festival de cada any',
     href: '/recursos/cartells',
     Icon: ImageIcon,
-    available: false, // pending poster images
+    count: POSTERS.length,
+    available: true,
   },
 ];
 

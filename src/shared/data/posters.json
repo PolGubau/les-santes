@@ -176,11 +176,13 @@
 	},
 	{
 		"year": 1991,
-		"author": "Xavier Saleta"
+		"author": "Xavier Saleta",
+		"description": "Xavier Saleta va signar el darrer cartell de l'etapa anterior a la gran renovació de 1992. El disseny de Saleta, vinculat a la generació de l'Escola de Mataró, tanca el cicle del cartell com a obra principalment gràfica i obre el camí a la nova concepció de 'cartell d'artista' que Perecoll inauguraria l'any següent."
 	},
 	{
 		"year": 1990,
-		"author": "Jordi Gasull"
+		"author": "Jordi Gasull",
+		"description": "Jordi Gasull va signar el cartell de 1990, en l'etapa final del cartellisme de la primera democràcia, just abans de la renovació estètica que suposaria el 'cartell d'artista' de Perecoll el 1992. El seu treball marca el tancament d'una etapa en la qual el cartell de Les Santes es concebia principalment com una obra de disseny gràfic festiu."
 	},
 	{
 		"year": 1989,
@@ -189,31 +191,38 @@
 	},
 	{
 		"year": 1988,
-		"author": "Joan Safont"
+		"author": "Joan Safont",
+		"description": "Joan Safont, dissenyador i il·lustrador mataroní que havia signat cartells de la Festa Major en les edicions de 1973 i 1977 (en col·laboració amb Ferrer), va tornar a la imatge de Les Santes el 1988 de manera individual. La seva llarga trajectòria com a cartellista el convertia en un dels col·laboradors més recurrents de la imatge festiva de la transició i la primera democràcia."
 	},
 	{
 		"year": 1987,
-		"author": "Pere Fradera"
+		"author": "Pere Fradera",
+		"description": "Pere Fradera i Barceló (Mataró, 1954), dissenyador gràfic i pintor, va crear el cartell de 1987 des de l'experiència d'un estudi de disseny propi que regentava des de 1979. Format en Història per la UAB, la seva obra artística destaca per la diversitat tècnica i l'experimentació amb la matèria i les textures, amb especial predilecció pel collage i la tridimensionalitat. Des de 1989 és professor a l'Escola Massana de Barcelona."
 	},
 	{
 		"year": 1986,
-		"author": "Artur Palomer (Pal)"
+		"author": "Artur Palomer (Pal)",
+		"description": "Artur Palomer, conegut com a 'Pal', il·lustrador i dibuixant mataroní, va dissenyar el cartell de 1986. Membre del col·lectiu 'Els Dimarts del Llimoner' i autor de la sèrie 'Mataró anònim' (1981), Pal era reconegut pel seu traç fi i la seva observació aguda de la vida urbana de Mataró, qualitats que aplicava amb ironia i afecte als temes de la Festa Major."
 	},
 	{
 		"year": 1985,
-		"author": "Manuel Cusachs"
+		"author": "Manuel Cusachs",
+		"description": "Manuel Cusachs i Xivillé (Mataró, 1933), escultor format a Itàlia i especialitzat en la figura humana, va aportar la seva mirada tridimensional i humanista al cartell de 1985. El crític Pere Pascual 'PIC' el situava, juntament amb Alcoy i Rovira-Brull, entre els artistes de l'etapa pre-1992 que treballaven el cartell com a obra de disseny gràfic, malgrat el seu estil fonamentalment escultòric."
 	},
 	{
 		"year": 1984,
-		"author": "Miquel Sala i Girbal"
+		"author": "Miquel Sala i Girbal",
+		"description": "Miquel Sala i Girbal va tornar a col·laborar amb la imatge de la Festa Major el 1984, vuit anys després d'haver signat un dels cartells de 1976. La seva presència en dues etapes del cartellisme de Les Santes —primer en la Transició i més tard en la democràcia consolidada— el situa com un dels artistes locals de vinculació més llarga amb la imatge festiva."
 	},
 	{
 		"year": 1983,
-		"author": "Ricard Jordà"
+		"author": "Ricard Jordà",
+		"description": "Ricard Jordà (Mataró, 1943), artista autodidacte, va crear un cartell caracteritzat per la seva expressió simbòlica i una ambigüitat deliberada en les formes. L'obra reflecteix el seu estil de contestació, amb símbols que desfien la lectura directa i conviden a la interpretació múltiple, una aproximació que el situava entre els creadors més singulars de l'escena artística mataronina."
 	},
 	{
 		"year": 1982,
-		"author": "Josep M. Rovira-Brull"
+		"author": "Josep M. Rovira-Brull",
+		"description": "Josep M. Rovira-Brull, figura central de l'Escola de Mataró, va signar el cartell de 1982, un dels seus darrers treballs vinculats a la imatge gràfica de la Festa Major. El seu estil expressionista i el seu univers de símbols, que el crític Pere Pascual 'PIC' definia com a 'magicisme', queden reflectits en un disseny que encarna la seva trajectòria artística de dècades."
 	},
 	{
 		"year": 1981,
@@ -222,7 +231,8 @@
 	},
 	{
 		"year": 1980,
-		"author": "Josep Novellas"
+		"author": "Josep Novellas",
+		"description": "Josep Novellas va dissenyar el cartell de 1980, en el primer any complet de la democràcia consolidada. El seu treball s'inscriu en el cercle d'artistes mataronins vinculats a la generació d'Eduard Alcoy que van marcar l'inici de l'etapa moderna del cartell de Les Santes."
 	},
 	{
 		"year": 1979,
@@ -231,89 +241,111 @@
 	},
 	{
 		"year": 1978,
-		"author": "Jaume Diví"
+		"author": "Jaume Diví",
+		"description": "Jaume Diví va tancar l'etapa de la Transició amb el seu cartell de 1978, just l'any anterior al cartell d'Eduard Alcoy que marcaria l'inici de l'etapa democràtica moderna. El seu disseny reflecteix l'estètica gràfica dels darrers anys de la Transició, quan el cartellisme festiu recuperava la llibertat creativa."
 	},
 	{
 		"year": 1977,
-		"author": "M. Ferrer - J. Safont"
+		"author": "M. Ferrer - J. Safont",
+		"description": "El duo format per M. Ferrer i Joan Safont, que ja havia col·laborat conjuntament el 1973, va tornar a signar el cartell de Les Santes el 1977. Joan Safont tornaria a la imatge de la Festa Major de manera individual el 1988, consolidant una llarga relació amb el cartellisme mataroní."
 	},
 	{
 		"year": 1976,
-		"author": "Miquel Sala"
+		"author": "Miquel Sala",
+		"description": "Miquel Sala va ser un dels dos cartellistes de 1976, any en el qual la festa va comptar amb una doble proposta oficial. L'artista local tornaria a col·laborar amb la imatge de la Festa Major el 1984, consolidant la seva presència en el cartellisme de Les Santes durant l'etapa democràtica."
 	},
 	{
 		"year": 1976,
-		"author": "Jordi Egea"
+		"author": "Jordi Egea",
+		"description": "Jordi Egea, que també havia signat un dels cartells de 1975, va tornar a col·laborar com a cartellista de Les Santes el 1976. El seu doble protagonisme en les edicions de 1975 i 1976 el situa com una figura destacada del cartellisme festiu de la Transició mataronina."
 	},
 	{
 		"year": 1975,
-		"author": "Jordi Egea"
+		"author": "Jordi Egea",
+		"description": "Jordi Egea va ser un dels dos cartellistes de l'edició de 1975, any en el qual es van presentar dos cartells oficials de la festa. El seu disseny s'inscriu en l'estètica gràfica dels anys de la Transició, quan la Festa Major de Mataró iniciava una nova etapa de llibertat creativa."
 	},
 	{
 		"year": 1975,
-		"author": "Joan Navarro Bonamusa"
+		"author": "Joan Navarro Bonamusa",
+		"description": "Joan Navarro Bonamusa va ser l'altre cartellista de l'edició de 1975, compartint protagonisme amb Jordi Egea en un any de doble proposta oficial. El cartell reflecteix l'esperit de renovació cultural dels anys de la Transició, quan la festa recuperava la pluralitat i la llibertat expressiva."
 	},
 	{
-		"year": 1974
+		"year": 1974,
+		"description": "Cartell de 1974 l'autor del qual no ha estat documentat. S'emmarca en el context dels darrers anys del règim franquista, quan la vida festiva mataronina iniciava la seva gradual recuperació democràtica que es consolidaria amb la Transició."
 	},
 	{
 		"year": 1973,
-		"author": "Safont & Ferrer"
+		"author": "Safont & Ferrer",
+		"description": "El tàndem format per Safont i Ferrer, que tornaria a col·laborar el 1977, va signar el cartell de 1973. Joan Safont, dissenyador i il·lustrador mataroní que apareixeria en múltiples cartells de la festa, va iniciar aquí la seva associació amb Ferrer per a la imatge de la Festa Major."
 	},
 	{
 		"year": 1972,
-		"author": "Julio Arruga"
+		"author": "Julio Arruga",
+		"description": "Julio Arruga va dissenyar el cartell de 1972, en un moment de transició en el cartellisme de Les Santes. El seu estil segueix les tendències del disseny gràfic festiu de principis dels setanta, caracteritzades per tipografies i recursos visuals de l'època."
 	},
 	{
 		"year": 1971,
-		"author": "Pili Marfà Coll"
+		"author": "Pili Marfà Coll",
+		"description": "Pili Marfà Coll va signar el cartell de 1971, una de les poques dones que va col·laborar en el cartellisme de Les Santes durant l'etapa franquista. La seva presència com a autora del cartell assenyala una obertura gradual de l'escena artística local a la creació femenina, en un context encara marcat per les restriccions de gènere del règim."
 	},
 	{
 		"year": 1970,
-		"author": "Martí Rovira"
+		"author": "Martí Rovira",
+		"description": "Martí Rovira va signar el cartell de 1970, continuant la tradició del cartellisme festiu en una etapa de transició entre el franquisme tardà i l'obertura cultural de la dècada dels setanta. El seu disseny s'inscriu en l'estètica gràfica del moment, amb elements representatius de la Festa Major de Mataró."
 	},
 	{
 		"year": 1969,
-		"author": "Estudio Merino"
+		"author": "Estudio Merino",
+		"description": "L'Estudio Merino, un col·lectiu de disseny gràfic, va signar el cartell de 1969, reflectint la professionalització creixent del cartellisme festiu a Mataró. La col·laboració d'un estudi de disseny, en lloc d'un artista individual, assenyalava l'evolució del sector cap a formes de producció gràfica col·lectives."
 	},
 	{
 		"year": 1968,
-		"author": "Ciudad"
+		"author": "Ciudad",
+		"description": "El cartell de 1968 porta la signatura 'Ciudad', un dissenyador que va aportar la seva visió al cartellisme festiu. El disseny es manté dins l'estètica convencional del cartellisme festiu de l'época, en un any marcat internacionalment per la contestació cultural però que no va alterar les formes de la gràfica festiva local."
 	},
 	{
 		"year": 1967,
-		"author": "Rovira-Brull"
+		"author": "Rovira-Brull",
+		"description": "Darrer dels cartells de Rovira-Brull de la dècada dels seixanta, just abans que altres artistes prenguessin el relleu de la imatge de la festa. El disseny manté la coherència estilística del conjunt de la seva obra cartellística per a Les Santes, que s'estendria fins a 1982."
 	},
 	{
 		"year": 1966,
-		"author": "Rovira-Brull"
+		"author": "Rovira-Brull",
+		"description": "Cartell de Rovira-Brull en el context de la seva maduresa artística. En aquesta etapa el seu treball combina la força expressionista amb un simbolisme personal i una paleta cromàtica que el situa entre els artistes plàstics mataronins d'influència més perdurable."
 	},
 	{
 		"year": 1965,
-		"author": "Santiago Estrany"
+		"author": "Santiago Estrany",
+		"description": "Santiago Estrany, que trenta anys més tard signaria el cartell de 1994 com a part del 'quartet d'or', va firmar el cartell de 1965 en els inicis de la seva carrera artística. El disseny reflecteix l'estètica gràfica dels anys seixanta, quan la festa recuperava gradualment l'esperit festiu sota el tardofranquisme."
 	},
 	{
-		"year": 1964
+		"year": 1964,
+		"description": "Cartell de 1964 l'autor del qual no ha estat documentat. S'emmarca en el context del tardofranquisme, quan la Festa Major de Les Santes recuperava gradualment la vitalitat festiva, al marge de les restriccions polítiques i culturals del règim."
 	},
 	{
 		"year": 1963,
-		"author": "Rovira-Brull"
+		"author": "Rovira-Brull",
+		"description": "Rovira-Brull consolida la seva posició com a cartellista de referència de Les Santes. La seva proposta plàstica evoluciona cap a un univers de símbols personals que el crític Pere Pascual 'PIC' qualificaria com a 'magicisme', defugint de l'informalisme inicial per construir un vocabulari visual propi."
 	},
 	{
 		"year": 1962,
-		"author": "J. Zaragoza"
+		"author": "J. Zaragoza",
+		"description": "J. Zaragoza va firmar el cartell de Les Santes el 1962, en un any en que Josep M. Rovira-Brull cedia la tasca a un altre artista local. El seu disseny s'emmarca en l'estètica del cartellisme festiu de principis dels seixanta."
 	},
 	{
 		"year": 1961,
-		"author": "Rovira-Brull"
+		"author": "Rovira-Brull",
+		"description": "Segon cartell de Rovira-Brull per a Les Santes. El seu estil, arrelat en l'expressionisme i l'informalisme, aportava una visió plàstica personal a la imatge de la Festa Major, lluny dels convencionalismes del cartellisme festiu de l'época i propi d'un dels artistes més rellevants de l'Escola de Mataró."
 	},
 	{
 		"year": 1960,
-		"author": "Sánchez"
+		"author": "Sánchez",
+		"description": "L'artista Sánchez va dissenyar el cartell de Les Santes de 1960, repetint la col·laboració que havia iniciat el 1956. El disseny s'inscriu en l'estètica convencional del cartellisme festiu de la dècada dels cinquanta i seixanta."
 	},
 	{
 		"year": 1959,
-		"author": "Rovira-Brull"
+		"author": "Rovira-Brull",
+		"description": "Josep M. Rovira-Brull inicia la seva llarga vinculació amb el cartell de Les Santes, que s'estendria fins als anys vuitanta. Format en l'expressionisme i l'informalisme, la seva pintura —i el seu cartellisme— es caracteritzen per una síntesi personal de símbols i formes que el van convertir en una de les figures centrals de l'Escola de Mataró."
 	},
 	{
 		"year": 1958,
@@ -327,49 +359,61 @@
 	},
 	{
 		"year": 1956,
-		"author": "Sánchez"
+		"author": "Sánchez",
+		"description": "L'artista Sánchez va signar el cartell de Les Santes el 1956, i tornaria a fer-ho quatre anys més tard, el 1960. El seu disseny s'inscriu en l'estètica convencional del cartellisme festiu franquista, amb imatges representatives de la Festa Major de Mataró."
 	},
 	{
 		"year": 1955,
-		"author": "Antoni de P Boix"
+		"author": "Antoni de P Boix",
+		"description": "Antoni de P. Boix va dissenyar el cartell de Les Santes el 1955, en el context d'una gradual obertura del règim franquista als aspectes culturals locals. El seu disseny segueix l'estètica del cartellisme festiu dels anys cinquanta, amb elements representatius de la Festa Major."
 	},
 	{
 		"year": 1954,
-		"author": "Viza"
+		"author": "Viza",
+		"description": "Josep Viza i Majó va signar de nou el cartell de Les Santes el 1954, continuant la seva col·laboració amb la festa que havia iniciat el 1943. Va ser un dels cartellistes més recurrents de la festa en la postguerra, gràcies a la seva experiència en el cartellisme gràfic comercial."
 	},
 	{
 		"year": 1953,
-		"author": "Josep Viza Majó"
+		"author": "Josep Viza Majó",
+		"description": "Josep Viza i Majó va tornar a signar el cartell de Les Santes el 1953, consolidant la seva presència com un dels cartellistes de referència de la festa en la primera postguerra. El seu estil professional vinculat al cartellisme comercial es manifesta en la claredat compositiva i la qualitat gràfica del disseny."
 	},
 	{
 		"year": 1952,
-		"author": "Alexandre Giner"
+		"author": "Alexandre Giner",
+		"description": "Alexandre Giner va prendre el relleu de Hernán Picó com a cartellista de Les Santes el 1952. El seu disseny es caracteritza per l'estil gràfic festiu propi de la dècada dels cinquanta, amb l'ús de colors vius i imatges representatives de la Festa Major de Mataró."
 	},
 	{
 		"year": 1951,
-		"author": "Hernán Picó"
+		"author": "Hernán Picó",
+		"description": "Tercer i últim any consecutiu de Hernán Picó com a cartellista de Les Santes. El seu cicle de tres cartells (1949–1951) el situa com la figura dominant del cartellisme de la festa en la primera postguerra, amb un estil de claredat comunicativa propi del cartellisme gràfic de l'época."
 	},
 	{
 		"year": 1950,
-		"author": "Hernán Picó"
+		"author": "Hernán Picó",
+		"description": "Segon any consecutiu de Hernán Picó com a cartellista de Les Santes. La seva obra segueix l'estètica del cartellisme festiu de la dècada dels cinquanta, amb figures al·lusives a la Festa Major i als símbols de la ciutat de Mataró."
 	},
 	{
 		"year": 1949,
-		"author": "Hernán Picó"
+		"author": "Hernán Picó",
+		"description": "Hernán Picó inicia una presència continuada en el cartellisme de Les Santes que s'estendria durant tres anys consecutius (1949–1951). El seu estil s'inscriu en el cartellisme gràfic de la postguerra, caracteritzat per imatges festives convencionals i una paleta de colors vius."
 	},
 	{
-		"year": 1948
+		"year": 1948,
+		"description": "Cartell de postguerra l'autor del qual no ha estat documentat. El 1948 la Festa Major de Les Santes continuava la seva recuperació gradual sota les restrictions del règim franquista, sense arribar a la plenitud festiva que caracteritzaria la dècada dels cinquanta."
 	},
 	{
 		"year": 1947,
-		"author": "Josep Viza Majó"
+		"author": "Josep Viza Majó",
+		"description": "Josep Viza i Majó (Barcelona, 1906–1997) va ser un cartellista professional vinculat a l'establiment d'arts gràfiques Seix & Barral. Va dissenyar el cartell de Les Santes en diverses ocasions al llarg dels anys quaranta i cinquanta, aportant la qualitat del cartellisme gràfic professional de l'época."
 	},
 	{
-		"year": 1946
+		"year": 1946,
+		"description": "Cartell de la postguerra la identitat del qual no ha estat documentada. S'emmarca en el context de la dura postguerra mataronina, quan la festa reprenia gradualment la seva vitalitat sota les restriccions del règim franquista."
 	},
 	{
 		"year": 1945,
-		"author": "Martínez"
+		"author": "Martínez",
+		"description": "L'artista Martínez va dissenyar el cartell de Les Santes de 1945, seguint els cànons de l'estètica oficial del règim franquista. El disseny s'emmarca en el cartellisme festiu de la primera postguerra, quan les manifestacions culturals locals estaven fortament condicionades per les directrius del règim."
 	},
 	{
 		"year": 1944,
@@ -393,10 +437,12 @@
 	},
 	{
 		"year": 1940,
-		"author": "Marià Ribas"
+		"author": "Marià Ribas",
+		"description": "Marià Ribas i Bertran (Mataró, 1899–1984), arqueòleg, historiador, escriptor i artista polifacètic, va ser una de les figures intel·lectuals més rellevants de la Mataró del segle XX. El seu cartell de 1940 és una de les primeres mostres de la seva faceta gràfica, en un context de recuperació de la vida cultural local sota les restriccions del primer franquisme."
 	},
 	{
-		"year": 1939
+		"year": 1939,
+		"description": "Primer cartell de la Festa Major de Les Santes de la postguerra, realitzat sota el règim franquista. El nom de l'autor no ha estat documentat. La restauració de la festa es va produir en un context de forta restricció cultural i política, i la seva imatge havia de servir als propòsits propagandístics del nou règim."
 	},
 	{
 		"year": 1936,
@@ -405,10 +451,12 @@
 	},
 	{
 		"year": 1935,
-		"author": "J Vicens"
+		"author": "J Vicens",
+		"description": "J. Vicens va firmar el cartell de 1935, l'últim de l'etapa republicana plena abans de l'esclat de la Guerra Civil. El disseny és representatiu de l'estètica gràfica festiva catalana dels anys trenta, caracteritzada per la llibertat creativa i l'efervescència cultural del període."
 	},
 	{
 		"year": 1934,
-		"author": "Mach"
+		"author": "Mach",
+		"description": "Cartell de l'etapa republicana, creat sota la llibertat cultural que vivia Catalunya en aquells anys. El disseny de Mach respon a l'estètica gràfica dels anys trenta, influenciada per l'Art Déco i el cartellisme europeu del moment, i és un dels primers cartells de la festa major conservats."
 	}
 ]

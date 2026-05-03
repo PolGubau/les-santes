@@ -5,7 +5,7 @@ import { addEventToCalendar, formatTime } from '@/shared/lib';
 import { EventIcon } from '@/shared/ui';
 import * as Haptics from 'expo-haptics';
 import { CalendarPlus, Ellipsis, Heart, HeartOff, Share2, X } from 'lucide-react-native';
-import React, { useState } from 'react';
+import React, { memo, useState } from 'react';
 import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   useSharedValue,
