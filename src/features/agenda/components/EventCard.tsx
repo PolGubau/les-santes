@@ -41,7 +41,7 @@ export function EventCard({ event, onPress, distanceMeters }: Props) {
 
   const handlePressIn = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    scale.value = withTiming(0.97, { duration: 80 });
+    scale.value = withTiming(0.96, { duration: 80 });
   };
 
   const handlePressOut = () => {
@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
   title: { flex: 1, color: Colors.text, fontSize: 14, fontWeight: '600' },
   textDim: { color: Colors.textMuted },
   desc: { color: Colors.textMuted, fontSize: 12, lineHeight: 17 },
-  time: { color: Colors.textDim, fontSize: 12, fontWeight: '500', flexShrink: 0 },
+  time: { color: Colors.textDim, fontSize: 12, fontWeight: '500', flexShrink: 0, fontVariant: ['tabular-nums'] },
   actionBar: {
     borderTopWidth: 1,
     borderTopColor: Colors.border,

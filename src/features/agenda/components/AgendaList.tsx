@@ -125,7 +125,7 @@ export function AgendaList({
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor="#888"
+            tintColor={Colors.primary}
           />
         ) : undefined
       }
@@ -182,6 +182,7 @@ const styles = StyleSheet.create({
   countText: {
     fontSize: 11,
     fontWeight: '700',
+    fontVariant: ['tabular-nums'],
   },
   headerDivider: {
     height: 1,

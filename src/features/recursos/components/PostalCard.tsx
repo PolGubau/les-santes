@@ -15,20 +15,10 @@ interface Props {
 
 const DEFAULT_BH = 'L6B;DR-;IU?bx]t7t7WB-;_3t7WB';
 
-async function saveAsset(moduleId: number) {
-  const { status } = await MediaLibrary.requestPermissionsAsync();
-  if (status !== 'granted') {
-    Alert.alert('Permís denegat', 'Cal donar permís per accedir a la galeria.');
-    return;
-  }
-  const asset = await Asset.fromModule(moduleId).downloadAsync();
-  if (!asset.localUri) throw new Error('No localUri');
-  await MediaLibrary.saveToLibraryAsync(asset.localUri);
-}
-
 export function PostalCard({ postal, width }: Props) {
   const [showDors, setShowDors] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [permissionResponse, requestPermission] = MediaLibrary.usePermissions();
 
   const cardHeight = width * 0.68;
   const assets = POSTAL_ASSETS[postal.id];
@@ -40,7 +30,15 @@ export function PostalCard({ postal, width }: Props) {
     if (!activeModule) return;
     setSaving(true);
     try {
-      await saveAsset(activeModule);
+      let perm = permissionResponse;
+      if (!perm?.granted) perm = await requestPermission();
+      if (!perm?.granted) {
+        Alert.alert('Permís denegat', 'Cal accés a la galeria per guardar la imatge.');
+        return;
+      }
+      const [asset] = await Asset.loadAsync(activeModule);
+      const uri = asset.localUri ?? asset.uri;
+      await MediaLibrary.saveToLibraryAsync(uri);
       Alert.alert('Guardat!', `Postal ${postal.year} guardada a la galeria.`);
     } catch {
       Alert.alert('Error', "No s'ha pogut guardar la imatge.");

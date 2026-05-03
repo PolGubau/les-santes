@@ -3,7 +3,7 @@ import { Colors } from '@/shared/constants';
 import { formatTime } from '@/shared/lib';
 import { EventIcon } from '@/shared/ui';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 
 interface Props {
   event: Event;
@@ -38,8 +38,10 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderRadius: 12,
     padding: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 6 },
+      android: { elevation: 1 },
+    }),
   },
   icon: {
     width: 34,
@@ -51,7 +53,7 @@ const styles = StyleSheet.create({
   },
   content: { flex: 1, gap: 2 },
   title: { color: Colors.text, fontSize: 14, fontWeight: '600' },
-  time: { color: Colors.textMuted, fontSize: 12 },
+  time: { color: Colors.textMuted, fontSize: 12, fontVariant: ['tabular-nums'] },
   timeBadge: {
     backgroundColor: `${Colors.stateUpcoming}22`,
     borderRadius: 8,

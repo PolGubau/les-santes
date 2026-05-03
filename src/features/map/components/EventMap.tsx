@@ -3,8 +3,9 @@ import { useLocalMapAssets } from '@/features/map/hooks/useLocalMapAssets';
 import { Colors } from '@/shared/constants';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import * as Location from 'expo-location';
+import { WifiOff } from 'lucide-react-native';
 import React, { forwardRef, memo, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { ActivityIndicator, Animated, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import WebView, { type WebViewMessageEvent } from 'react-native-webview';
 
 const CENTER_LNG = 2.444;
@@ -27,28 +28,28 @@ const BASE_HTML = `<!DOCTYPE html>
   <script src="./supercluster.min.js"></script>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
-    body,#map { width:100%; height:100vh; background:#0d0d0d; }
+    body,#map { width:100%; height:100vh; background:#FAF8F5; }
     .m-wrap { display:flex; flex-direction:column; align-items:center; cursor:pointer; user-select:none; }
     .m-wrap:active .m-pin { transform:scale(1.18); }
     .m-pin { width:38px; height:38px; border-radius:50%; display:flex; align-items:center;
-      justify-content:center; border:2.5px solid rgba(255,255,255,0.35);
-      box-shadow:0 2px 8px rgba(0,0,0,0.5); transition:transform .12s; }
+      justify-content:center; border:2.5px solid rgba(255,255,255,0.7);
+      box-shadow:0 2px 8px rgba(0,0,0,0.22); transition:transform .12s; }
     .m-pin.finished { opacity:0.35; filter:grayscale(0.65); }
     .m-pin .pin-icon { font-size:16px; line-height:1; user-select:none; }
-    .m-label { margin-top:3px; font-size:10px; font-weight:700; color:#fff;
-      text-shadow:0 1px 4px rgba(0,0,0,0.9); max-width:76px; text-align:center;
+    .m-label { margin-top:3px; font-size:10px; font-weight:700; color:#1A1110;
+      text-shadow:0 1px 3px rgba(250,248,245,0.95); max-width:76px; text-align:center;
       white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:.01em; }
-    .m-cluster { width:42px; height:42px; border-radius:50%; background:#4A9EFF;
+    .m-cluster { width:42px; height:42px; border-radius:50%; background:#1D4ED8;
       border:3px solid #fff; display:flex; align-items:center; justify-content:center;
       font-size:13px; font-weight:800; color:#fff; cursor:pointer;
-      box-shadow:0 2px 10px rgba(0,0,0,0.5); transition:transform .1s; font-family:sans-serif; }
+      box-shadow:0 2px 10px rgba(0,0,0,0.2); transition:transform .1s; font-family:sans-serif; }
     .m-cluster:active { transform:scale(1.1); }
   </style>
 </head>
 <body>
 <div id="map"></div>
 <script>
-const STATE_COLOR = { now:'#00C896', upcoming:'#4A9EFF', finished:'#888' };
+const STATE_COLOR = { now:'#007A5A', upcoming:'#1D4ED8', finished:'#9CA3AF' };
 // Metro-style route palette — vivid, high-contrast, clearly distinct
 const ROUTE_PALETTE = [
   '#E63946','#FF6B35','#F7C948','#2EC4B6','#3A86FF',
@@ -109,15 +110,22 @@ function makeClusterEl(count, onClick) {
 const STYLE_PRIMARY  = 'https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}';
 const STYLE_FALLBACK = 'https://tiles.openfreemap.org/styles/liberty';
 let _styleFailed = false;
+let _offlineNotified = false;
 const map = new maplibregl.Map({
   container:'map', style:STYLE_PRIMARY,
   center:[${CENTER_LNG}, ${CENTER_LAT}], zoom:14.5, minZoom:12, maxZoom:19,
   maxBounds:[[2.37,41.49],[2.53,41.59]], attributionControl:false,
 });
 map.on('error', (e) => {
-  if (!_styleFailed && e?.error?.status && e.error.status >= 400) {
+  // Catch both network failures (no status) and HTTP errors (status >= 400)
+  const isNetworkOrServerError = !e?.error?.status || e.error.status >= 400;
+  if (!isNetworkOrServerError || _offlineNotified) return;
+  if (!_styleFailed) {
     _styleFailed = true;
     map.setStyle(STYLE_FALLBACK);
+  } else {
+    _offlineNotified = true;
+    post({ type: 'MAP_OFFLINE' });
   }
 });
 
@@ -316,6 +324,7 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
   const htmlUri = useLocalMapAssets(BASE_HTML);
   const webviewRef = useRef<WebView>(null);
   const [mapReady, setMapReady] = useState(false);
+  const [mapOffline, setMapOffline] = useState(false);
   const loaderOpacity = useRef(new Animated.Value(1)).current;
   const pendingFocusId = useRef<string | null>(null);
   const eventsRef = useRef(events);
@@ -383,6 +392,14 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
         }).start();
       } else if (data.type === 'EVENT_PRESS' && onEventPress) {
         onEventPress(data.event as Event);
+      } else if (data.type === 'MAP_OFFLINE') {
+        setMapOffline(true);
+        // Fade out the loader (prevents it from staying on top of offline overlay)
+        Animated.timing(loaderOpacity, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }).start();
       }
     } catch { /* ignore */ }
   }, [loaderOpacity, onEventPress]);
@@ -412,6 +429,27 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
         <ActivityIndicator size="large" color={Colors.primary} />
         <Text style={styles.loaderText}>Carregant el mapa…</Text>
       </Animated.View>
+
+      {/* Offline overlay — shown when both tile sources fail */}
+      {mapOffline && (
+        <View style={styles.offlineOverlay}>
+          <WifiOff size={40} color={Colors.textMuted} />
+          <Text style={styles.offlineTitle}>Mapa no disponible</Text>
+          <Text style={styles.offlineBody}>
+            El mapa necessita connexió a internet per carregar les tessel·les.
+            La resta de l'app segueix funcionant amb les dades desades.
+          </Text>
+          <Pressable
+            style={styles.offlineBtn}
+            onPress={() => {
+              setMapOffline(false);
+              webviewRef.current?.reload();
+            }}
+          >
+            <Text style={styles.offlineBtnText}>Torna-ho a intentar</Text>
+          </Pressable>
+        </View>
+      )}
     </View>
   );
 }));
@@ -428,5 +466,37 @@ const styles = StyleSheet.create({
   loaderText: {
     color: Colors.textMuted,
     fontSize: 13,
+  },
+  offlineOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: Colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 32,
+    gap: 16,
+  },
+  offlineTitle: {
+    color: Colors.text,
+    fontSize: 18,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  offlineBody: {
+    color: Colors.textMuted,
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  offlineBtn: {
+    marginTop: 8,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 24,
+    backgroundColor: Colors.primary,
+  },
+  offlineBtnText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '700',
   },
 });

@@ -4,7 +4,8 @@ import { router } from 'expo-router';
 import { BookImage, ChevronRight, ImageIcon } from 'lucide-react-native';
 import type { LucideIcon } from 'lucide-react-native';
 import type React from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSpring } from 'react-native-reanimated';
 
 import { POSTERS } from '@/features/recursos';
 import POSTALS from '@/shared/data/postals.json';
@@ -64,43 +65,46 @@ export default function RecursosScreen() {
 
 function ResourceCard({ item }: { item: ResourceItem }) {
   const { Icon } = item;
+  const scale = useSharedValue(1);
+  const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+
   return (
-    <Pressable
-      style={({ pressed }) => [
-        styles.card,
-        !item.available && styles.cardDim,
-        pressed && item.available && styles.cardPressed,
-      ]}
-      onPress={() => item.available && router.push(item.href as never)}
-      disabled={!item.available}
-      accessibilityRole="button"
-      accessibilityLabel={item.title}
-      accessibilityState={{ disabled: !item.available }}
-    >
-      <View style={styles.cardIcon}>
-        <Icon size={24} color={item.available ? Colors.primary : Colors.textDim} />
-      </View>
+    <Animated.View style={[!item.available && styles.cardDim, animStyle]}>
+      <Pressable
+        style={styles.card}
+        onPress={() => item.available && router.push(item.href as never)}
+        onPressIn={() => { if (item.available) scale.value = withTiming(0.96, { duration: 80 }); }}
+        onPressOut={() => { scale.value = withSpring(1, { damping: 10, stiffness: 200 }); }}
+        disabled={!item.available}
+        accessibilityRole="button"
+        accessibilityLabel={item.title}
+        accessibilityState={{ disabled: !item.available }}
+      >
+        <View style={styles.cardIcon}>
+          <Icon size={24} color={item.available ? Colors.primary : Colors.textDim} />
+        </View>
 
-      <View style={styles.cardContent}>
-        <Text style={styles.cardTitle}>{item.title}</Text>
-        <Text style={styles.cardSubtitle} numberOfLines={2}>
-          {item.subtitle}
-        </Text>
-        {!item.available && (
-          <Text style={styles.cardSoon}>Pròximament</Text>
-        )}
-      </View>
+        <View style={styles.cardContent}>
+          <Text style={styles.cardTitle}>{item.title}</Text>
+          <Text style={styles.cardSubtitle} numberOfLines={2}>
+            {item.subtitle}
+          </Text>
+          {!item.available && (
+            <Text style={styles.cardSoon}>Pròximament</Text>
+          )}
+        </View>
 
-      <View style={styles.cardRight}>
-        {item.count != null && (
-          <Text style={styles.cardCount}>{item.count}</Text>
-        )}
-        <ChevronRight
-          size={18}
-          color={item.available ? Colors.textDim : Colors.border}
-        />
-      </View>
-    </Pressable>
+        <View style={styles.cardRight}>
+          {item.count != null && (
+            <Text style={styles.cardCount}>{item.count}</Text>
+          )}
+          <ChevronRight
+            size={18}
+            color={item.available ? Colors.textDim : Colors.border}
+          />
+        </View>
+      </Pressable>
+    </Animated.View>
   );
 }
 
@@ -121,12 +125,13 @@ const styles = StyleSheet.create({
     gap: 14,
     backgroundColor: Colors.surface,
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: Colors.border,
     padding: 16,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8 },
+      android: { elevation: 2 },
+    }),
   },
   cardDim: { opacity: 0.55 },
-  cardPressed: { backgroundColor: Colors.surfaceHigh },
   cardIcon: {
     width: 48,
     height: 48,
@@ -150,5 +155,6 @@ const styles = StyleSheet.create({
     color: Colors.textDim,
     fontSize: 13,
     fontWeight: '600',
+    fontVariant: ['tabular-nums'],
   },
 });

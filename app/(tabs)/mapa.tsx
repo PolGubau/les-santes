@@ -1,6 +1,13 @@
 import type { Event } from '@/entities/event';
 import { MOCK_EVENTS } from '@/entities/event';
-import { EventDetailSheet, EventMap, MapEventsDrawer, MapHeader, useMapEvents } from '@/features/map';
+import {
+  EventDetailSheet,
+  EventFloatingCard,
+  EventMap,
+  MapEventsDrawer,
+  MapHeader,
+  useMapEvents,
+} from '@/features/map';
 import type { EventMapHandle } from '@/features/map/components/EventMap';
 import { useMapFocusStore } from '@/features/map/store/useMapFocusStore';
 import { toDateKey } from '@/shared/lib/time';
@@ -12,11 +19,20 @@ export default function MapaScreen() {
     useMapEvents(MOCK_EVENTS);
 
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [showDetail, setShowDetail] = useState(false);
   const [showDrawer, setShowDrawer] = useState(false);
+  const [searchText, setSearchText] = useState('');
   const [pendingFocusId, setPendingFocusId] = useState<string | null>(null);
 
   const { focusedEventId, clearFocus } = useMapFocusStore();
   const mapRef = useRef<EventMapHandle | null>(null);
+
+  // Filter events on the map by search text
+  const filteredMapEvents = useMemo(() => {
+    if (!searchText.trim()) return mapEvents;
+    const q = searchText.toLowerCase();
+    return mapEvents.filter((e) => e.title.toLowerCase().includes(q));
+  }, [mapEvents, searchText]);
 
   useEffect(() => {
     if (focusedEventId) {
@@ -42,22 +58,34 @@ export default function MapaScreen() {
     [mapEvents],
   );
 
-  const handleEventPress = useCallback((event: Event) => setSelectedEvent(event), []);
+  const handleEventPress = useCallback((event: Event) => {
+    setShowDetail(false);
+    setSelectedEvent(event);
+  }, []);
+  const handleSearchChange = useCallback((text: string) => {
+    setSearchText(text);
+    setSelectedEvent(null);
+    setShowDetail(false);
+  }, []);
   const handleListPress = useCallback(() => setShowDrawer(true), []);
   const handleDrawerClose = useCallback(() => setShowDrawer(false), []);
-  const handleDetailClose = useCallback(() => setSelectedEvent(null), []);
+  const handleCardClose = useCallback(() => { setSelectedEvent(null); setShowDetail(false); }, []);
+  const handleCardExpand = useCallback(() => setShowDetail(true), []);
+  const handleDetailClose = useCallback(() => setShowDetail(false), []);
 
   return (
     <Screen safe={false}>
-      <EventMap ref={mapRef} events={mapEvents} onEventPress={handleEventPress} />
+      <EventMap ref={mapRef} events={filteredMapEvents} onEventPress={handleEventPress} />
 
       <MapHeader
         selectedDay={selectedDay}
         availableDays={availableDays}
         todayKey={todayKey}
         liveCount={liveCount}
+        searchText={searchText}
         onDayChange={setDay}
         onListPress={handleListPress}
+        onSearchChange={handleSearchChange}
       />
 
       {showDrawer && (
@@ -68,7 +96,17 @@ export default function MapaScreen() {
         />
       )}
 
-      {!showDrawer && selectedEvent && (
+      {/* Floating card — no backdrop, tap to expand to full detail */}
+      {!showDrawer && !showDetail && selectedEvent && (
+        <EventFloatingCard
+          event={selectedEvent}
+          onClose={handleCardClose}
+          onExpand={handleCardExpand}
+        />
+      )}
+
+      {/* Full detail sheet — opens when floating card is tapped */}
+      {!showDrawer && showDetail && selectedEvent && (
         <EventDetailSheet event={selectedEvent} onClose={handleDetailClose} />
       )}
     </Screen>

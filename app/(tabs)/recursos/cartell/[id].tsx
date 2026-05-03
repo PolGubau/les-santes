@@ -1,5 +1,5 @@
-import { Colors } from '@/shared/constants';
 import { POSTERS } from '@/features/recursos';
+import { Colors } from '@/shared/constants';
 import { Screen } from '@/shared/ui';
 import { Asset } from 'expo-asset';
 import { Image } from 'expo-image';
@@ -16,10 +16,12 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function CartellDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const [saving, setSaving] = useState(false);
   const [permissionResponse, requestPermission] = MediaLibrary.usePermissions();
 
@@ -82,7 +84,7 @@ export default function CartellDetailScreen() {
 
           {/* Back button overlay */}
           <Pressable
-            style={styles.backBtn}
+            style={[styles.backBtn, { top: insets.top + 12 }]}
             onPress={() => router.back()}
             hitSlop={12}
             accessibilityRole="button"
@@ -146,7 +148,7 @@ const styles = StyleSheet.create({
   placeholderText: { color: Colors.textDim, fontSize: 13 },
   backBtn: {
     position: 'absolute',
-    top: 52,
+    top: 0,          // overridden inline with insets.top
     left: 16,
     backgroundColor: 'rgba(0,0,0,0.55)',
     borderRadius: 20,

@@ -60,7 +60,7 @@ function DayChip({ dateKey, selected, isToday, onSelect }: ChipProps) {
 	}, [selected]);
 
 	const handlePressIn = () => {
-		scale.value = withTiming(0.9, { duration: 70 });
+		scale.value = withTiming(0.96, { duration: 70 });
 	};
 
 	const handlePressOut = () => {

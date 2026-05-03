@@ -1,18 +1,18 @@
 export const Colors = {
-	primary: "#E63946", // vermell Santes
-	primaryLight: "#FF6B6B",
-	background: "#0D0D0D", // negre fons
-	surface: "#1A1A1A",
-	surfaceHigh: "#2A2A2A",
-	text: "#F1F1F1",
-	textMuted: "#888888",
-	textDim: "#555555",
-	border: "#2E2E2E",
+	primary: "#C41E3A", // vermell Santes — major contrast on white
+	primaryLight: "#E85A6A",
+	background: "#FAF8F5", // blanc trencat càlid — llegible al sol
+	surface: "#FFFFFF",
+	surfaceHigh: "#F2EDE7", // estat premut, lleugerament càlid
+	text: "#1A1110", // quasi-negre amb calidesa
+	textMuted: "#776C6A", // gris càlid llegible
+	textDim: "#B8ADA9", // secundari, placeholder
+	border: "#E4DDD6", // vora subtil càlida
 
-	// event states
-	stateNow: "#00C896", // verd "ara"
-	stateUpcoming: "#4A9EFF", // blau "pròxim"
-	stateFinished: "#555555", // gris "finalitzat"
+	// event states — colors ajustats per contrast sobre fons clar
+	stateNow: "#007A5A", // verd fosc "ara" — contrast 4.5:1
+	stateUpcoming: "#1D4ED8", // blau "pròxim"
+	stateFinished: "#9CA3AF", // gris "finalitzat"
 } as const;
 
 export type ColorKey = keyof typeof Colors;

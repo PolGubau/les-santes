@@ -4,13 +4,14 @@ import { useMapFocusStore } from '@/features/map/store/useMapFocusStore';
 import { LiveClock, useNowEvents } from '@/features/now';
 import { Colors } from '@/shared/constants';
 import { formatTime } from '@/shared/lib';
-import { ErrorState, EventIcon, LoadingState, Screen } from '@/shared/ui';
+import { ErrorState, EventIcon, LoadingState, OfflineBanner, Screen } from '@/shared/ui';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Clock, MapPin, Moon } from 'lucide-react-native';
 import React, { useCallback } from 'react';
 import {
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -18,14 +19,30 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSpring,
+} from 'react-native-reanimated';
 
 const DEFAULT_BLURHASH = 'L6Pj0^jE.AyE_3t7t7R**0o#DgR4';
 
 // ─── Hero Card ───────────────────────────────────────────────────────────────
 function HeroCard({ event, onPress }: { event: Event; onPress: () => void }) {
   const isLive = event.state === 'now';
+  const scale = useSharedValue(1);
+  const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+
   return (
-    <Pressable style={styles.hero} onPress={onPress} accessibilityRole="button">
+    <Animated.View style={[styles.hero, animStyle]}>
+      <Pressable
+        style={StyleSheet.absoluteFill}
+        onPress={onPress}
+        onPressIn={() => { scale.value = withTiming(0.96, { duration: 80 }); }}
+        onPressOut={() => { scale.value = withSpring(1, { damping: 10, stiffness: 200 }); }}
+        accessibilityRole="button"
+      />
       <Image
         source={event.imageUrl ? { uri: event.imageUrl } : undefined}
         style={styles.heroImage}
@@ -36,6 +53,7 @@ function HeroCard({ event, onPress }: { event: Event; onPress: () => void }) {
       <LinearGradient
         colors={['transparent', 'rgba(0,0,0,0.75)']}
         style={styles.heroGradient}
+        pointerEvents="none"
       >
         {isLive && (
           <View style={styles.liveBadge}>
@@ -63,14 +81,24 @@ function HeroCard({ event, onPress }: { event: Event; onPress: () => void }) {
           </View>
         </View>
       </LinearGradient>
-    </Pressable>
+    </Animated.View>
   );
 }
 
 // ─── Now Card (horizontal strip) ─────────────────────────────────────────────
 function NowCard({ event, onPress }: { event: Event; onPress: () => void }) {
+  const scale = useSharedValue(1);
+  const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+
   return (
-    <Pressable style={styles.nowCard} onPress={onPress} accessibilityRole="button">
+    <Animated.View style={[styles.nowCard, animStyle]}>
+      <Pressable
+        style={StyleSheet.absoluteFill}
+        onPress={onPress}
+        onPressIn={() => { scale.value = withTiming(0.96, { duration: 80 }); }}
+        onPressOut={() => { scale.value = withSpring(1, { damping: 10, stiffness: 200 }); }}
+        accessibilityRole="button"
+      />
       <Image
         source={event.imageUrl ? { uri: event.imageUrl } : undefined}
         style={styles.nowCardImage}
@@ -81,6 +109,7 @@ function NowCard({ event, onPress }: { event: Event; onPress: () => void }) {
       <LinearGradient
         colors={['transparent', 'rgba(0,0,0,0.8)']}
         style={styles.nowCardGradient}
+        pointerEvents="none"
       >
         <View style={styles.nowCardIcon}>
           <EventIcon icon={event.icon} size={16} color="#fff" />
@@ -88,7 +117,7 @@ function NowCard({ event, onPress }: { event: Event; onPress: () => void }) {
         <Text style={styles.nowCardTitle} numberOfLines={2}>{event.title}</Text>
         <Text style={styles.nowCardTime}>fins {formatTime(event.end)}</Text>
       </LinearGradient>
-    </Pressable>
+    </Animated.View>
   );
 }
 
@@ -126,7 +155,7 @@ function SectionHeader({ title, count }: { title: string; count?: number }) {
 // ─── Screen ──────────────────────────────────────────────────────────────────
 export default function AraScreen() {
   useWindowDimensions(); // keeps layout reactive on rotation
-  const { events, loading, error, refresh } = useEvents();
+  const { events, loading, error, isOffline, cacheTimestamp, refresh } = useEvents();
   const { now, upcoming } = useNowEvents(events);
   const focusEvent = useMapFocusStore((s) => s.focusEvent);
 
@@ -159,6 +188,10 @@ export default function AraScreen() {
         </View>
         <LiveClock />
       </View>
+
+      {isOffline && (
+        <OfflineBanner cacheTimestamp={cacheTimestamp} onRefresh={refresh} />
+      )}
 
       {loading && events.length === 0 && <LoadingState label="Carregant actes…" />}
 
@@ -247,13 +280,13 @@ const styles = StyleSheet.create({
 
   // Hero
   hero: { marginHorizontal: 16, marginBottom: 20, borderRadius: 20, overflow: 'hidden', height: HERO_H },
-  heroImage: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
+  heroImage: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(0,0,0,0.08)' },
   heroGradient: { flex: 1, height: HERO_H, justifyContent: 'space-between', padding: 16 },
   heroContent: { gap: 4 },
   heroType: { color: 'rgba(255,255,255,0.7)', fontSize: 11, fontWeight: '700', letterSpacing: 1 },
   heroTitle: { color: '#fff', fontSize: 22, fontWeight: '800', lineHeight: 28 },
   heroMeta: { flexDirection: 'row', alignItems: 'center', gap: 4, flexWrap: 'wrap' },
-  heroMetaText: { color: 'rgba(255,255,255,0.8)', fontSize: 13 },
+  heroMetaText: { color: 'rgba(255,255,255,0.8)', fontSize: 13, fontVariant: ['tabular-nums'] },
   heroMetaDot: { color: 'rgba(255,255,255,0.5)', fontSize: 13 },
   liveBadge: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
@@ -276,13 +309,14 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2,
     overflow: 'hidden',
+    fontVariant: ['tabular-nums'],
   },
   nowStrip: { paddingLeft: 16, paddingRight: 8, gap: 12 },
   nowCard: {
     width: NOW_CARD_W, height: NOW_CARD_H,
     borderRadius: 16, overflow: 'hidden',
   },
-  nowCardImage: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
+  nowCardImage: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(0,0,0,0.08)' },
   nowCardGradient: { flex: 1, height: NOW_CARD_H, justifyContent: 'flex-end', padding: 12, gap: 4 },
   nowCardIcon: {
     width: 28, height: 28, borderRadius: 8,
@@ -291,7 +325,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   nowCardTitle: { color: '#fff', fontSize: 13, fontWeight: '700', lineHeight: 17 },
-  nowCardTime: { color: 'rgba(255,255,255,0.7)', fontSize: 11 },
+  nowCardTime: { color: 'rgba(255,255,255,0.7)', fontSize: 11, fontVariant: ['tabular-nums'] },
 
   // Upcoming
   upcomingRow: {
@@ -299,7 +333,10 @@ const styles = StyleSheet.create({
     marginHorizontal: 16, marginBottom: 8,
     backgroundColor: Colors.surface,
     borderRadius: 14, padding: 12,
-    borderWidth: 1, borderColor: Colors.border,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 6 },
+      android: { elevation: 1 },
+    }),
   },
   upcomingIcon: {
     width: 36, height: 36, borderRadius: 10,

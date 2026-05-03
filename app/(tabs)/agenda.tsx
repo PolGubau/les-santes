@@ -4,7 +4,7 @@ import { AgendaList, DayPicker, useAgenda } from "@/features/agenda";
 import { useFavoritesStore } from "@/features/favorites";
 import { Colors } from "@/shared/constants";
 import { useUserLocation } from "@/shared/hooks";
-import { ErrorState, Screen } from "@/shared/ui";
+import { ErrorState, OfflineBanner, Screen } from "@/shared/ui";
 import * as Haptics from "expo-haptics";
 import {
   Crown, Flag, Flame, Heart, MapPin, Mic, Music, Sailboat, Smile, Ticket, Users,
@@ -47,7 +47,7 @@ export default function AgendaScreen() {
   const flatRef = useRef<FlatList<string>>(null);
   const isScrollingFromPicker = useRef(false);
 
-  const { events, loading, error, refresh } = useEvents();
+  const { events, loading, error, isOffline, cacheTimestamp, refresh } = useEvents();
   // `loading` is true on first fetch; use it as pull-to-refresh indicator only after first data
   const refreshing = loading && events.length > 0;
 
@@ -207,6 +207,10 @@ export default function AgendaScreen() {
         </ScrollView>
       </View>
 
+      {isOffline && (
+        <OfflineBanner cacheTimestamp={cacheTimestamp} onRefresh={refresh} />
+      )}
+
       {showFavorites ? (
         <AgendaList
           events={favoriteEvents}
@@ -264,7 +268,7 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
   },
   title: { color: Colors.text, fontSize: 24, fontWeight: "700" },
-  count: { color: Colors.textMuted, fontSize: 14 },
+  count: { color: Colors.textMuted, fontSize: 14, fontVariant: ['tabular-nums'] },
   chips: {
     paddingHorizontal: 12,
     paddingVertical: 10,
@@ -318,6 +322,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 10,
     fontWeight: "700",
+    fontVariant: ['tabular-nums'],
   },
   favBadgeTextActive: {
     color: "#fff",

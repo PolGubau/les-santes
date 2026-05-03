@@ -9,7 +9,7 @@ interface RawPoster {
 }
 
 // Metro/Node require — JSON outside the src/ alias tree
-const POSTERS_JSON: RawPoster[] = require("../../../../assets/resources/posters/posters.json");
+const POSTERS_JSON: RawPoster[] = require("../../../shared/data/posters.json");
 
 // Years that appear more than once in the JSON (two official posters that year)
 const DUPLICATE_YEARS = new Set([1975, 1976]);

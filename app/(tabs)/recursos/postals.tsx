@@ -1,17 +1,25 @@
-import { Colors } from '@/shared/constants';
 import { PostalCard } from '@/features/recursos';
+import { Colors } from '@/shared/constants';
 import { Screen } from '@/shared/ui';
 import { router } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
-import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { useCallback, useMemo } from 'react';
+import { FlatList, type ListRenderItem, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
-import POSTALS from '@/shared/data/postals.json';
+import type { Postal } from '@/features/recursos/types';
+import POSTALS_RAW from '@/shared/data/postals.json';
 
 const PADDING = 16;
+const POSTALS = [...POSTALS_RAW].reverse() as Postal[];
 
 export default function PostalsScreen() {
   const { width } = useWindowDimensions();
-  const cardWidth = width - PADDING * 2;
+  const cardWidth = useMemo(() => width - PADDING * 2, [width]);
+
+  const renderItem: ListRenderItem<Postal> = useCallback(
+    ({ item }) => <PostalCard postal={item} width={cardWidth} />,
+    [cardWidth],
+  );
 
   return (
     <Screen>
@@ -34,15 +42,17 @@ export default function PostalsScreen() {
         </View>
       </View>
 
-      {/* List */}
-      <ScrollView
+      <FlatList
+        data={POSTALS}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.list, { paddingHorizontal: PADDING }]}
-      >
-        {[...POSTALS].reverse().map((p) => (
-          <PostalCard key={p.id} postal={p} width={cardWidth} />
-        ))}
-      </ScrollView>
+        initialNumToRender={6}
+        maxToRenderPerBatch={6}
+        windowSize={5}
+        removeClippedSubviews
+      />
     </Screen>
   );
 }

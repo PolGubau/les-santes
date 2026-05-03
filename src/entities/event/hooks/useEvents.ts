@@ -1,48 +1,89 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { readEventCache, writeEventCache } from "../cache";
 import { eventRepository } from "../repository";
-import type { Event } from "../types";
+import { withState } from "../state";
+import type { Event, RawEvent } from "../types";
 
-interface UseEventsResult {
-  events: Event[];
-  loading: boolean;
-  error: Error | null;
-  refresh: () => void;
+export interface UseEventsResult {
+	events: Event[];
+	loading: boolean;
+	error: Error | null;
+	/** True when the last network fetch failed and data comes from cache. */
+	isOffline: boolean;
+	/** Timestamp (ms) of the last successful cache write, or null if no cache. */
+	cacheTimestamp: number | null;
+	refresh: () => void;
 }
 
 /**
- * Hook to load all events from the repository.
- * The `state` (now / upcoming / finished) is recomputed on each fetch.
- * Call `refresh()` to force a re-fetch (e.g. pull-to-refresh).
+ * Stale-while-revalidate events hook.
+ *
+ * 1. Immediately restore cached events (no loading spinner if cache hits).
+ * 2. Fetch fresh data in the background; update cache on success.
+ * 3. If fetch fails, keep cached data and mark `isOffline = true`.
+ * 4. `refresh()` forces a new fetch (pull-to-refresh).
  */
 export function useEvents(): UseEventsResult {
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-  const [tick, setTick] = useState(0);
+	const [events, setEvents] = useState<Event[]>([]);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<Error | null>(null);
+	const [isOffline, setIsOffline] = useState(false);
+	const [cacheTimestamp, setCacheTimestamp] = useState<number | null>(null);
+	const [tick, setTick] = useState(0);
+	// Track whether we already have data so we can skip loading spinner on refresh
+	const hasCachedData = useRef(false);
 
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
+	// Restore cache once on mount (independent of tick)
+	useEffect(() => {
+		readEventCache().then((cached) => {
+			if (!cached || hasCachedData.current) return;
+			hasCachedData.current = true;
+			const now = new Date();
+			setEvents(cached.data.map((e) => withState(e, now)));
+			setCacheTimestamp(cached.timestamp);
+			setLoading(false);
+		});
+	}, []);
 
-    eventRepository
-      .getAll()
-      .then((data) => {
-        if (!cancelled) setEvents(data);
-      })
-      .catch((err: unknown) => {
-        if (!cancelled) setError(err instanceof Error ? err : new Error(String(err)));
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+	// Network fetch — re-runs on every tick (manual refresh)
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	useEffect(() => {
+		let cancelled = false;
+		// Only show loading spinner when there's nothing to show yet
+		if (!hasCachedData.current) setLoading(true);
+		setError(null);
 
-    return () => {
-      cancelled = true;
-    };
-  }, [tick]);
+		eventRepository
+			.getAll()
+			.then((data) => {
+				if (cancelled) return;
+				hasCachedData.current = true;
+				setEvents(data);
+				setIsOffline(false);
+				setLoading(false);
+				// Persist to cache (strip computed state before storing)
+				const rawEvents: RawEvent[] = data.map(
+					// eslint-disable-next-line @typescript-eslint/no-unused-vars
+					({ state: _state, ...rest }) => rest as RawEvent,
+				);
+				writeEventCache(rawEvents).then(() => {
+					setCacheTimestamp(Date.now());
+				});
+			})
+			.catch((err: unknown) => {
+				if (cancelled) return;
+				const e = err instanceof Error ? err : new Error(String(err));
+				setError(e);
+				setIsOffline(hasCachedData.current); // offline only if we have stale data
+				setLoading(false);
+			});
 
-  const refresh = () => setTick((t) => t + 1);
+		return () => {
+			cancelled = true;
+		};
+	}, [tick]);
 
-  return { events, loading, error, refresh };
+	const refresh = () => setTick((t) => t + 1);
+
+	return { events, loading, error, isOffline, cacheTimestamp, refresh };
 }

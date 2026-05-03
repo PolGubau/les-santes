@@ -5,7 +5,7 @@ import { EventIcon } from '@/shared/ui';
 import * as Haptics from 'expo-haptics';
 import { ChevronRight, MapPin, PersonStanding } from 'lucide-react-native';
 import React, { useEffect, useRef } from 'react';
-import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
 interface Props {
   event: Event;
@@ -40,39 +40,53 @@ function PulseDot() {
 }
 
 export function NowEventItem({ event, onPress }: Props) {
+  const pressScale = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    Animated.timing(pressScale, { toValue: 0.96, duration: 80, useNativeDriver: true }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(pressScale, { toValue: 1, damping: 10, stiffness: 200, useNativeDriver: true }).start();
+  };
+
   const handlePress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     onPress?.();
   };
 
   return (
-    <Pressable
-      style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}
-      onPress={handlePress}
-      accessibilityRole="button"
-      accessibilityLabel={`${event.title}. En curs fins a ${formatTime(event.end)}`}
-      accessibilityHint="Prem per veure els detalls"
-    >
-      <PulseDot />
-      <View style={styles.iconBox}>
-        <EventIcon icon={event.icon} size={22} color={Colors.stateNow} />
-      </View>
-      <View style={styles.content}>
-        <Text style={styles.title} numberOfLines={1}>{event.title}</Text>
-        <Text style={styles.desc} numberOfLines={1}>{event.shortDescription}</Text>
-        <View style={styles.metaRow}>
-          {event.kind === 'mobile'
-            ? <PersonStanding size={11} color={Colors.textDim} />
-            : <MapPin size={11} color={Colors.textDim} />}
-          <Text style={styles.meta}>
-            {event.kind === 'mobile'
-              ? 'Itinerant'
-              : (event.locationName ?? 'Lloc fix')} · fins {formatTime(event.end)}
-          </Text>
+    <Animated.View style={{ transform: [{ scale: pressScale }] }}>
+      <Pressable
+        style={styles.item}
+        onPress={handlePress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        accessibilityRole="button"
+        accessibilityLabel={`${event.title}. En curs fins a ${formatTime(event.end)}`}
+        accessibilityHint="Prem per veure els detalls"
+      >
+        <PulseDot />
+        <View style={styles.iconBox}>
+          <EventIcon icon={event.icon} size={22} color={Colors.stateNow} />
         </View>
-      </View>
-      <ChevronRight size={18} color={Colors.textDim} />
-    </Pressable>
+        <View style={styles.content}>
+          <Text style={styles.title} numberOfLines={1}>{event.title}</Text>
+          <Text style={styles.desc} numberOfLines={1}>{event.shortDescription}</Text>
+          <View style={styles.metaRow}>
+            {event.kind === 'mobile'
+              ? <PersonStanding size={11} color={Colors.textDim} />
+              : <MapPin size={11} color={Colors.textDim} />}
+            <Text style={styles.meta}>
+              {event.kind === 'mobile'
+                ? 'Itinerant'
+                : (event.locationName ?? 'Lloc fix')} · fins {formatTime(event.end)}
+            </Text>
+          </View>
+        </View>
+        <ChevronRight size={18} color={Colors.textDim} />
+      </Pressable>
+    </Animated.View>
   );
 }
 
@@ -86,10 +100,11 @@ const styles = StyleSheet.create({
     padding: 16,
     marginHorizontal: 16,
     marginVertical: 5,
-    borderWidth: 1,
-    borderColor: `${Colors.stateNow}55`,
+    ...Platform.select({
+      ios: { shadowColor: Colors.stateNow, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 8 },
+      android: { elevation: 2 },
+    }),
   },
-  itemPressed: { opacity: 0.75 },
   dotWrapper: { width: 14, height: 14, alignItems: 'center', justifyContent: 'center' },
   dot: {
     width: 8, height: 8, borderRadius: 4,
@@ -113,5 +128,5 @@ const styles = StyleSheet.create({
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   title: { color: Colors.text, fontSize: 15, fontWeight: '700' },
   desc: { color: Colors.textMuted, fontSize: 12 },
-  meta: { color: Colors.textDim, fontSize: 11, marginTop: 2 },
+  meta: { color: Colors.textDim, fontSize: 11, marginTop: 2, fontVariant: ['tabular-nums'] },
 });

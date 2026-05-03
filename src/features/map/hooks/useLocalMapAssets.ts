@@ -5,23 +5,25 @@
  * Returns the URI of the generated index.html once ready.
  */
 import { Asset } from "expo-asset";
-import * as FileSystem from "expo-file-system/legacy";
+import * as FileSystem from "expo-file-system";
 import { useEffect, useState } from "react";
 
 // Metro requires static require() — no dynamic paths
 const MAP_ASSETS = {
-	js: require("../../../assets/web/maplibre-gl.js"),
-	css: require("../../../assets/web/maplibre-gl.css"),
-	supercluster: require("../../../assets/web/supercluster.min.js"),
+	js: require("../../../../assets/web/maplibre-gl.js"),
+	css: require("../../../../assets/web/maplibre-gl.css"),
+	supercluster: require("../../../../assets/web/supercluster.min.js"),
 } as const;
 
-const MAP_DIR = `${FileSystem.cacheDirectory}map/`;
-
 async function prepareMapAssets(htmlContent: string): Promise<string> {
+	// Defer cacheDirectory access to runtime (inside async fn) to avoid
+	// triggering TurboModule initialization at module evaluation time.
+	const mapDir = `${FileSystem.cacheDirectory}map/`;
+
 	// Ensure the cache directory exists
-	const dirInfo = await FileSystem.getInfoAsync(MAP_DIR);
+	const dirInfo = await FileSystem.getInfoAsync(mapDir);
 	if (!dirInfo.exists) {
-		await FileSystem.makeDirectoryAsync(MAP_DIR, { intermediates: true });
+		await FileSystem.makeDirectoryAsync(mapDir, { intermediates: true });
 	}
 
 	// Download each asset from the bundle and copy to the cache dir
@@ -40,20 +42,20 @@ async function prepareMapAssets(htmlContent: string): Promise<string> {
 	await Promise.all([
 		FileSystem.copyAsync({
 			from: jsAsset.localUri,
-			to: `${MAP_DIR}maplibre-gl.js`,
+			to: `${mapDir}maplibre-gl.js`,
 		}),
 		FileSystem.copyAsync({
 			from: cssAsset.localUri,
-			to: `${MAP_DIR}maplibre-gl.css`,
+			to: `${mapDir}maplibre-gl.css`,
 		}),
 		FileSystem.copyAsync({
 			from: scAsset.localUri,
-			to: `${MAP_DIR}supercluster.min.js`,
+			to: `${mapDir}supercluster.min.js`,
 		}),
 	]);
 
 	// Write the HTML file alongside the assets so relative paths resolve
-	const htmlUri = `${MAP_DIR}index.html`;
+	const htmlUri = `${mapDir}index.html`;
 	await FileSystem.writeAsStringAsync(htmlUri, htmlContent, {
 		encoding: FileSystem.EncodingType.UTF8,
 	});

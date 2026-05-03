@@ -1,22 +1,20 @@
-import { DayPicker } from '@/features/agenda';
-import { Colors } from '@/shared/constants';
-import { formatDayFull } from '@/shared/lib';
+import { Colors, Typography } from '@/shared/constants';
+import { formatDayShort } from '@/shared/lib';
 import * as Haptics from 'expo-haptics';
-import { Calendar, ChevronDown, List } from 'lucide-react-native';
-import React, { useCallback, useRef, useState } from 'react';
-import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import { List, Search, X } from 'lucide-react-native';
+import React, { useCallback } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-// Chip (58) + container paddingVertical (16) — measured from DayPicker styles
-const PICKER_HEIGHT = 74;
 
 interface Props {
   selectedDay: string;
   availableDays: string[];
   todayKey: string;
   liveCount: number;
+  searchText: string;
   onDayChange: (day: string) => void;
   onListPress: () => void;
+  onSearchChange: (text: string) => void;
 }
 
 export const MapHeader = React.memo(function MapHeader({
@@ -24,167 +22,157 @@ export const MapHeader = React.memo(function MapHeader({
   availableDays,
   todayKey,
   liveCount,
+  searchText,
   onDayChange,
   onListPress,
+  onSearchChange,
 }: Props) {
   const insets = useSafeAreaInsets();
-  const [isOpen, setIsOpen] = useState(false);
 
-  const animHeight = useRef(new Animated.Value(0)).current;
-  const animOpacity = useRef(new Animated.Value(0)).current;
-  const animChevron = useRef(new Animated.Value(0)).current;
+  const handleDaySelect = useCallback(
+    (day: string) => {
+      Haptics.selectionAsync();
+      onDayChange(day);
+    },
+    [onDayChange],
+  );
 
-  const openPicker = useCallback(() => {
-    setIsOpen(true);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Animated.parallel([
-      Animated.spring(animHeight, {
-        toValue: PICKER_HEIGHT,
-        tension: 280,
-        friction: 22,
-        useNativeDriver: false,
-      }),
-      Animated.timing(animOpacity, {
-        toValue: 1,
-        duration: 180,
-        delay: 60,
-        useNativeDriver: true,
-      }),
-      Animated.spring(animChevron, {
-        toValue: 1,
-        tension: 280,
-        friction: 22,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [animHeight, animOpacity, animChevron]);
-
-  const closePicker = useCallback(() => {
-    setIsOpen(false);
-    Animated.parallel([
-      Animated.spring(animHeight, {
-        toValue: 0,
-        tension: 380,
-        friction: 28,
-        useNativeDriver: false,
-      }),
-      Animated.timing(animOpacity, {
-        toValue: 0,
-        duration: 90,
-        useNativeDriver: true,
-      }),
-      Animated.spring(animChevron, {
-        toValue: 0,
-        tension: 380,
-        friction: 28,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [animHeight, animOpacity, animChevron]);
-
-  const toggle = useCallback(() => {
-    if (isOpen) closePicker();
-    else openPicker();
-  }, [isOpen, openPicker, closePicker]);
-
-  const handleDaySelect = useCallback((day: string) => {
-    onDayChange(day);
-    closePicker();
-  }, [onDayChange, closePicker]);
-
-  const chevronRotate = animChevron.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '180deg'],
-  });
+  const clearSearch = useCallback(() => onSearchChange(''), [onSearchChange]);
 
   return (
-    <View style={[styles.container, { top: insets.top + 8 }]}>
-      <View style={styles.card}>
+    <View style={[styles.container, { top: insets.top + 8 }]} pointerEvents="box-none">
 
-        {/* ── Compact bar ── */}
-        <View style={styles.topRow}>
-          <Pressable style={styles.datePressable} onPress={toggle} hitSlop={6}>
-            <Calendar size={13} color={Colors.textMuted} />
-            <Text style={styles.dateLabel} numberOfLines={1}>
-              {formatDayFull(selectedDay)}
-            </Text>
-            <Animated.View style={{ transform: [{ rotate: chevronRotate }] }}>
-              <ChevronDown size={13} color={Colors.textMuted} />
-            </Animated.View>
-          </Pressable>
-
-          <View style={styles.actions}>
-            {liveCount > 0 && (
-              <View style={styles.livePill}>
-                <View style={styles.liveDot} />
-                <Text style={styles.liveText}>{liveCount} en curs</Text>
-              </View>
-            )}
-            <Pressable style={styles.listBtn} onPress={onListPress} hitSlop={8}>
-              <List size={18} color={Colors.text} />
+      {/* ── Search row ── */}
+      <View style={styles.searchRow} pointerEvents="box-none">
+        <View style={styles.searchPill} pointerEvents="auto">
+          <Search size={16} color={Colors.textMuted} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Cerca actes…"
+            placeholderTextColor={Colors.textDim}
+            value={searchText}
+            onChangeText={onSearchChange}
+            returnKeyType="search"
+            clearButtonMode="never"
+          />
+          {searchText.length > 0 && (
+            <Pressable onPress={clearSearch} hitSlop={8}>
+              <X size={15} color={Colors.textMuted} />
             </Pressable>
-          </View>
+          )}
         </View>
 
-        {/* ── Expandable picker ── */}
-        <Animated.View style={{ height: animHeight, overflow: 'hidden' }}>
-          <Animated.View style={{ opacity: animOpacity }}>
-            <DayPicker
-              days={availableDays}
-              selected={selectedDay}
-              todayKey={todayKey}
-              onSelect={handleDaySelect}
-            />
-          </Animated.View>
-        </Animated.View>
-
+        <Pressable style={styles.listBtn} onPress={onListPress} hitSlop={8} pointerEvents="auto">
+          <List size={18} color={Colors.text} />
+          {liveCount > 0 && <View style={styles.liveDot} />}
+        </Pressable>
       </View>
+
+      {/* ── Day chips ── */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.chipsContent}
+        style={styles.chipsRow}
+        pointerEvents="auto"
+      >
+        {availableDays.map((day) => {
+          const isSelected = day === selectedDay;
+          const isToday = day === todayKey;
+          return (
+            <Pressable
+              key={day}
+              style={[styles.chip, isSelected && styles.chipSelected]}
+              onPress={() => handleDaySelect(day)}
+            >
+              <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
+                {isToday ? 'Avui' : formatDayShort(day)}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
+
     </View>
   );
 });
 
 const styles = StyleSheet.create({
-  container: { position: 'absolute', left: 12, right: 12 },
-  card: {
-    backgroundColor: `${Colors.surface}F2`,
-    borderRadius: 16,
+  container: { position: 'absolute', left: 12, right: 12, gap: 8 },
+
+  // Search row
+  searchRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  searchPill: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: Colors.surface,
+    borderRadius: 30,
+    paddingHorizontal: 14,
+    height: 48,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 4,
     borderWidth: 1,
     borderColor: Colors.border,
-    overflow: 'hidden',
   },
-  topRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 14,
-    paddingTop: 12,
-    paddingBottom: 12,
-  },
-  datePressable: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
+  searchInput: {
     flex: 1,
+    fontSize: 15,
+    color: Colors.text,
+    ...Typography.regular,
+    paddingVertical: 0,
   },
-  dateLabel: { color: Colors.text, fontSize: 14, fontWeight: '600', flex: 1 },
-  actions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  livePill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: `${Colors.stateNow}22`,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 20,
-  },
-  liveDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: Colors.stateNow },
-  liveText: { color: Colors.stateNow, fontSize: 11, fontWeight: '600' },
   listBtn: {
-    width: 30,
-    height: 30,
-    borderRadius: 8,
-    backgroundColor: Colors.surfaceHigh,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: Colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
+  liveDot: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Colors.stateNow,
+    borderWidth: 1.5,
+    borderColor: Colors.surface,
+  },
+
+  // Day chips
+  chipsRow: { flexGrow: 0 },
+  chipsContent: { paddingHorizontal: 2, gap: 6 },
+  chip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  chipSelected: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  chipText: { fontSize: 13, color: Colors.text, ...Typography.semiBold },
+  chipTextSelected: { color: '#fff' },
 });

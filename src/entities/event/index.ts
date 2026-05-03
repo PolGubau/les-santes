@@ -3,4 +3,5 @@ export * from "./mock";
 export * from "./state";
 export * from "./display";
 export * from "./repository";
+export * from "./cache";
 export * from "./hooks/useEvents";
