@@ -1,7 +1,7 @@
 {
 	"expo": {
 		"name": "Les Santes",
-		"slug": "app",
+		"slug": "les-santes",
 		"scheme": "les-santes",
 		"version": "1.0.0",
 		"orientation": "portrait",
@@ -16,13 +16,15 @@
 		"ios": {
 			"bundleIdentifier": "com.polgubau.lessantes",
 			"supportsTablet": false,
-			"usesNonExemptEncryption": false,
 			"infoPlist": {
-				"NSLocationWhenInUseUsageDescription": "La app necessita la teva ubicació per mostrar-la al mapa del festival i filtrar actes propers."
+				"NSLocationWhenInUseUsageDescription": "La app necessita la teva ubicació per mostrar-la al mapa del festival i filtrar actes propers.",
+				"ITSAppUsesNonExemptEncryption": false
 			}
 		},
 		"android": {
 			"package": "com.polgubau.lessantes",
+			"versionCode": 1,
+			"privacyPolicyUrl": "https://les-santes.polgubau.com/privacy",
 			"adaptiveIcon": {
 				"foregroundImage": "./assets/adaptive-icon.png",
 				"backgroundColor": "#FAF8F5"
