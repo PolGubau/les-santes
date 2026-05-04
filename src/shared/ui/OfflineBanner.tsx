@@ -1,4 +1,5 @@
 import { Colors } from '@/shared/constants';
+import { t } from '@/shared/i18n';
 import { WifiOff } from 'lucide-react-native';
 import React, { memo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -13,11 +14,11 @@ interface Props {
 function formatAge(ts: number): string {
   const diffMs = Date.now() - ts;
   const diffMin = Math.round(diffMs / 60_000);
-  if (diffMin < 2) return 'fa un moment';
-  if (diffMin < 60) return `fa ${diffMin} min`;
+  if (diffMin < 2) return t('offline.agoMoment');
+  if (diffMin < 60) return t('offline.agoMinutes', { count: diffMin });
   const diffH = Math.round(diffMin / 60);
-  if (diffH < 24) return `fa ${diffH} h`;
-  return `fa ${Math.round(diffH / 24)} d`;
+  if (diffH < 24) return t('offline.agoHours', { count: diffH });
+  return t('offline.agoDays', { count: Math.round(diffH / 24) });
 }
 
 export const OfflineBanner = memo(function OfflineBanner({ cacheTimestamp, onRefresh }: Props) {
@@ -25,12 +26,12 @@ export const OfflineBanner = memo(function OfflineBanner({ cacheTimestamp, onRef
     <View style={styles.banner}>
       <WifiOff size={14} color={Colors.text} style={styles.icon} />
       <Text style={styles.text} numberOfLines={1}>
-        Sense connexió
-        {cacheTimestamp ? ` · dades de ${formatAge(cacheTimestamp)}` : ''}
+        {t('offline.label')}
+        {cacheTimestamp ? ` · ${t('offline.cacheAge', { age: formatAge(cacheTimestamp) })}` : ''}
       </Text>
       {onRefresh && (
         <Pressable onPress={onRefresh} hitSlop={8} style={styles.btn}>
-          <Text style={styles.btnText}>Actualitza</Text>
+          <Text style={styles.btnText}>{t('offline.refresh')}</Text>
         </Pressable>
       )}
     </View>

@@ -1,4 +1,5 @@
 import { Colors } from '@/shared/constants';
+import { t } from '@/shared/i18n';
 import * as Haptics from 'expo-haptics';
 import { Tabs } from 'expo-router';
 import { BookOpen, CalendarDays, Map as MapIcon, Zap } from 'lucide-react-native';
@@ -35,7 +36,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="ara"
         options={{
-          title: 'Ara',
+          title: t('tabs.ara'),
           tabBarIcon: ({ color }) => <Zap size={22} color={color} />,
         }}
         listeners={{ tabPress }}
@@ -43,7 +44,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="mapa"
         options={{
-          title: 'Mapa',
+          title: t('tabs.mapa'),
           tabBarIcon: ({ color }) => <MapIcon size={22} color={color} />,
         }}
         listeners={{ tabPress }}
@@ -51,7 +52,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="agenda"
         options={{
-          title: 'Agenda',
+          title: t('tabs.agenda'),
           tabBarIcon: ({ color }) => <CalendarDays size={22} color={color} />,
         }}
         listeners={{ tabPress }}
@@ -59,7 +60,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="recursos"
         options={{
-          title: 'Recursos',
+          title: t('tabs.recursos'),
           tabBarIcon: ({ color }) => <BookOpen size={22} color={color} />,
         }}
         listeners={{ tabPress }}

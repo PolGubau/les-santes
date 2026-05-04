@@ -1,0 +1,110 @@
+/**
+ * Translations interface — all values must be strings.
+ * Defined here so both locales satisfy the same contract.
+ */
+export interface Translations {
+  tabs: { ara: string; mapa: string; agenda: string; recursos: string };
+  eventState: { now: string; upcoming: string; finished: string };
+  agenda: {
+    title: string;
+    eventsCount: string;
+    emptyFavorites: string;
+    emptyFavoritesSubtext: string;
+    emptyFiltered: string;
+    emptyFilteredSubtext: string;
+  };
+  filters: {
+    favorites: string; nearMe: string; correfoc: string; concert: string;
+    sardanes: string; gegants: string; castellera: string; cercavila: string;
+    havaneres: string; espectacle: string; jocs: string;
+  };
+  now: { appTitle: string; subtitle: string };
+  offline: {
+    label: string; cacheAge: string; refresh: string;
+    agoMoment: string; agoMinutes: string; agoHours: string; agoDays: string;
+  };
+  error: { title: string; defaultMessage: string; eventsMessage: string; retry: string };
+  loading: { default: string };
+  notFound: { title: string; description: string; backToHome: string };
+}
+
+/**
+ * Catalan (ca) translations — primary language of the app.
+ */
+export const ca: Translations = {
+  // ── Tabs ──────────────────────────────────────────────────────────────────
+  tabs: {
+    ara: 'Ara',
+    mapa: 'Mapa',
+    agenda: 'Agenda',
+    recursos: 'Recursos',
+  },
+
+  // ── Event states ──────────────────────────────────────────────────────────
+  eventState: {
+    now: 'Ara',
+    upcoming: 'Pròxim',
+    finished: 'Finalitzat',
+  },
+
+  // ── Agenda screen ─────────────────────────────────────────────────────────
+  agenda: {
+    title: 'Agenda',
+    eventsCount: '%{count} actes',
+    emptyFavorites: 'Cap favorit aquest dia',
+    emptyFavoritesSubtext: "Afegeix actes als favorits des de l'agenda",
+    emptyFiltered: 'Cap acte trobat',
+    emptyFilteredSubtext: 'Prova a canviar els filtres',
+  },
+
+  // ── Filter bar ────────────────────────────────────────────────────────────
+  filters: {
+    favorites: 'Favorits',
+    nearMe: 'Aprop meu',
+    correfoc: 'Correfoc',
+    concert: 'Concerts',
+    sardanes: 'Sardanes',
+    gegants: 'Gegants',
+    castellera: 'Castellers',
+    cercavila: 'Cercavila',
+    havaneres: 'Havaneres',
+    espectacle: 'Espectacle',
+    jocs: 'Familiar',
+  },
+
+  // ── Now screen ────────────────────────────────────────────────────────────
+  now: {
+    appTitle: 'Les Santes',
+    subtitle: 'Mataró · Festa Major',
+  },
+
+  // ── Offline / Error ───────────────────────────────────────────────────────
+  offline: {
+    label: 'Sense connexió',
+    cacheAge: 'dades de %{age}',
+    refresh: 'Actualitza',
+    agoMoment: 'fa un moment',
+    agoMinutes: 'fa %{count} min',
+    agoHours: 'fa %{count} h',
+    agoDays: 'fa %{count} d',
+  },
+
+  error: {
+    title: 'Sense connexió',
+    defaultMessage: "No s'han pogut carregar les dades.",
+    eventsMessage: "No s'han pogut carregar els actes del festival.",
+    retry: 'Tornar a intentar',
+  },
+
+  // ── Loading ───────────────────────────────────────────────────────────────
+  loading: {
+    default: 'Carregant…',
+  },
+
+  // ── Not found ─────────────────────────────────────────────────────────────
+  notFound: {
+    title: 'Pàgina no trobada',
+    description: 'Aquesta ruta no existeix.',
+    backToHome: "Tornar a l'inici",
+  },
+};

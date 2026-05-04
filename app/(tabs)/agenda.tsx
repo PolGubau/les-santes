@@ -4,6 +4,7 @@ import { AgendaFilterBar, AgendaList, DayPicker, useAgenda } from "@/features/ag
 import { useFavoritesStore } from "@/features/favorites";
 import { useMapFocusStore } from "@/features/map/store/useMapFocusStore";
 import { Colors } from "@/shared/constants";
+import { t } from "@/shared/i18n";
 import { useUserLocation } from "@/shared/hooks";
 import { ErrorState, OfflineBanner, Screen } from "@/shared/ui";
 import * as Haptics from "expo-haptics";
@@ -82,7 +83,7 @@ export default function AgendaScreen() {
     return (
       <Screen>
         <ErrorState
-          message="No s'han pogut carregar els actes del festival."
+          message={t('error.eventsMessage')}
           onRetry={refresh}
         />
       </Screen>
@@ -93,8 +94,8 @@ export default function AgendaScreen() {
     <Screen>
       <View style={styles.topSection}>
         <View style={styles.header}>
-          <Text style={styles.title}>Agenda</Text>
-          <Text style={styles.count}>{dayCount} actes</Text>
+          <Text style={styles.title}>{t('agenda.title')}</Text>
+          <Text style={styles.count}>{t('agenda.eventsCount', { count: dayCount })}</Text>
         </View>
 
         <DayPicker
@@ -145,12 +146,12 @@ export default function AgendaScreen() {
               onRefresh={handleRefresh}
               refreshing={refreshing}
               loading={loading}
-              emptyText={filters.onlyFavorites ? 'Cap favorit aquest dia' : 'Cap acte trobat'}
+              emptyText={filters.onlyFavorites ? t('agenda.emptyFavorites') : t('agenda.emptyFiltered')}
               emptySubtext={
                 filters.onlyFavorites
-                  ? 'Afegeix actes als favorits des de l\'agenda'
+                  ? t('agenda.emptyFavoritesSubtext')
                   : filters.type || filters.nearMe
-                    ? 'Prova a canviar els filtres'
+                    ? t('agenda.emptyFilteredSubtext')
                     : undefined
               }
             />

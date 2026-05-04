@@ -1,4 +1,5 @@
 import { Colors } from '@/shared/constants';
+import { t } from '@/shared/i18n';
 import React from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
@@ -7,11 +8,12 @@ interface Props {
   size?: 'small' | 'large';
 }
 
-export function LoadingState({ label = 'Carregant…', size = 'large' }: Props) {
+export function LoadingState({ label, size = 'large' }: Props) {
+  const text = label ?? t('loading.default');
   return (
     <View style={styles.container}>
       <ActivityIndicator size={size} color={Colors.primary} />
-      {label ? <Text style={styles.label}>{label}</Text> : null}
+      {text ? <Text style={styles.label}>{text}</Text> : null}
     </View>
   );
 }

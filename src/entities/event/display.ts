@@ -1,4 +1,5 @@
 import { Colors } from '@/shared/constants';
+import { t } from '@/shared/i18n';
 import type { EventState } from './types';
 
 /**
@@ -17,7 +18,7 @@ export const STATE_COLOR: Record<EventState, string> = {
  * For section headers use context-specific labels co-located with the UI.
  */
 export const STATE_LABEL_SHORT: Record<EventState, string> = {
-  now: 'Ara',
-  upcoming: 'Pròxim',
-  finished: 'Finalitzat',
+  now: t('eventState.now'),
+  upcoming: t('eventState.upcoming'),
+  finished: t('eventState.finished'),
 };

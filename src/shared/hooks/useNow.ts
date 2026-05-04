@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 declare const process: { env: Record<string, string | undefined> };
 
 // Mid-Les Santes 2026 - used when no EXPO_PUBLIC_DEV_DATE is set in dev
-const DEV_DEFAULT = "2026-07-27T19:30:00";
+const DEV_DEFAULT = "2026-07-27T19:00:00";
 
 function getInitialNow(): Date {
 	if (__DEV__) {

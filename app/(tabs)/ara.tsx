@@ -3,6 +3,7 @@ import { useEvents } from '@/entities/event';
 import { useMapFocusStore } from '@/features/map/store/useMapFocusStore';
 import { HeroCard, LiveClock, NowCard, UpcomingRow, useNowEvents } from '@/features/now';
 import { Colors } from '@/shared/constants';
+import { t } from '@/shared/i18n';
 import { ErrorState, LoadingState, OfflineBanner, Screen, SectionHeader } from '@/shared/ui';
 import { router } from 'expo-router';
 import { Moon } from 'lucide-react-native';
@@ -30,7 +31,7 @@ export default function AraScreen() {
     return (
       <Screen style={styles.root} edges={['top']}>
         <ErrorState
-          message="No s'han pogut carregar els actes del festival."
+          message={t('error.eventsMessage')}
           onRetry={refresh}
         />
       </Screen>
@@ -42,8 +43,8 @@ export default function AraScreen() {
       {/* Fixed header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.title}>Les Santes</Text>
-          <Text style={styles.subtitle}>Mataró · Festa Major</Text>
+          <Text style={styles.title}>{t('now.appTitle')}</Text>
+          <Text style={styles.subtitle}>{t('now.subtitle')}</Text>
         </View>
         <LiveClock />
       </View>
@@ -52,7 +53,7 @@ export default function AraScreen() {
         <OfflineBanner cacheTimestamp={cacheTimestamp} onRefresh={refresh} />
       )}
 
-      {loading && events.length === 0 && <LoadingState label="Carregant actes…" />}
+      {loading && events.length === 0 && <LoadingState />}
 
       <ScrollView
         style={[styles.scroll, loading && events.length === 0 && { display: 'none' }]}

@@ -1,4 +1,5 @@
 import { Colors } from '@/shared/constants';
+import { t } from '@/shared/i18n';
 import { Link } from 'expo-router';
 import { Compass } from 'lucide-react-native';
 import React from 'react';
@@ -9,10 +10,10 @@ export default function NotFoundScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <Compass size={56} color={Colors.textDim} />
-      <Text style={styles.title}>Pàgina no trobada</Text>
-      <Text style={styles.desc}>Aquesta ruta no existeix.</Text>
+      <Text style={styles.title}>{t('notFound.title')}</Text>
+      <Text style={styles.desc}>{t('notFound.description')}</Text>
       <Link href="/(tabs)/ara" style={styles.link}>
-        <Text style={styles.linkText}>Tornar a l'inici</Text>
+        <Text style={styles.linkText}>{t('notFound.backToHome')}</Text>
       </Link>
     </SafeAreaView>
   );

@@ -1,5 +1,6 @@
 import type { EventType } from '@/entities/event';
 import { Colors } from '@/shared/constants';
+import { t } from '@/shared/i18n';
 import type { UserCoords } from '@/shared/hooks';
 import * as Haptics from 'expo-haptics';
 import {
@@ -11,15 +12,15 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import type { AgendaFilters } from '../hooks/useAgenda';
 
 const TYPE_FILTERS: Array<{ label: string; value: EventType; Icon?: LucideIcon }> = [
-  { label: 'Correfoc', value: 'correfoc', Icon: Flame },
-  { label: 'Concerts', value: 'concert', Icon: Mic },
-  { label: 'Sardanes', value: 'sardanes', Icon: Music },
-  { label: 'Gegants', value: 'gegants', Icon: Crown },
-  { label: 'Castellers', value: 'castellera', Icon: Users },
-  { label: 'Cercavila', value: 'cercavila', Icon: Flag },
-  { label: 'Havaneres', value: 'havaneres', Icon: Sailboat },
-  { label: 'Espectacle', value: 'espectacle', Icon: Ticket },
-  { label: 'Familiar', value: 'jocs', Icon: Smile },
+  { label: t('filters.correfoc'), value: 'correfoc', Icon: Flame },
+  { label: t('filters.concert'), value: 'concert', Icon: Mic },
+  { label: t('filters.sardanes'), value: 'sardanes', Icon: Music },
+  { label: t('filters.gegants'), value: 'gegants', Icon: Crown },
+  { label: t('filters.castellera'), value: 'castellera', Icon: Users },
+  { label: t('filters.cercavila'), value: 'cercavila', Icon: Flag },
+  { label: t('filters.havaneres'), value: 'havaneres', Icon: Sailboat },
+  { label: t('filters.espectacle'), value: 'espectacle', Icon: Ticket },
+  { label: t('filters.jocs'), value: 'jocs', Icon: Smile },
 ];
 
 interface Props {
@@ -54,7 +55,7 @@ export function AgendaFilterBar({
           color={filters.onlyFavorites ? '#fff' : Colors.primary}
           fill={filters.onlyFavorites ? '#fff' : 'none'}
         />
-        <Text style={[styles.chipText, filters.onlyFavorites && styles.chipTextActive]}>Favorits</Text>
+        <Text style={[styles.chipText, filters.onlyFavorites && styles.chipTextActive]}>{t('filters.favorites')}</Text>
         {totalFavorites > 0 && (
           <View style={[styles.favBadge, filters.onlyFavorites && styles.favBadgeActive]}>
             <Text style={[styles.favBadgeText, filters.onlyFavorites && styles.favBadgeTextActive]}>
@@ -74,7 +75,7 @@ export function AgendaFilterBar({
           accessibilityState={{ selected: !!filters.nearMe }}
         >
           <MapPin size={15} color={filters.nearMe ? '#fff' : Colors.primary} />
-          <Text style={[styles.chipText, filters.nearMe && styles.chipTextActive]}>Aprop meu</Text>
+          <Text style={[styles.chipText, filters.nearMe && styles.chipTextActive]}>{t('filters.nearMe')}</Text>
         </Pressable>
       )}
 

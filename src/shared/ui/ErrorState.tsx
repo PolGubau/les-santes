@@ -1,4 +1,5 @@
 import { Colors } from '@/shared/constants';
+import { t } from '@/shared/i18n';
 import { WifiOff } from 'lucide-react-native';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -9,22 +10,23 @@ interface Props {
 }
 
 export function ErrorState({
-  message = "No s'han pogut carregar les dades.",
+  message,
   onRetry,
 }: Props) {
+  const msg = message ?? t('error.defaultMessage');
   return (
     <View style={styles.container}>
       <WifiOff size={44} color={Colors.textDim} />
-      <Text style={styles.title}>Sense connexió</Text>
-      <Text style={styles.message}>{message}</Text>
+      <Text style={styles.title}>{t('error.title')}</Text>
+      <Text style={styles.message}>{msg}</Text>
       {onRetry && (
         <Pressable
           style={styles.button}
           onPress={onRetry}
           accessibilityRole="button"
-          accessibilityLabel="Tornar a intentar"
+          accessibilityLabel={t('error.retry')}
         >
-          <Text style={styles.buttonText}>Tornar a intentar</Text>
+          <Text style={styles.buttonText}>{t('error.retry')}</Text>
         </Pressable>
       )}
     </View>
