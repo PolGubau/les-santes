@@ -24,7 +24,7 @@
 		"android": {
 			"package": "com.polgubau.lessantes",
 			"versionCode": 1,
-			"privacyPolicyUrl": "https://les-santes.polgubau.com/privacy",
+			"privacyPolicyUrl": "https://lessantes.polgubau.com/privacy",
 			"adaptiveIcon": {
 				"foregroundImage": "./assets/adaptive-icon.png",
 				"backgroundColor": "#FAF8F5"
@@ -33,10 +33,7 @@
 				"android.permission.ACCESS_FINE_LOCATION",
 				"android.permission.ACCESS_COARSE_LOCATION",
 				"android.permission.READ_CALENDAR",
-				"android.permission.WRITE_CALENDAR",
-				"android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
-				"android.permission.ACCESS_MEDIA_LOCATION",
-				"android.permission.READ_MEDIA_IMAGES"
+				"android.permission.WRITE_CALENDAR"
 			],
 			"edgeToEdgeEnabled": true,
 			"predictiveBackGestureEnabled": true
@@ -66,15 +63,7 @@
 				}
 			],
 			"expo-font",
-			"expo-asset",
-			[
-				"expo-media-library",
-				{
-					"photosPermission": "La app necessita accés a les fotos per guardar cartells i postals del festival.",
-					"savePhotosPermission": "La app necessita permís per guardar imatges a la galeria.",
-					"isAccessMediaLocationEnabled": true
-				}
-			]
+			"expo-asset"
 		],
 		"owner": "polgubau"
 	}

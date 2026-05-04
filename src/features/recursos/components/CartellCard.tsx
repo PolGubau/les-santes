@@ -1,10 +1,6 @@
 import { Colors } from '@/shared/constants';
-import { Asset } from 'expo-asset';
 import { Image } from 'expo-image';
-import * as MediaLibrary from 'expo-media-library';
-import { Download } from 'lucide-react-native';
-import { useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import type { Cartell } from '../types';
 
 interface Props {
@@ -13,32 +9,6 @@ interface Props {
 }
 
 export function CartellCard({ cartell, width }: Props) {
-  const [saving, setSaving] = useState(false);
-  const [permissionResponse, requestPermission] = MediaLibrary.usePermissions({
-    granularPermissions: ['photo'],
-  });
-
-  const handleSave = async () => {
-    if (!cartell.asset) return;
-    setSaving(true);
-    try {
-      let perm = permissionResponse;
-      if (!perm?.granted) perm = await requestPermission();
-      if (!perm?.granted) {
-        Alert.alert('Permís denegat', 'Cal accés a la galeria per desar la imatge.');
-        return;
-      }
-      const [asset] = await Asset.loadAsync(cartell.asset);
-      const uri = asset.localUri ?? asset.uri;
-      await MediaLibrary.saveToLibraryAsync(uri);
-      Alert.alert('Desat!', `Cartell ${cartell.year} desat a la galeria.`);
-    } catch {
-      Alert.alert('Error', "No s'ha pogut desar la imatge.");
-    } finally {
-      setSaving(false);
-    }
-  };
-
   const cardHeight = width * 1.4; // poster aspect ratio ~3:4
 
   return (
@@ -62,18 +32,6 @@ export function CartellCard({ cartell, width }: Props) {
       <View style={styles.yearBadge}>
         <Text style={styles.yearText}>{cartell.year}</Text>
       </View>
-
-      {/* Save button */}
-      {cartell.asset && (
-        <Pressable
-          style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
-          onPress={handleSave}
-          disabled={saving}
-          accessibilityLabel={`Desar cartell ${cartell.year}`}
-        >
-          <Download size={14} color="#fff" />
-        </Pressable>
-      )}
     </View>
   );
 }
@@ -103,16 +61,4 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
   },
   yearText: { color: '#fff', fontSize: 11, fontWeight: '700' },
-  saveBtn: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    backgroundColor: Colors.primary,
-    borderRadius: 20,
-    width: 30,
-    height: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  saveBtnDisabled: { opacity: 0.5 },
 });
