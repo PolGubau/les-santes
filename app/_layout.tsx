@@ -1,4 +1,6 @@
 import { Colors } from '@/shared/constants';
+import { useLocaleStore } from '@/shared/hooks/useLocale';
+import { i18n } from '@/shared/i18n';
 import { Inter_400Regular, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
 import { useFonts } from 'expo-font';
 import { Stack, useRouter } from 'expo-router';
@@ -45,6 +47,12 @@ export default function RootLayout() {
     Inter_600SemiBold,
     Inter_700Bold,
   });
+
+  // Apply persisted locale before first render
+  const locale = useLocaleStore((s) => s.locale);
+  useEffect(() => {
+    i18n.locale = locale;
+  }, [locale]);
 
   useEffect(() => {
     if (fontsLoaded || fontError) {

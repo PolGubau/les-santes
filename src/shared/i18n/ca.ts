@@ -26,6 +26,18 @@ export interface Translations {
   error: { title: string; defaultMessage: string; eventsMessage: string; retry: string };
   loading: { default: string };
   notFound: { title: string; description: string; backToHome: string };
+  settings: {
+    title: string;
+    language: string;
+    appInfo: string;
+    version: string;
+    build: string;
+    environment: string;
+    bundleId: string;
+    envStoreClient: string;
+    envStandalone: string;
+    envBare: string;
+  };
 }
 
 /**
@@ -106,5 +118,19 @@ export const ca: Translations = {
     title: 'Pàgina no trobada',
     description: 'Aquesta ruta no existeix.',
     backToHome: "Tornar a l'inici",
+  },
+
+  // ── Settings ──────────────────────────────────────────────────────────────
+  settings: {
+    title: 'Ajustos',
+    language: 'Idioma',
+    appInfo: "Informació de l'app",
+    version: 'Versió',
+    build: 'Build',
+    environment: 'Entorn',
+    bundleId: 'Bundle ID',
+    envStoreClient: 'Expo Go',
+    envStandalone: 'Producció',
+    envBare: 'Desenvolupament',
   },
 };

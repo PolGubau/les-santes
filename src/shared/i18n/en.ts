@@ -79,4 +79,18 @@ export const en: Translations = {
     description: 'This route does not exist.',
     backToHome: 'Back to home',
   },
+
+  // ── Settings ──────────────────────────────────────────────────────────────
+  settings: {
+    title: 'Settings',
+    language: 'Language',
+    appInfo: 'App info',
+    version: 'Version',
+    build: 'Build',
+    environment: 'Environment',
+    bundleId: 'Bundle ID',
+    envStoreClient: 'Expo Go',
+    envStandalone: 'Production',
+    envBare: 'Development',
+  },
 };
