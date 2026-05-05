@@ -1,5 +1,8 @@
 # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
+# Google Play service account key — mai al repo
+google-play-key.json
+
 # dependencies
 node_modules/
 
@@ -21,6 +24,8 @@ expo-env.d.ts
 # Metro
 .metro-health-check*
 .expo-start*.log
+
+internal/
 
 # debug
 npm-debug.*

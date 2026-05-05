@@ -5,17 +5,26 @@
     "scheme": "les-santes",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "icon": "./assets/ios-light.png",
+    "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/splash-icon-light.png",
       "resizeMode": "contain",
-      "backgroundColor": "#FAF8F5"
+      "backgroundColor": "#8A1A10",
+      "dark": {
+        "image": "./assets/splash-icon-dark.png",
+        "backgroundColor": "#1a0a08"
+      }
     },
     "ios": {
       "bundleIdentifier": "com.polgubau.lessantes",
       "supportsTablet": false,
+      "icon": {
+        "light": "./assets/ios-light.png",
+        "dark": "./assets/ios-dark.png",
+        "tinted": "./assets/ios-tinted.png"
+      },
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "La app necessita la teva ubicació per mostrar-la al mapa del festival i filtrar actes propers.",
         "ITSAppUsesNonExemptEncryption": false
@@ -25,8 +34,8 @@
       "package": "com.polgubau.lessantes",
       "privacyPolicyUrl": "https://lessantes.polgubau.com/privacy",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon-fg.png",
-        "monochromeImage": "./assets/adaptive-icon-fg.png",
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "monochromeImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#8A1A10"
       },
       "permissions": [
