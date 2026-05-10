@@ -1,16 +1,12 @@
 /**
  * Event repository — single source of truth for event data.
+ * Backed by Supabase (`events` table). RLS handles visibility.
  *
- * Currently backed by static mock data.
- * Swap `fetchEvents` implementation to hit Supabase when ready:
- *
- *   import { getSupabaseClient } from '@/shared/lib/supabase';
- *   const supabase = getSupabaseClient();
- *   const { data } = await supabase.from('events').select('*');
+ * To fall back to mock data during development without Supabase credentials,
+ * swap the export to `new MockEventRepository()` and import from "./mock".
  */
 
-import { MOCK_EVENTS } from "./mock";
-import { withState } from "./state";
+import { SupabaseEventRepository } from "./supabase-repository";
 import type { Event } from "./types";
 
 export interface EventRepository {
@@ -18,18 +14,4 @@ export interface EventRepository {
 	getById(id: string): Promise<Event | undefined>;
 }
 
-/** In-memory repository backed by mock data. */
-class MockEventRepository implements EventRepository {
-	async getAll(): Promise<Event[]> {
-		const now = new Date();
-		return MOCK_EVENTS.map((e) => withState(e, now));
-	}
-
-	async getById(id: string): Promise<Event | undefined> {
-		const now = new Date();
-		const raw = MOCK_EVENTS.find((e) => e.id === id);
-		return raw ? withState(raw, now) : undefined;
-	}
-}
-
-export const eventRepository: EventRepository = new MockEventRepository();
+export const eventRepository: EventRepository = new SupabaseEventRepository();

@@ -1,7 +1,7 @@
 import type { Event } from '@/entities/event';
 import { useFavoritesStore } from '@/features/favorites';
 import { Colors } from '@/shared/constants';
-import { addEventToCalendar, formatTime } from '@/shared/lib';
+import { addEventToCalendar, cancelEventNotification, formatTime, scheduleEventNotification } from '@/shared/lib';
 import { EventIcon } from '@/shared/ui';
 import { Image } from 'expo-image';
 import * as Haptics from 'expo-haptics';
@@ -60,7 +60,13 @@ export function EventCard({ event, onPress, distanceMeters }: Props) {
 
   const handleFavorite = () => {
     Haptics.impactAsync(favorite ? Haptics.ImpactFeedbackStyle.Light : Haptics.ImpactFeedbackStyle.Medium);
+    const isAdding = !favorite;
     toggleFavorite(event.id);
+    if (isAdding) {
+      scheduleEventNotification(event).catch(() => { });
+    } else {
+      cancelEventNotification(event.id).catch(() => { });
+    }
   };
 
   const handleMenu = () => {

@@ -9,18 +9,33 @@
 			"distribution": "internal",
 			"android": {
 				"buildType": "apk"
+			},
+			"env": {
+				"EXPO_PUBLIC_SUPABASE_URL": "https://cvjjkzsflwksyvlasoij.supabase.co",
+				"EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2amprenNmbHdrc3l2bGFzb2lqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzNTk5MTQsImV4cCI6MjA5MTkzNTkxNH0._o4YlcmHG8sCjOqSbY98wta7cByx0KWaPUvXMtqShEU",
+				"EXPO_PUBLIC_FESTIVAL_ID": "les-santes-2026"
 			}
 		},
 		"preview": {
 			"distribution": "internal",
 			"android": {
 				"buildType": "apk"
+			},
+			"env": {
+				"EXPO_PUBLIC_SUPABASE_URL": "https://cvjjkzsflwksyvlasoij.supabase.co",
+				"EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2amprenNmbHdrc3l2bGFzb2lqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzNTk5MTQsImV4cCI6MjA5MTkzNTkxNH0._o4YlcmHG8sCjOqSbY98wta7cByx0KWaPUvXMtqShEU",
+				"EXPO_PUBLIC_FESTIVAL_ID": "les-santes-2026"
 			}
 		},
 		"production": {
 			"autoIncrement": true,
 			"android": {
 				"buildType": "app-bundle"
+			},
+			"env": {
+				"EXPO_PUBLIC_SUPABASE_URL": "https://cvjjkzsflwksyvlasoij.supabase.co",
+				"EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2amprenNmbHdrc3l2bGFzb2lqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzNTk5MTQsImV4cCI6MjA5MTkzNTkxNH0._o4YlcmHG8sCjOqSbY98wta7cByx0KWaPUvXMtqShEU",
+				"EXPO_PUBLIC_FESTIVAL_ID": "les-santes-2026"
 			}
 		}
 	},
