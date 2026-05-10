@@ -1,13 +1,13 @@
 import type { Event } from '@/entities/event';
 import { useEvents } from '@/entities/event';
-import { useMapFocusStore } from '@/features/map/store/useMapFocusStore';
+import { EventSnapSheet, useMapFocusStore } from '@/features/map';
 import { HeroCard, LiveClock, NowCard, UpcomingRow, useNowEvents } from '@/features/now';
 import { Colors } from '@/shared/constants';
 import { t } from '@/shared/i18n';
 import { ErrorState, LoadingState, OfflineBanner, Screen, SectionHeader } from '@/shared/ui';
 import { router } from 'expo-router';
 import { Moon } from 'lucide-react-native';
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
 // ─── Screen ──────────────────────────────────────────────────────────────────
@@ -16,8 +16,15 @@ export default function AraScreen() {
   const { events, loading, error, isOffline, cacheTimestamp, refresh } = useEvents();
   const { now, upcoming } = useNowEvents(events);
   const focusEvent = useMapFocusStore((s) => s.focusEvent);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
 
   const handlePress = useCallback((event: Event) => {
+    setSelectedEvent(event);
+  }, []);
+
+  const handleSnapClose = useCallback(() => setSelectedEvent(null), []);
+
+  const handleViewInMap = useCallback((event: Event) => {
     focusEvent(event.id);
     router.push('/(tabs)/mapa');
   }, [focusEvent]);
@@ -108,6 +115,15 @@ export default function AraScreen() {
           </View>
         )}
       </ScrollView>
+
+      {selectedEvent && (
+        <EventSnapSheet
+          event={selectedEvent}
+          onClose={handleSnapClose}
+          showViewInMap
+          onViewInMap={() => handleViewInMap(selectedEvent)}
+        />
+      )}
     </Screen>
   );
 }

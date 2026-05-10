@@ -1,9 +1,8 @@
 import type { Event } from '@/entities/event';
 import { MOCK_EVENTS } from '@/entities/event';
 import {
-  EventDetailSheet,
-  EventFloatingCard,
   EventMap,
+  EventSnapSheet,
   MapEventsDrawer,
   MapHeader,
   useMapEvents,
@@ -19,7 +18,6 @@ export default function MapaScreen() {
     useMapEvents(MOCK_EVENTS);
 
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-  const [showDetail, setShowDetail] = useState(false);
   const [showDrawer, setShowDrawer] = useState(false);
   const [clusterEvents, setClusterEvents] = useState<Event[] | null>(null);
   const [searchText, setSearchText] = useState('');
@@ -52,7 +50,6 @@ export default function MapaScreen() {
     if (!focusedEvent) return;
     mapRef.current.focusOnEvent(pendingFocusId);
     setSelectedEvent(focusedEvent);
-    setShowDetail(false);
     setShowDrawer(false);
     setPendingFocusId(null);
   }, [mapEvents, pendingFocusId]);
@@ -67,19 +64,16 @@ export default function MapaScreen() {
   const handleEventPress = useCallback((event: Event) => {
     setShowDrawer(false);
     setClusterEvents(null);
-    setShowDetail(false);
     setSelectedEvent(event);
   }, []);
   const handleClusterPress = useCallback((events: Event[]) => {
     setSelectedEvent(null);
-    setShowDetail(false);
     setClusterEvents(events);
   }, []);
   const handleSearchChange = useCallback((text: string) => {
     setSearchText(text);
     setSelectedEvent(null);
     setClusterEvents(null);
-    setShowDetail(false);
     setShowDrawer(text.trim().length > 0);
   }, []);
   const handleSearchFocus = useCallback(() => {
@@ -88,12 +82,8 @@ export default function MapaScreen() {
   const handleListPress = useCallback(() => { setClusterEvents(null); setShowDrawer(true); }, []);
   const handleDrawerClose = useCallback(() => setShowDrawer(false), []);
   const handleClusterDrawerClose = useCallback(() => setClusterEvents(null), []);
-  const deselect = useCallback(() => {
-    mapRef.current?.deselect();
-  }, []);
-  const handleCardClose = useCallback(() => { setSelectedEvent(null); setShowDetail(false); deselect(); }, [deselect]);
-  const handleCardExpand = useCallback(() => setShowDetail(true), []);
-  const handleDetailClose = useCallback(() => { setShowDetail(false); deselect(); }, [deselect]);
+  const deselect = useCallback(() => { mapRef.current?.deselect(); }, []);
+  const handleSnapClose = useCallback(() => { setSelectedEvent(null); deselect(); }, [deselect]);
 
   return (
     <Screen safe={false}>
@@ -138,18 +128,12 @@ export default function MapaScreen() {
         />
       )}
 
-      {/* Floating card — no backdrop, tap to expand to full detail */}
-      {!showDrawer && !showDetail && selectedEvent && (
-        <EventFloatingCard
+      {/* Event snap sheet — peek/full on map event press */}
+      {!showDrawer && selectedEvent && (
+        <EventSnapSheet
           event={selectedEvent}
-          onClose={handleCardClose}
-          onExpand={handleCardExpand}
+          onClose={handleSnapClose}
         />
-      )}
-
-      {/* Full detail sheet — opens when floating card is tapped */}
-      {!showDrawer && showDetail && selectedEvent && (
-        <EventDetailSheet event={selectedEvent} onClose={handleDetailClose} />
       )}
     </Screen>
   );

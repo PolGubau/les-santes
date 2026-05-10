@@ -2,20 +2,21 @@ import type { Event } from "@/entities/event";
 import { useEvents } from "@/entities/event";
 import { AgendaFilterBar, AgendaList, DayPicker, useAgenda } from "@/features/agenda";
 import { useFavoritesStore } from "@/features/favorites";
-import { useMapFocusStore } from "@/features/map/store/useMapFocusStore";
+import { EventSnapSheet, useMapFocusStore } from "@/features/map";
 import { Colors } from "@/shared/constants";
 import { t } from "@/shared/i18n";
 import { useUserLocation } from "@/shared/hooks";
 import { ErrorState, OfflineBanner, Screen } from "@/shared/ui";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
-import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { NativeScrollEvent, NativeSyntheticEvent } from "react-native";
 import { FlatList, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 
 export default function AgendaScreen() {
   const { width: SCREEN_WIDTH } = useWindowDimensions();
   const { focusEvent } = useMapFocusStore();
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
 
   const userCoords = useUserLocation();
   const flatRef = useRef<FlatList<string>>(null);
@@ -75,6 +76,12 @@ export default function AgendaScreen() {
   }, [refresh]);
 
   const handleEventPress = useCallback((event: Event) => {
+    setSelectedEvent(event);
+  }, []);
+
+  const handleSnapClose = useCallback(() => setSelectedEvent(null), []);
+
+  const handleViewInMap = useCallback((event: Event) => {
     focusEvent(event.id);
     router.push('/(tabs)/mapa');
   }, [focusEvent]);
@@ -158,6 +165,15 @@ export default function AgendaScreen() {
           </View>
         )}
       />
+
+      {selectedEvent && (
+        <EventSnapSheet
+          event={selectedEvent}
+          onClose={handleSnapClose}
+          showViewInMap
+          onViewInMap={() => handleViewInMap(selectedEvent)}
+        />
+      )}
     </Screen>
   );
 }

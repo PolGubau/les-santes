@@ -1,5 +1,4 @@
-export * from "./components/EventDetailSheet";
-export * from "./components/EventFloatingCard";
+export * from "./components/EventSnapSheet";
 export * from "./components/EventMap";
 export * from "./components/MapEventsDrawer";
 export * from "./components/MapHeader";
