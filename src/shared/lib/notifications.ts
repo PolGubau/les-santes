@@ -2,25 +2,33 @@
  * Notification utilities — local (favorites) + remote push token registration.
  */
 import type { Event } from '@/entities/event';
-import Constants, { ExecutionEnvironment } from 'expo-constants';
+import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
-/** Returns true when running inside Expo Go (remote push tokens are unsupported there since SDK 53). */
-const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
-
 const MINUTES_BEFORE = 30;
 const PROJECT_ID = 'dffc30d5-6870-47b8-979f-a842d6848eb5';
 
-// Must be set at module level before any notification is shown
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
+/**
+ * True when running inside Expo Go.
+ * Remote push notifications are not supported there since SDK 53.
+ * `appOwnership === 'expo'` is the canonical Expo Go detection.
+ */
+export const isExpoGo =
+  Constants.appOwnership === 'expo' || Constants.executionEnvironment === 'storeClient';
+
+// Local notification handler — safe in Expo Go. Guard it anyway to avoid
+// any internal Android remote-notification setup that some versions trigger.
+if (!isExpoGo) {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    }),
+  });
+}
 
 /** Request permission + get Expo push token + save it to Supabase. */
 export async function requestPermissionAndRegisterToken(): Promise<string | null> {
