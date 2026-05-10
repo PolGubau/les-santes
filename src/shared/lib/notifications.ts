@@ -2,9 +2,13 @@
  * Notification utilities — local (favorites) + remote push token registration.
  */
 import type { Event } from '@/entities/event';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
+
+/** Returns true when running inside Expo Go (remote push tokens are unsupported there since SDK 53). */
+const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
 
 const MINUTES_BEFORE = 30;
 const PROJECT_ID = 'dffc30d5-6870-47b8-979f-a842d6848eb5';
@@ -20,7 +24,8 @@ Notifications.setNotificationHandler({
 
 /** Request permission + get Expo push token + save it to Supabase. */
 export async function requestPermissionAndRegisterToken(): Promise<string | null> {
-  if (!Device.isDevice) return null;
+  // Remote push tokens are not supported in Expo Go since SDK 53.
+  if (isExpoGo || !Device.isDevice) return null;
 
   const { status: existing } = await Notifications.getPermissionsAsync();
   let finalStatus = existing;
