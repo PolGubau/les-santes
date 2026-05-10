@@ -1,5 +1,5 @@
 import { isExpoGo, requestPermissionAndRegisterToken } from '@/shared/lib/notifications';
-import * as Notifications from 'expo-notifications';
+import type { EventSubscription } from 'expo-notifications';
 import { router } from 'expo-router';
 import { useEffect, useRef } from 'react';
 
@@ -8,30 +8,38 @@ import { useEffect, useRef } from 'react';
  * - Request permission & register Expo push token
  * - Handle taps on incoming notifications (navigate to agenda)
  *
- * All remote-notification APIs are skipped in Expo Go (unsupported since SDK 53).
+ * expo-notifications is dynamically imported to avoid the module-level side
+ * effect in DevicePushTokenAutoRegistration.fx that throws on Android Expo Go.
  */
 export function usePushNotifications() {
-  const responseListener = useRef<Notifications.EventSubscription | null>(null);
+  const responseListener = useRef<EventSubscription | null>(null);
 
   useEffect(() => {
     if (isExpoGo) return;
 
+    let cancelled = false;
+
     // Request permission + register token (fire-and-forget, non-fatal)
     requestPermissionAndRegisterToken().catch(() => {});
 
-    // Navigate to agenda when user taps a notification
-    responseListener.current = Notifications.addNotificationResponseReceivedListener(
-      (response) => {
-        const eventId = response.notification.request.content.data?.eventId as
-          | string
-          | undefined;
-        if (eventId) {
-          router.push('/(tabs)/agenda');
-        }
-      },
-    );
+    // Dynamic import so the module-level side effect never runs in Expo Go
+    import('expo-notifications').then((Notifications) => {
+      if (cancelled) return;
+      // Navigate to agenda when user taps a notification
+      responseListener.current = Notifications.addNotificationResponseReceivedListener(
+        (response) => {
+          const eventId = response.notification.request.content.data?.eventId as
+            | string
+            | undefined;
+          if (eventId) {
+            router.push('/(tabs)/agenda');
+          }
+        },
+      );
+    });
 
     return () => {
+      cancelled = true;
       responseListener.current?.remove();
     };
   }, []);
