@@ -1,33 +1,23 @@
-import type { Event } from '@/entities/event';
+import { useAnnouncements } from '@/entities/announcement';
 import { useEvents } from '@/entities/event';
-import { EventSnapSheet, useMapFocusStore } from '@/features/map';
 import { HeroCard, LiveClock, NowCard, UpcomingRow, useNowEvents } from '@/features/now';
 import { Colors } from '@/shared/constants';
 import { t } from '@/shared/i18n';
-import { ErrorState, LoadingState, OfflineBanner, Screen, SectionHeader } from '@/shared/ui';
+import { AnnouncementBanner, ErrorState, LoadingState, OfflineBanner, Screen, SectionHeader } from '@/shared/ui';
 import { router } from 'expo-router';
 import { Moon } from 'lucide-react-native';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback } from 'react';
 import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
 // ─── Screen ──────────────────────────────────────────────────────────────────
 export default function AraScreen() {
   useWindowDimensions(); // keeps layout reactive on rotation
   const { events, loading, error, isOffline, cacheTimestamp, refresh } = useEvents();
+  const announcements = useAnnouncements();
   const { now, upcoming } = useNowEvents(events);
-  const focusEvent = useMapFocusStore((s) => s.focusEvent);
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-
-  const handlePress = useCallback((event: Event) => {
-    setSelectedEvent(event);
+  const handlePress = useCallback((id: string) => {
+    router.push(`/event/${id}`);
   }, []);
-
-  const handleSnapClose = useCallback(() => setSelectedEvent(null), []);
-
-  const handleViewInMap = useCallback((event: Event) => {
-    focusEvent(event.id);
-    router.push('/(tabs)/mapa');
-  }, [focusEvent]);
 
   // Hero = first live event, or first upcoming if nothing is live
   const hero = now[0] ?? upcoming[0];
@@ -60,6 +50,8 @@ export default function AraScreen() {
         <OfflineBanner cacheTimestamp={cacheTimestamp} onRefresh={refresh} />
       )}
 
+      <AnnouncementBanner announcements={announcements} />
+
       {loading && events.length === 0 && <LoadingState />}
 
       <ScrollView
@@ -78,7 +70,7 @@ export default function AraScreen() {
         )}
 
         {/* Hero */}
-        {hero && <HeroCard event={hero} onPress={() => handlePress(hero)} />}
+        {hero && <HeroCard event={hero} onPress={() => handlePress(hero.id)} />}
 
         {/* Ara Mateix strip — skips hero (now[0]) to avoid duplication */}
         {nowStrip.length > 0 && (
@@ -90,7 +82,7 @@ export default function AraScreen() {
               contentContainerStyle={styles.nowStrip}
             >
               {nowStrip.map((e) => (
-                <NowCard key={e.id} event={e} onPress={() => handlePress(e)} />
+                <NowCard key={e.id} event={e} onPress={() => handlePress(e.id)} />
               ))}
             </ScrollView>
           </View>
@@ -101,7 +93,7 @@ export default function AraScreen() {
           <View style={styles.section}>
             <SectionHeader title="A continuació" count={upcoming.length} />
             {upcoming.map((e) => (
-              <UpcomingRow key={e.id} event={e} onPress={() => handlePress(e)} />
+              <UpcomingRow key={e.id} event={e} onPress={() => handlePress(e.id)} />
             ))}
           </View>
         )}
@@ -116,14 +108,7 @@ export default function AraScreen() {
         )}
       </ScrollView>
 
-      {selectedEvent && (
-        <EventSnapSheet
-          event={selectedEvent}
-          onClose={handleSnapClose}
-          showViewInMap
-          onViewInMap={() => handleViewInMap(selectedEvent)}
-        />
-      )}
+
     </Screen>
   );
 }

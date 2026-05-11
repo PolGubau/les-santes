@@ -33,15 +33,22 @@ export const MapHeader = React.memo(function MapHeader({
 }: Props) {
   const insets = useSafeAreaInsets();
   const scrollRef = useRef<ScrollView>(null);
-  const chipOffsetsRef = useRef<Record<string, number>>({});
+  // Store { x, width } so we can compute the chip's true centre
+  const chipOffsetsRef = useRef<Record<string, { x: number; width: number }>>({});
   const scrollWidthRef = useRef(0);
+  const selectedDayRef = useRef(selectedDay);
+  useEffect(() => { selectedDayRef.current = selectedDay; }, [selectedDay]);
 
-  // Centre the selected chip whenever selectedDay changes
-  useEffect(() => {
-    const x = chipOffsetsRef.current[selectedDay];
-    if (x == null) return;
-    scrollRef.current?.scrollTo({ x: x - scrollWidthRef.current / 2 + 40, animated: true });
-  }, [selectedDay]);
+  const scrollToDay = useCallback((day: string) => {
+    const info = chipOffsetsRef.current[day];
+    if (info == null) return;
+    const chipCentre = info.x + info.width / 2;
+    const centred = chipCentre - scrollWidthRef.current / 2;
+    scrollRef.current?.scrollTo({ x: Math.max(0, centred), animated: true });
+  }, []);
+
+  // Centre whenever selected day changes
+  useEffect(() => { scrollToDay(selectedDay); }, [selectedDay, scrollToDay]);
 
   const handleDaySelect = useCallback(
     (day: string) => {
@@ -101,7 +108,12 @@ export const MapHeader = React.memo(function MapHeader({
               key={day}
               style={[styles.chip, isSelected && styles.chipSelected]}
               onPress={() => handleDaySelect(day)}
-              onLayout={(e) => { chipOffsetsRef.current[day] = e.nativeEvent.layout.x; }}
+              onLayout={(e) => {
+                const { x, width } = e.nativeEvent.layout;
+                chipOffsetsRef.current[day] = { x, width };
+                // Cover initial render: scroll if this is the selected chip
+                if (day === selectedDayRef.current) scrollToDay(day);
+              }}
             >
               <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
                 {isToday ? 'Avui' : formatDayShort(day)}

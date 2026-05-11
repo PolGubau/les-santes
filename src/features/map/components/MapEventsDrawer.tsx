@@ -46,7 +46,7 @@ export function MapEventsDrawer({ events, selectedDay, onClose, searchQuery, clu
   const nowCount = events.filter((e) => e.state === 'now').length;
 
   return (
-    <BottomSheet onClose={onClose} height={height * 0.75}>
+    <BottomSheet onClose={onClose} height={height * 0.75} peekHeight={height * 0.38}>
       <View style={styles.header}>
         {clusterTitle ? (
           <>

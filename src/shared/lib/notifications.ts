@@ -72,8 +72,9 @@ export async function requestPermissionAndRegisterToken(): Promise<string | null
     const supabase = getSupabaseClient();
     await supabase
       .from('push_tokens')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .upsert(
-        { token, platform: Platform.OS, last_seen_at: new Date().toISOString() },
+        { token, platform: Platform.OS, last_seen_at: new Date().toISOString() } as any,
         { onConflict: 'token' },
       );
   } catch {

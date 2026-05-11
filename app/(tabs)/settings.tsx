@@ -43,7 +43,6 @@ function LocaleOption({ label, flag, active, onPress }: {
       accessibilityState={{ checked: active }}
       accessibilityLabel={label}
     >
-      <Text style={styles.localeFlag}>{flag}</Text>
       <Text style={[styles.localeLabel, active && styles.localeLabelActive]}>{label}</Text>
       {active && <View style={styles.localeDot} />}
     </TouchableOpacity>

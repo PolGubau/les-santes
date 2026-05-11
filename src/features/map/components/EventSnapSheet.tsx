@@ -15,7 +15,9 @@ import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const PEEK_H = 210;
+// handle(~18) + peekSection padding+content(~86) + buffer = 130
+// Keeps the image fully hidden at the first snap point.
+const PEEK_H = 100;
 const FULL_H = 560;
 const DEFAULT_BLURHASH = 'L6Pj0^jE.AyE_3t7t7R**0o#DgR4';
 
@@ -86,9 +88,7 @@ export function EventSnapSheet({ event, onClose, showViewInMap, onViewInMap }: P
       >
         <View style={styles.peekSection}>
           <View style={styles.peekRow}>
-            <View style={[styles.iconBox, { backgroundColor: `${stateColor}18` }]}>
-              <EventIcon icon={event.icon} size={22} color={stateColor} />
-            </View>
+
             <View style={styles.peekText}>
               <View style={styles.titleRow}>
                 <Text style={styles.title} numberOfLines={1}>{event.title}</Text>
@@ -209,16 +209,8 @@ const styles = StyleSheet.create({
   peekRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
+    paddingTop: 8,
     gap: 12,
-  },
-  iconBox: {
-    width: 46,
-    height: 46,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-    marginTop: 2,
   },
   peekText: {
     flex: 1,
@@ -257,6 +249,7 @@ const styles = StyleSheet.create({
   desc: {
     color: Colors.textMuted,
     fontSize: 13,
+    minHeight: 36,
     lineHeight: 18,
   },
 
@@ -297,9 +290,12 @@ const styles = StyleSheet.create({
   actions: {
     paddingHorizontal: 16,
     paddingTop: 12,
+    display: 'flex',
+    flexDirection: 'row',
     gap: 10,
   },
   calendarBtn: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -307,6 +303,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     paddingVertical: 14,
     borderRadius: 14,
+    paddingHorizontal: 12,
+
   },
   calendarBtnText: {
     color: '#fff',
@@ -314,12 +312,14 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   mapBtn: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
     backgroundColor: Colors.surfaceHigh,
     paddingVertical: 14,
+    paddingHorizontal: 12,
     borderRadius: 14,
   },
   mapBtnText: {

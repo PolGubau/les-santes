@@ -1,6 +1,6 @@
 import { Colors } from "@/shared/constants";
 import * as Haptics from "expo-haptics";
-import React, { useEffect, useRef } from "react"; // useRef kept for ScrollView ref
+import React, { useCallback, useEffect, useRef } from "react";
 import {
 	Pressable,
 	ScrollView,
@@ -12,7 +12,6 @@ import Animated, {
 	useAnimatedStyle,
 	withSpring,
 	withTiming,
-	withSequence,
 } from "react-native-reanimated";
 
 interface Props {
@@ -37,9 +36,10 @@ interface ChipProps {
 	selected: boolean;
 	isToday: boolean;
 	onSelect: (key: string) => void;
+	onLayout: (key: string, offsetX: number) => void;
 }
 
-function DayChip({ dateKey, selected, isToday, onSelect }: ChipProps) {
+function DayChip({ dateKey, selected, isToday, onSelect, onLayout }: ChipProps) {
 	const scale = useSharedValue(1);
 	const { weekday, day } = parseDayLabel(dateKey);
 
@@ -47,17 +47,7 @@ function DayChip({ dateKey, selected, isToday, onSelect }: ChipProps) {
 		transform: [{ scale: scale.value }],
 	}));
 
-	// Bounce pop + haptic when this chip becomes selected
-	useEffect(() => {
-		if (selected) {
-			Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-			scale.value = withSequence(
-				withTiming(0.88, { duration: 80 }),
-				withSpring(1, { damping: 8, stiffness: 220 }),
-			);
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [selected]);
+	// No animation on selection-change — avoids bridge calls during FlatList scroll.
 
 	const handlePressIn = () => {
 		scale.value = withTiming(0.96, { duration: 70 });
@@ -69,9 +59,13 @@ function DayChip({ dateKey, selected, isToday, onSelect }: ChipProps) {
 
 	return (
 		<Pressable
-			onPress={() => onSelect(dateKey)}
+			onPress={() => {
+				Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+				onSelect(dateKey);
+			}}
 			onPressIn={handlePressIn}
 			onPressOut={handlePressOut}
+			onLayout={(e) => onLayout(dateKey, e.nativeEvent.layout.x)}
 			accessibilityRole="tab"
 			accessibilityLabel={`${weekday} ${day}${isToday ? ', avui' : ''}`}
 			accessibilityState={{ selected }}
@@ -97,13 +91,28 @@ function DayChip({ dateKey, selected, isToday, onSelect }: ChipProps) {
 
 export function DayPicker({ days, selected, todayKey, onSelect }: Props) {
 	const scrollRef = useRef<ScrollView>(null);
-	const selectedIndex = days.indexOf(selected);
+	const chipOffsetsRef = useRef<Record<string, number>>({});
+	const scrollWidthRef = useRef(0);
+	const selectedRef = useRef(selected);
+	useEffect(() => { selectedRef.current = selected; }, [selected]);
 
+	const scrollToSelected = useCallback((_key: string, offsetX: number) => {
+		// chip width is fixed at 52; centre = offsetX + 26
+		const centred = offsetX + 26 - scrollWidthRef.current / 2;
+		scrollRef.current?.scrollTo({ x: Math.max(0, centred), animated: true });
+	}, []);
+
+	// Scroll when selected changes and offset is already known
 	useEffect(() => {
-		if (selectedIndex >= 0) {
-			scrollRef.current?.scrollTo({ x: selectedIndex * 64, animated: true });
-		}
-	}, [selectedIndex]);
+		const x = chipOffsetsRef.current[selected];
+		if (x != null) scrollToSelected(selected, x);
+	}, [selected, scrollToSelected]);
+
+	const handleChipLayout = useCallback((key: string, offsetX: number) => {
+		chipOffsetsRef.current[key] = offsetX;
+		// If this chip is the selected one, scroll now (covers initial render race)
+		if (key === selectedRef.current) scrollToSelected(key, offsetX);
+	}, [scrollToSelected]);
 
 	return (
 		<ScrollView
@@ -111,6 +120,7 @@ export function DayPicker({ days, selected, todayKey, onSelect }: Props) {
 			horizontal
 			showsHorizontalScrollIndicator={false}
 			contentContainerStyle={styles.container}
+			onLayout={(e) => { scrollWidthRef.current = e.nativeEvent.layout.width; }}
 		>
 			{days.map((key) => (
 				<DayChip
@@ -119,6 +129,7 @@ export function DayPicker({ days, selected, todayKey, onSelect }: Props) {
 					selected={key === selected}
 					isToday={key === todayKey}
 					onSelect={onSelect}
+					onLayout={handleChipLayout}
 				/>
 			))}
 		</ScrollView>

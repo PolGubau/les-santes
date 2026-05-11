@@ -7,13 +7,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 interface Props {
   onClose: () => void;
   height?: number;
+  /** Initial visible height (peek state). Dragging up expands to full height. */
+  peekHeight?: number;
   children: React.ReactNode;
 }
 
-export function BottomSheet({ onClose, height = 420, children }: Props) {
+export function BottomSheet({ onClose, height = 420, peekHeight, children }: Props) {
   const insets = useSafeAreaInsets();
   const { translateY, overlayOpacity, panResponder, open, dismiss } = useBottomSheet({
     height,
+    peekHeight,
     onClose,
   });
 
@@ -32,7 +35,13 @@ export function BottomSheet({ onClose, height = 420, children }: Props) {
   }, []);
 
   return (
-    <Animated.View style={[styles.overlay, { opacity: overlayOpacity, bottom: keyboardHeight }]}>
+    <View style={[styles.overlay, { bottom: keyboardHeight }]}>
+      {/* Dim layer — visual only, never blocks touches */}
+      <Animated.View
+        style={[StyleSheet.absoluteFill, styles.dim, { opacity: overlayOpacity }]}
+        pointerEvents="none"
+      />
+      {/* Tap-to-dismiss — always active regardless of overlay opacity */}
       <Pressable style={StyleSheet.absoluteFill} onPress={dismiss} />
       <Animated.View
         style={[
@@ -45,15 +54,17 @@ export function BottomSheet({ onClose, height = 420, children }: Props) {
         </View>
         {children}
       </Animated.View>
-    </Animated.View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.55)',
     justifyContent: 'flex-end',
+  },
+  dim: {
+    backgroundColor: 'rgba(0,0,0,0.55)',
   },
   sheet: {
     backgroundColor: Colors.surface,

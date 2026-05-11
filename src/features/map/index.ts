@@ -4,4 +4,7 @@ export * from "./components/MapEventsDrawer";
 export * from "./components/MapHeader";
 export * from "./hooks/useEventPositions";
 export * from "./hooks/useMapEvents";
+export * from "./hooks/useMapSearch";
+export * from "./hooks/useMapSelection";
+export * from "./hooks/useMapFocusSync";
 export * from "./store/useMapFocusStore";

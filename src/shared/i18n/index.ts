@@ -2,14 +2,15 @@ import { getLocales } from 'expo-localization';
 import { I18n } from 'i18n-js';
 import { ca } from './ca';
 import { en } from './en';
+import { es } from './es';
 
 /**
  * Singleton i18n instance.
  * Locale is resolved once at startup from the device settings.
- * Only 'ca' (Catalan) and 'en' (English) are supported; everything else
- * falls back to Catalan as it is the primary language of the festival.
+ * Only 'ca' (Catalan), 'en' (English) and 'es' (Spanish) are supported;
+ * everything else falls back to Catalan as it is the primary language of the festival.
  */
-const i18n = new I18n({ ca, en });
+const i18n = new I18n({ ca, en, es });
 
 // Resolve locale from the device's preferred locales list
 const deviceLocale = getLocales()[0]?.languageCode ?? 'ca';

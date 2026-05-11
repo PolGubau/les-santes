@@ -3,10 +3,11 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import { create } from 'zustand';
 import { i18n } from '@/shared/i18n';
 
-export type AppLocale = 'ca' | 'en';
+export type AppLocale = 'ca' | 'en' | 'es';
 
 export const LOCALES: { code: AppLocale; label: string; flag: string }[] = [
   { code: 'ca', label: 'Català', flag: '🏴󠁥󠁳󠁣󠁴󠁿' },
+  { code: 'es', label: 'Español', flag: '🇪🇸' },
   { code: 'en', label: 'English', flag: '🇬🇧' },
 ];
 

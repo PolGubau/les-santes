@@ -6,92 +6,41 @@ import {
   MapEventsDrawer,
   MapHeader,
   useMapEvents,
+  useMapFocusSync,
+  useMapSearch,
+  useMapSelection,
 } from '@/features/map';
 import type { EventMapHandle } from '@/features/map/components/EventMap';
-import { useMapFocusStore } from '@/features/map/store/useMapFocusStore';
-import { toFestivalDayKey } from '@/shared/lib/time';
 import { Screen } from '@/shared/ui';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useRef } from 'react';
 
 export default function MapaScreen() {
-  const { mapEvents, drawerEvents, selectedDay, availableDays, todayKey, setDay } =
+  const { mapEvents, drawerEvents, selectedDay, availableDays, todayKey, setDay, liveCount } =
     useMapEvents(MOCK_EVENTS);
 
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-  const [showDrawer, setShowDrawer] = useState(false);
-  const [clusterEvents, setClusterEvents] = useState<Event[] | null>(null);
-  const [searchText, setSearchText] = useState('');
-  const [pendingFocusId, setPendingFocusId] = useState<string | null>(null);
-
-  const { focusedEventId, clearFocus } = useMapFocusStore();
   const mapRef = useRef<EventMapHandle | null>(null);
 
-  // Filter events on the map by search text
-  const filteredMapEvents = useMemo(() => {
-    if (!searchText.trim()) return mapEvents;
-    const q = searchText.toLowerCase();
-    return mapEvents.filter((e) => e.title.toLowerCase().includes(q));
-  }, [mapEvents, searchText]);
+  const selection = useMapSelection(mapRef);
 
-  useEffect(() => {
-    if (focusedEventId) {
-      const focusedEvent = MOCK_EVENTS.find((event) => event.id === focusedEventId);
-      if (focusedEvent) {
-        setDay(toFestivalDayKey(new Date(focusedEvent.start)));
-        setPendingFocusId(focusedEventId);
-      }
-      clearFocus();
-    }
-  }, [focusedEventId, clearFocus, setDay]);
+  const search = useMapSearch(mapEvents, (isSearching) => selection.reset(isSearching));
 
-  useEffect(() => {
-    if (!pendingFocusId || !mapRef.current) return;
-    const focusedEvent = mapEvents.find((event) => event.id === pendingFocusId);
-    if (!focusedEvent) return;
-    mapRef.current.focusOnEvent(pendingFocusId);
-    setSelectedEvent(focusedEvent);
-    setShowDrawer(false);
-    setPendingFocusId(null);
-  }, [mapEvents, pendingFocusId]);
-
-  const liveCount = useMemo(
-    () => mapEvents.filter((e) => e.kind === 'mobile' && e.state === 'now').length,
-    [mapEvents],
+  const handleFocus = useCallback(
+    (event: Event) => {
+      selection.setSelectedEvent(event);
+      selection.setShowDrawer(false);
+    },
+    [selection],
   );
 
-  const isSearching = searchText.trim().length > 0;
-
-  const handleEventPress = useCallback((event: Event) => {
-    setShowDrawer(false);
-    setClusterEvents(null);
-    setSelectedEvent(event);
-  }, []);
-  const handleClusterPress = useCallback((events: Event[]) => {
-    setSelectedEvent(null);
-    setClusterEvents(events);
-  }, []);
-  const handleSearchChange = useCallback((text: string) => {
-    setSearchText(text);
-    setSelectedEvent(null);
-    setClusterEvents(null);
-    setShowDrawer(text.trim().length > 0);
-  }, []);
-  const handleSearchFocus = useCallback(() => {
-    if (searchText.trim().length > 0) setShowDrawer(true);
-  }, [searchText]);
-  const handleListPress = useCallback(() => { setClusterEvents(null); setShowDrawer(true); }, []);
-  const handleDrawerClose = useCallback(() => setShowDrawer(false), []);
-  const handleClusterDrawerClose = useCallback(() => setClusterEvents(null), []);
-  const deselect = useCallback(() => { mapRef.current?.deselect(); }, []);
-  const handleSnapClose = useCallback(() => { setSelectedEvent(null); deselect(); }, [deselect]);
+  useMapFocusSync({ mapEvents, mapRef, setDay, onFocus: handleFocus });
 
   return (
     <Screen safe={false}>
       <EventMap
         ref={mapRef}
-        events={filteredMapEvents}
-        onEventPress={handleEventPress}
-        onClusterPress={handleClusterPress}
+        events={search.filteredEvents}
+        onEventPress={selection.handleEventPress}
+        onClusterPress={selection.handleClusterPress}
       />
 
       <MapHeader
@@ -99,40 +48,38 @@ export default function MapaScreen() {
         availableDays={availableDays}
         todayKey={todayKey}
         liveCount={liveCount}
-        searchText={searchText}
-        isFiltering={isSearching}
+        searchText={search.searchText}
+        isFiltering={search.isSearching}
         onDayChange={setDay}
-        onListPress={handleListPress}
-        onSearchChange={handleSearchChange}
-        onSearchFocus={handleSearchFocus}
+        onListPress={selection.handleListPress}
+        onSearchChange={search.handleSearchChange}
+        onSearchFocus={search.handleSearchFocus}
       />
 
-      {showDrawer && (
+      {selection.showDrawer && (
         <MapEventsDrawer
-          events={isSearching ? filteredMapEvents : drawerEvents}
+          events={search.isSearching ? search.filteredEvents : drawerEvents}
           selectedDay={selectedDay}
-          searchQuery={isSearching ? searchText.trim() : undefined}
-          onClose={handleDrawerClose}
-          onEventPress={handleEventPress}
+          searchQuery={search.isSearching ? search.searchText.trim() : undefined}
+          onClose={selection.handleDrawerClose}
+          onEventPress={selection.handleEventPress}
         />
       )}
 
-      {/* Co-located events picker — shown when tapping a cluster that can't expand */}
-      {!showDrawer && clusterEvents && (
+      {!selection.showDrawer && selection.clusterEvents && (
         <MapEventsDrawer
-          events={clusterEvents}
+          events={selection.clusterEvents}
           selectedDay={selectedDay}
-          clusterTitle={`${clusterEvents.length} actes al mateix lloc`}
-          onClose={handleClusterDrawerClose}
-          onEventPress={handleEventPress}
+          clusterTitle={`${selection.clusterEvents.length} actes al mateix lloc`}
+          onClose={selection.handleClusterDrawerClose}
+          onEventPress={selection.handleEventPress}
         />
       )}
 
-      {/* Event snap sheet — peek/full on map event press */}
-      {!showDrawer && selectedEvent && (
+      {!selection.showDrawer && selection.selectedEvent && (
         <EventSnapSheet
-          event={selectedEvent}
-          onClose={handleSnapClose}
+          event={selection.selectedEvent}
+          onClose={selection.handleSnapClose}
         />
       )}
     </Screen>

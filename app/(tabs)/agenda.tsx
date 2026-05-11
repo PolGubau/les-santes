@@ -1,29 +1,28 @@
+import { useAnnouncements } from "@/entities/announcement";
 import type { Event } from "@/entities/event";
 import { useEvents } from "@/entities/event";
 import { AgendaFilterBar, AgendaList, DayPicker, useAgenda } from "@/features/agenda";
 import { useFavoritesStore } from "@/features/favorites";
-import { EventSnapSheet, useMapFocusStore } from "@/features/map";
 import { Colors } from "@/shared/constants";
 import { t } from "@/shared/i18n";
 import { useUserLocation } from "@/shared/hooks";
-import { ErrorState, OfflineBanner, Screen } from "@/shared/ui";
+import { AnnouncementBanner, ErrorState, LoadingState, OfflineBanner, Screen } from "@/shared/ui";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import type { NativeScrollEvent, NativeSyntheticEvent } from "react-native";
 import { FlatList, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 
 export default function AgendaScreen() {
   const { width: SCREEN_WIDTH } = useWindowDimensions();
-  const { focusEvent } = useMapFocusStore();
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
 
+  const announcements = useAnnouncements();
   const userCoords = useUserLocation();
   const flatRef = useRef<FlatList<string>>(null);
-  const isScrollingFromPicker = useRef(false);
+  // 'picker' = DayPicker tapped, 'swipe' = user dragged FlatList
+  const swipeSourceRef = useRef<'picker' | 'swipe'>('picker');
 
   const { events, loading, error, isOffline, cacheTimestamp, refresh } = useEvents();
-  // `loading` is true on first fetch; use it as pull-to-refresh indicator only after first data
   const refreshing = loading && events.length > 0;
 
   const { favorites } = useFavoritesStore();
@@ -44,26 +43,24 @@ export default function AgendaScreen() {
 
   const dayCount = filteredByDay.get(selectedDay)?.length ?? 0;
 
-  // Sync FlatList position when DayPicker selection changes
+  // DayPicker tap → scroll FlatList (skip when change came from swipe)
   useEffect(() => {
+    if (swipeSourceRef.current === 'swipe') {
+      swipeSourceRef.current = 'picker';
+      return;
+    }
     const idx = availableDays.indexOf(selectedDay);
     if (idx < 0 || !flatRef.current) return;
-    isScrollingFromPicker.current = true;
     flatRef.current.scrollToIndex({ index: idx, animated: true });
-    // Safety: reset flag even if scrollToIndex doesn't fire onMomentumScrollEnd
-    const timer = setTimeout(() => { isScrollingFromPicker.current = false; }, 500);
-    return () => clearTimeout(timer);
   }, [selectedDay, availableDays]);
 
-  const handleFlatListScroll = useCallback(
+  // Commit day change only after momentum stops — no re-renders during scroll
+  const handleMomentumScrollEnd = useCallback(
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-      if (isScrollingFromPicker.current) {
-        isScrollingFromPicker.current = false;
-        return;
-      }
       const idx = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
       const day = availableDays[idx];
       if (day && day !== selectedDay) {
+        swipeSourceRef.current = 'swipe';
         Haptics.selectionAsync();
         setDay(day);
       }
@@ -71,20 +68,9 @@ export default function AgendaScreen() {
     [SCREEN_WIDTH, availableDays, selectedDay, setDay],
   );
 
-  const handleRefresh = useCallback(() => {
-    refresh();
-  }, [refresh]);
-
   const handleEventPress = useCallback((event: Event) => {
-    setSelectedEvent(event);
+    router.push(`/event/${event.id}`);
   }, []);
-
-  const handleSnapClose = useCallback(() => setSelectedEvent(null), []);
-
-  const handleViewInMap = useCallback((event: Event) => {
-    focusEvent(event.id);
-    router.push('/(tabs)/mapa');
-  }, [focusEvent]);
 
   if (error && events.length === 0) {
     return (
@@ -126,7 +112,11 @@ export default function AgendaScreen() {
         <OfflineBanner cacheTimestamp={cacheTimestamp} onRefresh={refresh} />
       )}
 
-      <FlatList
+      <AnnouncementBanner announcements={announcements} />
+
+      {loading && events.length === 0 && <LoadingState label="Carregant actes…" />}
+
+      {(!loading || events.length > 0) && <FlatList
         ref={flatRef}
         data={availableDays}
         keyExtractor={(day) => day}
@@ -140,17 +130,18 @@ export default function AgendaScreen() {
           offset: SCREEN_WIDTH * index,
           index,
         })}
-        windowSize={3}
-        maxToRenderPerBatch={1}
+        windowSize={5}
+        maxToRenderPerBatch={2}
         initialNumToRender={1}
-        onMomentumScrollEnd={handleFlatListScroll}
+        decelerationRate="fast"
+        onMomentumScrollEnd={handleMomentumScrollEnd}
         renderItem={({ item: day }) => (
           <View style={[styles.page, { width: SCREEN_WIDTH }]}>
             <AgendaList
               events={filteredByDay.get(day) ?? []}
               userCoords={userCoords}
               onEventPress={handleEventPress}
-              onRefresh={handleRefresh}
+              onRefresh={refresh}
               refreshing={refreshing}
               loading={loading}
               emptyText={filters.onlyFavorites ? t('agenda.emptyFavorites') : t('agenda.emptyFiltered')}
@@ -164,16 +155,9 @@ export default function AgendaScreen() {
             />
           </View>
         )}
-      />
+      />}
 
-      {selectedEvent && (
-        <EventSnapSheet
-          event={selectedEvent}
-          onClose={handleSnapClose}
-          showViewInMap
-          onViewInMap={() => handleViewInMap(selectedEvent)}
-        />
-      )}
+
     </Screen>
   );
 }
