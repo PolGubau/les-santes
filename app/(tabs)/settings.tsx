@@ -2,8 +2,12 @@ import { Colors, Typography } from '@/shared/constants';
 import { t } from '@/shared/i18n';
 import { LOCALES, useLocaleStore, type AppLocale } from '@/shared/hooks/useLocale';
 import { Screen } from '@/shared/ui';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
-import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Linking, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
+const EVENTS_CACHE_KEY = '@les-santes/events-v1';
+const PRIVACY_POLICY_URL = 'https://www.lessantes.app/privacy';
 
 // ─── Build info ──────────────────────────────────────────────────────────────
 const cfg = Constants.expoConfig;
@@ -31,6 +35,14 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   );
 }
 
+function ActionRow({ label, onPress, destructive }: { label: string; onPress: () => void; destructive?: boolean }) {
+  return (
+    <TouchableOpacity style={styles.row} onPress={onPress} activeOpacity={0.7}>
+      <Text style={[styles.rowLabel, destructive && { color: '#E53E3E' }]}>{label}</Text>
+    </TouchableOpacity>
+  );
+}
+
 function LocaleOption({ label, flag, active, onPress }: {
   code: AppLocale; label: string; flag: string; active: boolean; onPress: () => void;
 }) {
@@ -53,6 +65,28 @@ function LocaleOption({ label, flag, active, onPress }: {
 export default function SettingsScreen() {
   const { locale, setLocale } = useLocaleStore();
 
+  const handleNotifications = () => Linking.openSettings();
+
+  const handleClearCache = () => {
+    Alert.alert(
+      t('settings.clearCache'),
+      t('settings.clearCacheConfirm'),
+      [
+        { text: 'Cancel·la', style: 'cancel' },
+        {
+          text: t('settings.clearCache'),
+          style: 'destructive',
+          onPress: async () => {
+            await AsyncStorage.removeItem(EVENTS_CACHE_KEY);
+            Alert.alert(t('settings.clearCacheSuccess'));
+          },
+        },
+      ],
+    );
+  };
+
+  const handlePrivacyPolicy = () => Linking.openURL(PRIVACY_POLICY_URL);
+
   return (
     <Screen edges={['top']}>
       <View style={styles.header}>
@@ -72,6 +106,24 @@ export default function SettingsScreen() {
               onPress={() => setLocale(loc.code)}
             />
           ))}
+        </View>
+
+        {/* ── Notifications ───────────────────────────────────────────────── */}
+        <SectionTitle label={t('settings.notifications')} />
+        <View style={styles.card}>
+          <ActionRow label={t('settings.openNotificationSettings')} onPress={handleNotifications} />
+        </View>
+
+        {/* ── Cache ───────────────────────────────────────────────────────── */}
+        <SectionTitle label="Dades" />
+        <View style={styles.card}>
+          <ActionRow label={t('settings.clearCache')} onPress={handleClearCache} destructive />
+        </View>
+
+        {/* ── Links ───────────────────────────────────────────────────────── */}
+        <SectionTitle label={t('settings.links')} />
+        <View style={styles.card}>
+          <ActionRow label={t('settings.privacyPolicy')} onPress={handlePrivacyPolicy} />
         </View>
 
         {/* ── App info ────────────────────────────────────────────────────── */}

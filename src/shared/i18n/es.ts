@@ -93,5 +93,12 @@ export const es: Translations = {
     envStoreClient: 'Expo Go',
     envStandalone: 'Producción',
     envBare: 'Desarrollo',
+    notifications: 'Notificaciones',
+    openNotificationSettings: 'Gestionar notificaciones',
+    clearCache: 'Borrar caché',
+    clearCacheConfirm: 'Se borrarán los datos guardados localmente. La app los volverá a descargar.',
+    clearCacheSuccess: 'Caché borrada correctamente',
+    privacyPolicy: 'Política de privacidad',
+    links: 'Enlaces',
   },
 };

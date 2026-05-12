@@ -25,14 +25,14 @@ export function usePushNotifications() {
     // Dynamic import so the module-level side effect never runs in Expo Go
     import('expo-notifications').then((Notifications) => {
       if (cancelled) return;
-      // Navigate to agenda when user taps a notification
+      // Navigate directly to the event detail when user taps a notification
       responseListener.current = Notifications.addNotificationResponseReceivedListener(
         (response) => {
           const eventId = response.notification.request.content.data?.eventId as
             | string
             | undefined;
           if (eventId) {
-            router.push('/(tabs)/agenda');
+            router.push(`/event/${eventId}`);
           }
         },
       );

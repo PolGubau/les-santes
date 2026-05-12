@@ -5,12 +5,10 @@ import { addEventToCalendar, cancelEventNotification, formatTime, scheduleEventN
 import { EventIcon } from '@/shared/ui';
 import { Image } from 'expo-image';
 import * as Haptics from 'expo-haptics';
-import { CalendarPlus, Ellipsis, Heart, HeartOff, Share2, X } from 'lucide-react-native';
-import React, { useState } from 'react';
-import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
-
-const DEFAULT_BLURHASH = 'L6Pj0^jE.AyE_3t7t7R**0o#DgR4';
-const THUMB = 52;
+import { CalendarPlus, Heart, HeartOff } from 'lucide-react-native';
+import ReanimatedSwipeable, { type SwipeableMethods } from 'react-native-gesture-handler/ReanimatedSwipeable';
+import React, { useCallback, useRef } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   Easing,
   useSharedValue,
@@ -19,21 +17,18 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
+const DEFAULT_BLURHASH = 'L6Pj0^jE.AyE_3t7t7R**0o#DgR4';
+const THUMB = 52;
+
 interface Props {
   event: Event;
   onPress?: () => void;
   distanceMeters?: number;
 }
 
-const ACTION_BAR_HEIGHT = 44;
-const OPEN_EASING = Easing.bezier(0.25, 0.46, 0.45, 0.94);
-const CLOSE_EASING = Easing.bezier(0.55, 0.06, 0.68, 0.19);
-
 export function EventCard({ event, onPress, distanceMeters }: Props) {
+  const swipeableRef = useRef<SwipeableMethods>(null);
   const scale = useSharedValue(1);
-  const expandHeight = useSharedValue(0);
-  const expandOpacity = useSharedValue(0);
-  const [expanded, setExpanded] = useState(false);
   const isFinished = event.state === 'finished';
   const stateLabel = event.state === 'now' ? 'En curs' : event.state === 'upcoming' ? 'Proximament' : 'Acabat';
 
@@ -42,11 +37,6 @@ export function EventCard({ event, onPress, distanceMeters }: Props) {
 
   const animatedCard = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
-  }));
-
-  const animatedBar = useAnimatedStyle(() => ({
-    height: expandHeight.value,
-    opacity: expandOpacity.value,
   }));
 
   const handlePressIn = () => {
@@ -58,121 +48,97 @@ export function EventCard({ event, onPress, distanceMeters }: Props) {
     scale.value = withSpring(1, { damping: 10, stiffness: 200 });
   };
 
-  const handleFavorite = () => {
+  const handleFavorite = useCallback(() => {
     Haptics.impactAsync(favorite ? Haptics.ImpactFeedbackStyle.Light : Haptics.ImpactFeedbackStyle.Medium);
     const isAdding = !favorite;
     toggleFavorite(event.id);
+    swipeableRef.current?.close();
     if (isAdding) {
       scheduleEventNotification(event).catch(() => { });
     } else {
       cancelEventNotification(event.id).catch(() => { });
     }
-  };
+  }, [event, favorite, toggleFavorite]);
 
-  const handleMenu = () => {
-    Haptics.selectionAsync();
-    const next = !expanded;
-    setExpanded(next);
-    if (next) {
-      expandHeight.value = withTiming(ACTION_BAR_HEIGHT, { duration: 220, easing: OPEN_EASING });
-      expandOpacity.value = withTiming(1, { duration: 180, easing: OPEN_EASING });
-    } else {
-      expandOpacity.value = withTiming(0, { duration: 120, easing: CLOSE_EASING });
-      expandHeight.value = withTiming(0, { duration: 180, easing: CLOSE_EASING });
-    }
-  };
-
-  const handleCalendar = () => {
+  const handleCalendar = useCallback(() => {
     Haptics.selectionAsync();
     addEventToCalendar(event);
-  };
+    swipeableRef.current?.close();
+  }, [event]);
 
-  const handleShare = () => {
-    Haptics.selectionAsync();
-    const message = `${event.title}\n${formatTime(event.start)} – ${formatTime(event.end)}\n${event.shortDescription}`;
-    Share.share({ message });
-  };
+  const renderRightActions = useCallback(() => {
+    if (isFinished) return null;
+    return (
+      <View style={styles.swipeActions}>
+        <Pressable style={[styles.swipeBtn, styles.swipeBtnCalendar]} onPress={handleCalendar} accessibilityLabel="Afegir al calendari">
+          <CalendarPlus size={20} color="#fff" />
+        </Pressable>
+        <Pressable style={[styles.swipeBtn, styles.swipeBtnFav, favorite && styles.swipeBtnFavActive]} onPress={handleFavorite} accessibilityLabel={favorite ? 'Treure de favorits' : 'Afegir a favorits'}>
+          <Heart size={20} color="#fff" fill={favorite ? '#fff' : 'transparent'} />
+        </Pressable>
+      </View>
+    );
+  }, [handleCalendar, handleFavorite, favorite, isFinished]);
 
   return (
-    <Animated.View style={animatedCard}>
-      <Pressable
-        style={({ pressed }) => [styles.row, isFinished && styles.rowDim, pressed && styles.rowPressed]}
-        onPress={onPress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        accessibilityRole="button"
-        accessibilityLabel={`${event.title}. ${stateLabel}. De ${formatTime(event.start)} a ${formatTime(event.end)}`}
-        accessibilityState={{ disabled: isFinished }}
-      >
-        {/* Thumbnail: image if available, icon fallback */}
-        <View style={[styles.thumb, isFinished && styles.thumbDim]}>
-          {event.imageUrl ? (
-            <>
-              <Image
-                source={{ uri: event.imageUrl }}
-                style={StyleSheet.absoluteFill}
-                contentFit="cover"
-                transition={200}
-                placeholder={{ blurhash: event.blurhash ?? DEFAULT_BLURHASH }}
-              />
-              {/* Icon badge over image */}
-              <View style={styles.thumbBadge}>
-                <EventIcon icon={event.icon} size={10} color="#fff" />
-              </View>
-            </>
-          ) : (
-            <EventIcon icon={event.icon} size={20} color={isFinished ? Colors.textDim : Colors.text} />
-          )}
-        </View>
-        <View style={styles.content}>
-          <View style={styles.header}>
-            <Text style={[styles.title, isFinished && styles.textDim]} numberOfLines={1}>
-              {event.title}
-            </Text>
-            <Text style={styles.time}>
-              {formatTime(event.start)} – {formatTime(event.end)}
+    <ReanimatedSwipeable
+      ref={swipeableRef}
+      renderRightActions={renderRightActions}
+      overshootRight={false}
+      friction={2}
+    >
+      <Animated.View style={animatedCard}>
+        <Pressable
+          style={({ pressed }) => [styles.row, isFinished && styles.rowDim, pressed && styles.rowPressed]}
+          onPress={onPress}
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+          accessibilityRole="button"
+          accessibilityLabel={`${event.title}. ${stateLabel}. De ${formatTime(event.start)} a ${formatTime(event.end)}`}
+          accessibilityState={{ disabled: isFinished }}
+        >
+          {/* Thumbnail */}
+          <View style={[styles.thumb, isFinished && styles.thumbDim]}>
+            {event.imageUrl ? (
+              <>
+                <Image
+                  source={{ uri: event.imageUrl }}
+                  style={StyleSheet.absoluteFill}
+                  contentFit="cover"
+                  transition={200}
+                  placeholder={{ blurhash: event.blurhash ?? DEFAULT_BLURHASH }}
+                />
+                <View style={styles.thumbBadge}>
+                  <EventIcon icon={event.icon} size={10} color="#fff" />
+                </View>
+              </>
+            ) : (
+              <EventIcon icon={event.icon} size={20} color={isFinished ? Colors.textDim : Colors.text} />
+            )}
+          </View>
+          <View style={styles.content}>
+            <View style={styles.header}>
+              <Text style={[styles.title, isFinished && styles.textDim]} numberOfLines={1}>
+                {event.title}
+              </Text>
+              <Text style={styles.time}>
+                {formatTime(event.start)} – {formatTime(event.end)}
+              </Text>
+            </View>
+            <Text style={styles.desc} numberOfLines={1}>
+              {distanceMeters != null
+                ? `${event.shortDescription} · ${distanceMeters < 1000 ? `${Math.round(distanceMeters)} m` : `${(distanceMeters / 1000).toFixed(1)} km`}`
+                : event.shortDescription}
             </Text>
           </View>
-          <Text style={styles.desc} numberOfLines={1}>
-            {distanceMeters != null
-              ? `${event.shortDescription} · ${distanceMeters < 1000 ? `${Math.round(distanceMeters)} m` : `${(distanceMeters / 1000).toFixed(1)} km`}`
-              : event.shortDescription}
-          </Text>
-        </View>
-        {/* Compact right actions: heart + menu dots */}
-        <View style={styles.actions}>
-          <Pressable onPress={handleFavorite} hitSlop={10} accessibilityLabel={favorite ? 'Treure de favorits' : 'Afegir a favorits'}>
-            {favorite
-              ? <Heart size={20} color={Colors.primary} fill={Colors.primary} />
-              : <HeartOff size={20} color={Colors.textDim} />}
-          </Pressable>
-          {!isFinished && (
-            <Pressable onPress={handleMenu} hitSlop={10} accessibilityLabel="Més opcions">
-              {expanded
-                ? <X size={18} color={Colors.textDim} />
-                : <Ellipsis size={18} color={Colors.textDim} />}
-            </Pressable>
-          )}
-        </View>
-      </Pressable>
-
-      {/* Expandable action bar */}
-      {!isFinished && (
-        <Animated.View style={[styles.actionBar, animatedBar]}>
-          <View style={styles.actionBarInner}>
-            <Pressable style={styles.actionBtn} onPress={handleCalendar} accessibilityLabel="Afegir al calendari">
-              <CalendarPlus size={16} color={Colors.textDim} />
-              <Text style={styles.actionBtnText}>Calendari</Text>
-            </Pressable>
-            <View style={styles.actionSep} />
-            <Pressable style={styles.actionBtn} onPress={handleShare} accessibilityLabel="Compartir">
-              <Share2 size={16} color={Colors.textDim} />
-              <Text style={styles.actionBtnText}>Compartir</Text>
-            </Pressable>
+          {/* Inline favorite indicator */}
+          <View style={styles.actions}>
+            {favorite && <Heart size={18} color={Colors.primary} fill={Colors.primary} />}
+            {!favorite && isFinished && <HeartOff size={18} color={Colors.textDim} />}
           </View>
-        </Animated.View>
-      )}
-    </Animated.View>
+        </Pressable>
+      </Animated.View>
+    </ReanimatedSwipeable>
   );
 }
 
@@ -225,24 +191,17 @@ const styles = StyleSheet.create({
   textDim: { color: Colors.textMuted },
   desc: { color: Colors.textMuted, fontSize: 12, lineHeight: 17 },
   time: { color: Colors.textDim, fontSize: 12, fontWeight: '500', flexShrink: 0, fontVariant: ['tabular-nums'] },
-  actionBar: {
-    backgroundColor: Colors.surfaceHigh,
-    overflow: 'hidden',
-  },
-  actionBarInner: {
-    flex: 1,
+  // Swipe action buttons
+  swipeActions: {
     flexDirection: 'row',
+    alignItems: 'stretch',
+  },
+  swipeBtn: {
+    width: 60,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  actionBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 10,
-  },
-  actionBtnText: { color: Colors.textMuted, fontSize: 13, fontWeight: '500' },
-  actionSep: { width: 1, height: 16, backgroundColor: Colors.border },
+  swipeBtnCalendar: { backgroundColor: Colors.stateUpcoming },
+  swipeBtnFav: { backgroundColor: Colors.textDim },
+  swipeBtnFavActive: { backgroundColor: Colors.primary },
 });

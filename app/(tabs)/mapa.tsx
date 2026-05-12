@@ -1,5 +1,5 @@
 import type { Event } from '@/entities/event';
-import { MOCK_EVENTS } from '@/entities/event';
+import { useEvents } from '@/entities/event';
 import {
   EventMap,
   EventSnapSheet,
@@ -15,8 +15,9 @@ import { Screen } from '@/shared/ui';
 import { useCallback, useRef } from 'react';
 
 export default function MapaScreen() {
+  const { events } = useEvents();
   const { mapEvents, drawerEvents, selectedDay, availableDays, todayKey, setDay, liveCount } =
-    useMapEvents(MOCK_EVENTS);
+    useMapEvents(events);
 
   const mapRef = useRef<EventMapHandle | null>(null);
 

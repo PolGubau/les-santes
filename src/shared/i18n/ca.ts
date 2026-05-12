@@ -37,6 +37,14 @@ export interface Translations {
     envStoreClient: string;
     envStandalone: string;
     envBare: string;
+    // New
+    notifications: string;
+    openNotificationSettings: string;
+    clearCache: string;
+    clearCacheConfirm: string;
+    clearCacheSuccess: string;
+    privacyPolicy: string;
+    links: string;
   };
 }
 
@@ -133,5 +141,12 @@ export const ca: Translations = {
     envStoreClient: 'Expo Go',
     envStandalone: 'Producció',
     envBare: 'Desenvolupament',
+    notifications: 'Notificacions',
+    openNotificationSettings: 'Gestiona les notificacions',
+    clearCache: 'Esborrar caché',
+    clearCacheConfirm: "Esborraràs les dades guardades localment. L'app les tornarà a descarregar.",
+    clearCacheSuccess: 'Caché esborrada correctament',
+    privacyPolicy: 'Política de privacitat',
+    links: 'Enllaços',
   },
 };

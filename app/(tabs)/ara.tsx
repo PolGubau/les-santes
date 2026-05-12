@@ -2,12 +2,25 @@ import { useAnnouncements } from '@/entities/announcement';
 import { useEvents } from '@/entities/event';
 import { HeroCard, LiveClock, NowCard, UpcomingRow, useNowEvents } from '@/features/now';
 import { Colors } from '@/shared/constants';
+import { useNow } from '@/shared/hooks';
 import { t } from '@/shared/i18n';
 import { AnnouncementBanner, ErrorState, LoadingState, OfflineBanner, Screen, SectionHeader } from '@/shared/ui';
 import { router } from 'expo-router';
-import { Moon } from 'lucide-react-native';
-import React, { useCallback } from 'react';
+import { Clock, Moon } from 'lucide-react-native';
+import React, { useCallback, useMemo } from 'react';
 import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+
+// ─── Countdown helpers ───────────────────────────────────────────────────────
+function formatCountdown(ms: number): string {
+  if (ms <= 0) return '0s';
+  const totalSec = Math.floor(ms / 1000);
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  if (h > 0) return `${h}h ${m.toString().padStart(2, '0')}m`;
+  if (m > 0) return `${m}m ${s.toString().padStart(2, '0')}s`;
+  return `${s}s`;
+}
 
 // ─── Screen ──────────────────────────────────────────────────────────────────
 export default function AraScreen() {
@@ -15,9 +28,18 @@ export default function AraScreen() {
   const { events, loading, error, isOffline, isRefreshing, cacheTimestamp, refresh } = useEvents();
   const announcements = useAnnouncements();
   const { now, upcoming } = useNowEvents(events);
+  const clock = useNow(1_000); // 1-second tick for countdown
   const handlePress = useCallback((id: string) => {
     router.push(`/event/${id}`);
   }, []);
+
+  // Find the soonest unstarted event across all events (for countdown)
+  const nextEvent = useMemo(() => {
+    const future = events
+      .filter((e) => new Date(e.start) > clock)
+      .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+    return future[0] ?? null;
+  }, [events, clock]);
 
   // Hero = first live event, or first upcoming if nothing is live
   const hero = now[0] ?? upcoming[0];
@@ -98,12 +120,25 @@ export default function AraScreen() {
           </View>
         )}
 
-        {/* Empty state */}
+        {/* Empty state / countdown */}
         {!hero && (
           <View style={styles.empty}>
-            <Moon size={48} color={Colors.textDim} />
-            <Text style={styles.emptyTitle}>Sense actes ara</Text>
-            <Text style={styles.emptySubtitle}>Consulta l'agenda per als propers actes</Text>
+            {nextEvent ? (
+              <>
+                <Clock size={48} color={Colors.primary} />
+                <Text style={styles.emptyTitle}>Pròxim acte en</Text>
+                <Text style={styles.countdownValue}>
+                  {formatCountdown(new Date(nextEvent.start).getTime() - clock.getTime())}
+                </Text>
+                <Text style={styles.emptySubtitle} numberOfLines={2}>{nextEvent.title}</Text>
+              </>
+            ) : (
+              <>
+                <Moon size={48} color={Colors.textDim} />
+                <Text style={styles.emptyTitle}>Sense actes ara</Text>
+                <Text style={styles.emptySubtitle}>Consulta l'agenda per als propers actes</Text>
+              </>
+            )}
           </View>
         )}
       </ScrollView>
@@ -137,5 +172,6 @@ const styles = StyleSheet.create({
   nowStrip: { paddingLeft: 16, paddingRight: 8, gap: 12 },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8, paddingTop: 80 },
   emptyTitle: { color: Colors.text, fontSize: 18, fontWeight: '700' },
-  emptySubtitle: { color: Colors.textMuted, fontSize: 14 },
+  emptySubtitle: { color: Colors.textMuted, fontSize: 14, textAlign: 'center', maxWidth: 240 },
+  countdownValue: { color: Colors.primary, fontSize: 40, fontWeight: '800', letterSpacing: -1 },
 });

@@ -9,11 +9,12 @@ import BottomSheet, {
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { CalendarPlus, Clock, Map, MapPin, PersonStanding } from 'lucide-react-native';
+import { CalendarPlus, Clock, ExternalLink, Map, MapPin, PersonStanding } from 'lucide-react-native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 
 // handle(~18) + peekSection padding+content(~86) + buffer = 130
 // Keeps the image fully hidden at the first snap point.
@@ -47,6 +48,11 @@ export function EventSnapSheet({ event, onClose, showViewInMap, onViewInMap }: P
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     addEventToCalendar(event);
   }, [event]);
+
+  const handleViewDetail = useCallback(() => {
+    sheetRef.current?.close();
+    setTimeout(() => router.push(`/event/${event.id}`), 180);
+  }, [event.id]);
 
   const handleViewInMap = useCallback(() => {
     sheetRef.current?.close();
@@ -89,7 +95,6 @@ export function EventSnapSheet({ event, onClose, showViewInMap, onViewInMap }: P
       >
         <View style={styles.peekSection}>
           <View style={styles.peekRow}>
-
             <View style={styles.peekText}>
               <View style={styles.titleRow}>
                 <Text style={styles.title} numberOfLines={1}>{event.title}</Text>
@@ -102,6 +107,13 @@ export function EventSnapSheet({ event, onClose, showViewInMap, onViewInMap }: P
               </View>
               <Text style={styles.desc} numberOfLines={2}>{event.shortDescription}</Text>
             </View>
+            <Pressable
+              onPress={handleViewDetail}
+              style={({ pressed }) => [styles.detailBtn, pressed && { opacity: 0.7 }]}
+              accessibilityLabel="Veure detall de l'acte"
+            >
+              <ExternalLink size={16} color={Colors.primary} />
+            </Pressable>
           </View>
         </View>
 
@@ -327,6 +339,13 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     fontSize: 15,
     fontWeight: '600',
+  },
+  detailBtn: {
+    padding: 8,
+    borderRadius: 10,
+    backgroundColor: `${Colors.primary}12`,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   btnPressed: {
     opacity: 0.7,

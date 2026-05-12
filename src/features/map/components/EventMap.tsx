@@ -4,21 +4,20 @@ import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import * as Location from 'expo-location';
 import { WifiOff } from 'lucide-react-native';
 import React, { forwardRef, memo, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { ActivityIndicator, Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Animated, Pressable, StyleSheet, Text, View, useColorScheme } from 'react-native';
 import WebView, { type WebViewMessageEvent } from 'react-native-webview';
 
 const CENTER_LNG = 2.444;
 const CENTER_LAT = 41.5378;
 
-// Mataró bounding box — restricts map panning
-const BOUNDS = [[2.39, 41.51], [2.51, 41.57]];
 
 // MapTiler key — set EXPO_PUBLIC_MAPTILER_KEY in EAS secrets / .env
 // Falls back to bundled key so the map works even without the env var.
 declare const process: { env: Record<string, string | undefined> };
 const MAPTILER_KEY = process.env.EXPO_PUBLIC_MAPTILER_KEY ?? 'xvhIdcAsn7WrwOYPt8W2';
 
-const BASE_HTML = `<!DOCTYPE html>
+function buildHtml(isDark: boolean) {
+  return `<!DOCTYPE html>
 <html>
 <head>
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
@@ -121,7 +120,9 @@ function makeClusterEl(count, onClick) {
 }
 
 // ── Map ───────────────────────────────────────────────────────────────────────
-const STYLE_PRIMARY  = 'https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}';
+const STYLE_LIGHT    = 'https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}';
+const STYLE_DARK     = 'https://api.maptiler.com/maps/streets-v2-dark/style.json?key=${MAPTILER_KEY}';
+const STYLE_PRIMARY  = ${isDark ? 'STYLE_DARK' : 'STYLE_LIGHT'};
 const STYLE_FALLBACK = 'https://tiles.openfreemap.org/styles/liberty';
 let _styleFailed = false;
 let _offlineNotified = false;
@@ -401,9 +402,14 @@ map.on('style.load', () => {
   if (_pending) { renderEvents(_pending); _pending = null; }
   else if (_scLoaded) renderClusters();
 });
+
+window.updateMapStyle = function(styleUrl) {
+  map.setStyle(styleUrl);
+};
 </script>
 </body>
 </html>`;
+}
 
 export interface EventMapHandle {
   focusOnEvent: (id: string) => void;
@@ -420,6 +426,8 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
   { events, onEventPress, onClusterPress },
   ref,
 ) {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
   const webviewRef = useRef<WebView>(null);
   const [mapReady, setMapReady] = useState(false);
   const [mapOffline, setMapOffline] = useState(false);
@@ -427,6 +435,9 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
   const pendingFocusId = useRef<string | null>(null);
   const eventsRef = useRef(events);
   eventsRef.current = events;
+  // Memoize HTML so it only rebuilds on dark mode change
+  const htmlRef = useRef(buildHtml(isDark));
+  const prevDarkRef = useRef(isDark);
 
   const injectFocus = useCallback((id: string) => {
     const js = `window.focusOnEvent(${JSON.stringify(id)}, ${JSON.stringify(eventsRef.current)}); true;`;
@@ -464,10 +475,41 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
     pendingFocusId.current = null;
   }, [injectFocus, mapReady]);
 
-  // Native location → WebView bridge
+  // Inject style change when dark mode toggles (no WebView reload needed)
+  useEffect(() => {
+    if (!mapReady || isDark === prevDarkRef.current) return;
+    prevDarkRef.current = isDark;
+    const styleUrl = isDark
+      ? `https://api.maptiler.com/maps/streets-v2-dark/style.json?key=${MAPTILER_KEY}`
+      : `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}`;
+    webviewRef.current?.injectJavaScript(`window.updateMapStyle(${JSON.stringify(styleUrl)}); true;`);
+  }, [isDark, mapReady]);
+
+  // Native location → WebView bridge (with onboarding Alert)
   useEffect(() => {
     let sub: Location.LocationSubscription | null = null;
     (async () => {
+      // Check current status before triggering the system prompt
+      const { status: existing } = await Location.getForegroundPermissionsAsync();
+      if (existing === 'denied') return; // user already denied — don't ask again
+
+      if (existing !== 'granted') {
+        // Show an explanatory alert before the system permission dialog
+        await new Promise<void>((resolve) => {
+          Alert.alert(
+            'Activa la ubicació',
+            "Permet l'accés a la teva ubicació per veure't al mapa i trobar actes propers.",
+            [
+              { text: 'Ara no', style: 'cancel', onPress: () => resolve() },
+              { text: 'Continua', onPress: () => resolve() },
+            ],
+          );
+        });
+        // Re-check in case user tapped "Ara no"
+        const { status: checked } = await Location.getForegroundPermissionsAsync();
+        if (checked === 'denied') return;
+      }
+
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') return;
       sub = await Location.watchPositionAsync(
@@ -512,7 +554,7 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
       <WebView
         ref={webviewRef}
         style={StyleSheet.absoluteFill}
-        source={{ html: BASE_HTML, baseUrl: 'https://localhost' }}
+        source={{ html: htmlRef.current, baseUrl: 'https://localhost' }}
         originWhitelist={['*']}
         javaScriptEnabled
         domStorageEnabled

@@ -1,16 +1,17 @@
 import { type Event, STATE_COLOR, STATE_LABEL_SHORT, useEvents } from '@/entities/event';
 import { eventRepository } from '@/entities/event/repository';
+import { useFavoritesStore } from '@/features/favorites';
 import { useMapFocusStore } from '@/features/map';
 import { Colors } from '@/shared/constants';
-import { addEventToCalendar, formatDayShort, formatTime } from '@/shared/lib';
+import { addEventToCalendar, cancelEventNotification, formatDayShort, formatTime, scheduleEventNotification } from '@/shared/lib';
 import { BackButton, EventIcon, LoadingState, Screen } from '@/shared/ui';
 import { Image } from 'expo-image';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, router } from 'expo-router';
-import { CalendarPlus, Clock, Map, MapPin, PersonStanding } from 'lucide-react-native';
+import { CalendarPlus, Clock, Heart, Map, MapPin, PersonStanding, Share2 } from 'lucide-react-native';
 import React, { useCallback, useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const DEFAULT_BLURHASH = 'L6Pj0^jE.AyE_3t7t7R**0o#DgR4';
@@ -21,6 +22,7 @@ export default function EventDetailScreen() {
   const { events, loading: cacheLoading } = useEvents();
   const insets = useSafeAreaInsets();
   const focusEvent = useMapFocusStore((s) => s.focusEvent);
+  const { isFavorite, toggleFavorite } = useFavoritesStore();
 
   // Try cache first; fall back to individual fetch if cache is still loading or misses
   const cached = events.find((e) => e.id === id) as Event | undefined;
@@ -43,6 +45,25 @@ export default function EventDetailScreen() {
 
   const event = cached ?? (fetchedEvent ?? undefined);
   const isLoading = cacheLoading || fetching;
+
+  const favorite = isFavorite(id ?? '');
+
+  const handleFavorite = useCallback(() => {
+    if (!id) return;
+    Haptics.impactAsync(favorite ? Haptics.ImpactFeedbackStyle.Light : Haptics.ImpactFeedbackStyle.Medium);
+    const isAdding = !favorite;
+    toggleFavorite(id);
+    if (event) {
+      if (isAdding) scheduleEventNotification(event).catch(() => { });
+      else cancelEventNotification(id).catch(() => { });
+    }
+  }, [id, favorite, event, toggleFavorite]);
+
+  const handleShare = useCallback(() => {
+    if (!event) return;
+    Haptics.selectionAsync();
+    Share.share({ message: `${event.title}\n${formatTime(event.start)} – ${formatTime(event.end)}\n${event.shortDescription}` });
+  }, [event]);
 
   const handleCalendar = useCallback(() => {
     if (!event) return;
@@ -163,6 +184,27 @@ export default function EventDetailScreen() {
               <Text style={styles.mapBtnText}>Veure al mapa</Text>
             </Pressable>
           </View>
+          {/* Secondary actions */}
+          <View style={styles.secondaryActions}>
+            <Pressable
+              style={({ pressed }) => [styles.secondaryBtn, pressed && styles.btnPressed]}
+              onPress={handleFavorite}
+              accessibilityLabel={favorite ? 'Treure de favorits' : 'Afegir a favorits'}
+            >
+              <Heart size={18} color={favorite ? Colors.primary : Colors.textDim} fill={favorite ? Colors.primary : 'none'} />
+              <Text style={[styles.secondaryBtnText, favorite && styles.secondaryBtnTextActive]}>
+                {favorite ? 'Afegit a favorits' : 'Afegir a favorits'}
+              </Text>
+            </Pressable>
+            <Pressable
+              style={({ pressed }) => [styles.secondaryBtn, pressed && styles.btnPressed]}
+              onPress={handleShare}
+              accessibilityLabel="Compartir acte"
+            >
+              <Share2 size={18} color={Colors.textDim} />
+              <Text style={styles.secondaryBtnText}>Compartir</Text>
+            </Pressable>
+          </View>
         </View>
       </ScrollView>
     </Screen>
@@ -261,6 +303,25 @@ const styles = StyleSheet.create({
     borderRadius: 14,
   },
   mapBtnText: { color: Colors.primary, fontSize: 15, fontWeight: '600' },
+  secondaryActions: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 0,
+  },
+  secondaryBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: Colors.surface,
+    paddingVertical: 12,
+    borderRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.border,
+  },
+  secondaryBtnText: { color: Colors.textDim, fontSize: 14, fontWeight: '600' },
+  secondaryBtnTextActive: { color: Colors.primary },
   btnPressed: { opacity: 0.7 },
   notFound: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
   notFoundText: { color: Colors.textMuted, fontSize: 15 },

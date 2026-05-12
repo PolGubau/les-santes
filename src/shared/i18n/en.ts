@@ -93,5 +93,12 @@ export const en: Translations = {
     envStoreClient: 'Expo Go',
     envStandalone: 'Production',
     envBare: 'Development',
+    notifications: 'Notifications',
+    openNotificationSettings: 'Manage notifications',
+    clearCache: 'Clear cache',
+    clearCacheConfirm: 'This will delete locally saved data. The app will re-download it.',
+    clearCacheSuccess: 'Cache cleared successfully',
+    privacyPolicy: 'Privacy policy',
+    links: 'Links',
   },
 };
