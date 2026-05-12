@@ -55,6 +55,7 @@ export const es: Translations = {
     label: 'Sin conexión',
     cacheAge: 'datos de %{age}',
     refresh: 'Actualizar',
+    checking: 'Comprobando conexión…',
     agoMoment: 'hace un momento',
     agoMinutes: 'hace %{count} min',
     agoHours: 'hace %{count} h',

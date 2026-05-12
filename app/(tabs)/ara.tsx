@@ -12,7 +12,7 @@ import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-n
 // ─── Screen ──────────────────────────────────────────────────────────────────
 export default function AraScreen() {
   useWindowDimensions(); // keeps layout reactive on rotation
-  const { events, loading, error, isOffline, cacheTimestamp, refresh } = useEvents();
+  const { events, loading, error, isOffline, isRefreshing, cacheTimestamp, refresh } = useEvents();
   const announcements = useAnnouncements();
   const { now, upcoming } = useNowEvents(events);
   const handlePress = useCallback((id: string) => {
@@ -47,7 +47,7 @@ export default function AraScreen() {
       </View>
 
       {isOffline && (
-        <OfflineBanner cacheTimestamp={cacheTimestamp} onRefresh={refresh} />
+        <OfflineBanner cacheTimestamp={cacheTimestamp} onRefresh={refresh} isRefreshing={isRefreshing} />
       )}
 
       <AnnouncementBanner announcements={announcements} />

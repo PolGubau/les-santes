@@ -1,16 +1,16 @@
-﻿import BottomSheet, {
+﻿import { STATE_COLOR, STATE_LABEL_SHORT, type Event } from '@/entities/event';
+import { Colors } from '@/shared/constants';
+import { addEventToCalendar, formatDayShort, formatTime } from '@/shared/lib';
+import BottomSheet, {
   BottomSheetBackdrop,
   BottomSheetScrollView,
   type BottomSheetBackdropProps,
 } from '@gorhom/bottom-sheet';
-import { type Event, STATE_COLOR, STATE_LABEL_SHORT } from '@/entities/event';
-import { Colors } from '@/shared/constants';
-import { addEventToCalendar, formatDayShort, formatTime } from '@/shared/lib';
-import { EventIcon } from '@/shared/ui';
-import { Image } from 'expo-image';
 import * as Haptics from 'expo-haptics';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CalendarPlus, Clock, Map, MapPin, PersonStanding } from 'lucide-react-native';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -32,14 +32,15 @@ export function EventSnapSheet({ event, onClose, showViewInMap, onViewInMap }: P
   const sheetRef = useRef<BottomSheet>(null);
   const stateColor = STATE_COLOR[event.state];
   const insets = useSafeAreaInsets();
+  const tabBarHeight = useBottomTabBarHeight();
 
   useEffect(() => {
     sheetRef.current?.snapToIndex(0);
   }, [event.id]);
 
   const snapPoints = useMemo(
-    () => [PEEK_H + insets.bottom, FULL_H + insets.bottom],
-    [insets.bottom],
+    () => [PEEK_H + insets.bottom + tabBarHeight, FULL_H + insets.bottom],
+    [insets.bottom, tabBarHeight],
   );
 
   const handleCalendar = useCallback(() => {

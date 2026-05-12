@@ -10,6 +10,8 @@ export interface UseEventsResult {
 	error: Error | null;
 	/** True when the last network fetch failed and data comes from cache. */
 	isOffline: boolean;
+	/** True while a manual refresh fetch is in progress. */
+	isRefreshing: boolean;
 	/** Timestamp (ms) of the last successful cache write, or null if no cache. */
 	cacheTimestamp: number | null;
 	refresh: () => void;
@@ -28,6 +30,7 @@ export function useEvents(): UseEventsResult {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<Error | null>(null);
 	const [isOffline, setIsOffline] = useState(false);
+	const [isRefreshing, setIsRefreshing] = useState(false);
 	const [cacheTimestamp, setCacheTimestamp] = useState<number | null>(null);
 	const [tick, setTick] = useState(0);
 	// Track whether we already have data so we can skip loading spinner on refresh
@@ -49,8 +52,12 @@ export function useEvents(): UseEventsResult {
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	useEffect(() => {
 		let cancelled = false;
-		// Only show loading spinner when there's nothing to show yet
-		if (!hasCachedData.current) setLoading(true);
+		if (!hasCachedData.current) {
+			setLoading(true);
+		} else {
+			// Manual refresh with cached data: show refreshing spinner
+			setIsRefreshing(true);
+		}
 		setError(null);
 
 		eventRepository
@@ -61,7 +68,7 @@ export function useEvents(): UseEventsResult {
 				setEvents(data);
 				setIsOffline(false);
 				setLoading(false);
-				// Persist to cache (strip computed state before storing)
+				setIsRefreshing(false);
 				const rawEvents: RawEvent[] = data.map(
 					// eslint-disable-next-line @typescript-eslint/no-unused-vars
 					({ state: _state, ...rest }) => rest as RawEvent,
@@ -74,8 +81,9 @@ export function useEvents(): UseEventsResult {
 				if (cancelled) return;
 				const e = err instanceof Error ? err : new Error(String(err));
 				setError(e);
-				setIsOffline(hasCachedData.current); // offline only if we have stale data
+				setIsOffline(hasCachedData.current);
 				setLoading(false);
+				setIsRefreshing(false);
 			});
 
 		return () => {
@@ -85,5 +93,5 @@ export function useEvents(): UseEventsResult {
 
 	const refresh = () => setTick((t) => t + 1);
 
-	return { events, loading, error, isOffline, cacheTimestamp, refresh };
+	return { events, loading, error, isOffline, isRefreshing, cacheTimestamp, refresh };
 }

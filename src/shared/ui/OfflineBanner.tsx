@@ -2,13 +2,15 @@ import { Colors } from '@/shared/constants';
 import { t } from '@/shared/i18n';
 import { WifiOff } from 'lucide-react-native';
 import React, { memo } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 interface Props {
   /** Timestamp (ms) of the last cached data, or null if unknown. */
   cacheTimestamp: number | null;
   /** Called when the user taps "Actualitza". */
   onRefresh?: () => void;
+  /** True while a refresh fetch is in progress. */
+  isRefreshing?: boolean;
 }
 
 function formatAge(ts: number): string {
@@ -21,15 +23,18 @@ function formatAge(ts: number): string {
   return t('offline.agoDays', { count: Math.round(diffH / 24) });
 }
 
-export const OfflineBanner = memo(function OfflineBanner({ cacheTimestamp, onRefresh }: Props) {
+export const OfflineBanner = memo(function OfflineBanner({ cacheTimestamp, onRefresh, isRefreshing }: Props) {
   return (
     <View style={styles.banner}>
       <WifiOff size={14} color={Colors.text} style={styles.icon} />
       <Text style={styles.text} numberOfLines={1}>
-        {t('offline.label')}
-        {cacheTimestamp ? ` · ${t('offline.cacheAge', { age: formatAge(cacheTimestamp) })}` : ''}
+        {isRefreshing
+          ? t('offline.checking')
+          : `${t('offline.label')}${cacheTimestamp ? ` · ${t('offline.cacheAge', { age: formatAge(cacheTimestamp) })}` : ''}`}
       </Text>
-      {onRefresh && (
+      {isRefreshing ? (
+        <ActivityIndicator size="small" color={Colors.textMuted} />
+      ) : onRefresh && (
         <Pressable onPress={onRefresh} hitSlop={8} style={styles.btn}>
           <Text style={styles.btnText}>{t('offline.refresh')}</Text>
         </Pressable>

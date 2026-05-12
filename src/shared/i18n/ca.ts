@@ -20,7 +20,7 @@ export interface Translations {
   };
   now: { appTitle: string; subtitle: string };
   offline: {
-    label: string; cacheAge: string; refresh: string;
+    label: string; cacheAge: string; refresh: string; checking: string;
     agoMoment: string; agoMinutes: string; agoHours: string; agoDays: string;
   };
   error: { title: string; defaultMessage: string; eventsMessage: string; retry: string };
@@ -95,6 +95,7 @@ export const ca: Translations = {
     label: 'Sense connexió',
     cacheAge: 'dades de %{age}',
     refresh: 'Actualitza',
+    checking: 'Comprovant connexió…',
     agoMoment: 'fa un moment',
     agoMinutes: 'fa %{count} min',
     agoHours: 'fa %{count} h',

@@ -46,7 +46,7 @@ export function BottomSheet({ onClose, height = 420, peekHeight, children }: Pro
       <Animated.View
         style={[
           styles.sheet,
-          { paddingBottom: insets.bottom + 16, transform: [{ translateY }] },
+          { height, paddingBottom: insets.bottom + 16, transform: [{ translateY }] },
         ]}
       >
         <View {...panResponder.panHandlers} style={styles.handleArea}>
@@ -62,6 +62,7 @@ const styles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'flex-end',
+    overflow: 'hidden',
   },
   dim: {
     backgroundColor: 'rgba(0,0,0,0.55)',

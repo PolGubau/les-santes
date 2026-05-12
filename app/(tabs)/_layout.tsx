@@ -2,8 +2,12 @@ import { Colors } from '@/shared/constants';
 import { t } from '@/shared/i18n';
 import { useLocaleStore } from '@/shared/hooks/useLocale';
 import * as Haptics from 'expo-haptics';
+import * as QuickActions from 'expo-quick-actions';
+import { useQuickActionRouting } from 'expo-quick-actions/router';
 import { Tabs } from 'expo-router';
 import { BookOpen, CalendarDays, Map as MapIcon, Settings, Zap } from 'lucide-react-native';
+import { useEffect } from 'react';
+import { Platform } from 'react-native';
 
 const tabPress = () =>
   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -12,6 +16,37 @@ export default function TabsLayout() {
   // Subscribing to locale forces this layout (and all tab labels) to re-render
   // whenever the user switches language in the settings screen.
   const locale = useLocaleStore((s) => s.locale);
+
+  // Handle quick action navigation (both cold and warm starts)
+  useQuickActionRouting();
+
+  // Android: static shortcuts must be set programmatically
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+    QuickActions.setItems([
+      {
+        id: 'ara',
+        title: 'Ara',
+        subtitle: 'Actes en curs',
+        icon: 'shortcut_ara',
+        params: { href: '/(tabs)/ara' },
+      },
+      {
+        id: 'agenda',
+        title: 'Agenda',
+        subtitle: 'Tots els actes',
+        icon: 'shortcut_agenda',
+        params: { href: '/(tabs)/agenda' },
+      },
+      {
+        id: 'mapa',
+        title: 'Mapa',
+        subtitle: 'Mapa del festival',
+        icon: 'shortcut_mapa',
+        params: { href: '/(tabs)/mapa' },
+      },
+    ]);
+  }, []);
 
   return (
     <Tabs

@@ -48,7 +48,7 @@
         "android.permission.SCHEDULE_EXACT_ALARM"
       ],
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": true
+      "predictiveBackGestureEnabled": false
     },
     "web": {
       "bundler": "metro",
@@ -83,6 +83,34 @@
           "color": "#8A1A10",
           "defaultChannel": "default",
           "sounds": []
+        }
+      ],
+      [
+        "expo-quick-actions",
+        {
+          "iosActions": [
+            {
+              "id": "ara",
+              "title": "Ara",
+              "subtitle": "Actes en curs",
+              "icon": "time",
+              "params": { "href": "/(tabs)/ara" }
+            },
+            {
+              "id": "agenda",
+              "title": "Agenda",
+              "subtitle": "Tots els actes",
+              "icon": "date",
+              "params": { "href": "/(tabs)/agenda" }
+            },
+            {
+              "id": "mapa",
+              "title": "Mapa",
+              "subtitle": "Mapa del festival",
+              "icon": "location",
+              "params": { "href": "/(tabs)/mapa" }
+            }
+          ]
         }
       ]
     ],

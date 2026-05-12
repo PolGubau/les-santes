@@ -22,8 +22,7 @@ export default function AgendaScreen() {
   // 'picker' = DayPicker tapped, 'swipe' = user dragged FlatList
   const swipeSourceRef = useRef<'picker' | 'swipe'>('picker');
 
-  const { events, loading, error, isOffline, cacheTimestamp, refresh } = useEvents();
-  const refreshing = loading && events.length > 0;
+  const { events, loading, error, isOffline, isRefreshing, cacheTimestamp, refresh } = useEvents();
 
   const { favorites } = useFavoritesStore();
   const favoriteIds = useMemo(() => new Set(Object.keys(favorites)), [favorites]);
@@ -109,7 +108,7 @@ export default function AgendaScreen() {
       </View>
 
       {isOffline && (
-        <OfflineBanner cacheTimestamp={cacheTimestamp} onRefresh={refresh} />
+        <OfflineBanner cacheTimestamp={cacheTimestamp} onRefresh={refresh} isRefreshing={isRefreshing} />
       )}
 
       <AnnouncementBanner announcements={announcements} />
@@ -142,7 +141,7 @@ export default function AgendaScreen() {
               userCoords={userCoords}
               onEventPress={handleEventPress}
               onRefresh={refresh}
-              refreshing={refreshing}
+              refreshing={isRefreshing}
               loading={loading}
               emptyText={filters.onlyFavorites ? t('agenda.emptyFavorites') : t('agenda.emptyFiltered')}
               emptySubtext={
