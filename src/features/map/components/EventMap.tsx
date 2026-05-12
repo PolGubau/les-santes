@@ -315,10 +315,8 @@ function renderRoute(event) {
 
   map.on('click', lineId,   () => { selectEvent(event.id); post({ type:'EVENT_PRESS', event }); });
   map.on('click', casingId, () => { selectEvent(event.id); post({ type:'EVENT_PRESS', event }); });
-
-  // Start-of-route marker — tracked separately so renderClusters() doesn't wipe it
-  const el = makeMarkerEl(event, color);
-  _routeMarkers.push(new maplibregl.Marker({ element:el }).setLngLat(coords[0]).addTo(map));
+  // Note: start-of-route marker is handled by Supercluster (renderClusters),
+  // so mobile events cluster correctly with co-located events.
 }
 
 // ── Main render ───────────────────────────────────────────────────────────────
@@ -327,12 +325,20 @@ function renderEvents(events) {
   clearRoutes();
   const points = [];
   events.forEach(event => {
-    if (event.kind === 'static' && event.location)
+    if (event.kind === 'static' && event.location) {
       points.push({ type:'Feature',
         geometry:{ type:'Point', coordinates:[event.location.lng, event.location.lat] },
         properties:{ _event:event } });
-    if (event.kind === 'mobile' && event.route && event.route.length > 1)
+    }
+    if (event.kind === 'mobile' && event.route && event.route.length > 1) {
       renderRoute(event);
+      // Also add the start point to Supercluster so co-located mobile events
+      // cluster together and are individually selectable via the drawer.
+      const [startLng, startLat] = [event.route[0].lng, event.route[0].lat];
+      points.push({ type:'Feature',
+        geometry:{ type:'Point', coordinates:[startLng, startLat] },
+        properties:{ _event:event } });
+    }
   });
   sc.load(points); _scLoaded = true;
   renderClusters();

@@ -11,7 +11,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, Linking, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const EVENTS_CACHE_KEY = '@les-santes/events-v1';
-const PRIVACY_POLICY_URL = `${SITE_URL}/privacy';
+const PRIVACY_POLICY_URL = 'https://www.lessantes.app/privacy';
 
 // ─── Build info ──────────────────────────────────────────────────────────────
 const cfg = Constants.expoConfig;
