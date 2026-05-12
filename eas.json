@@ -12,7 +12,7 @@
 			},
 			"env": {
 				"EXPO_PUBLIC_SUPABASE_URL": "https://cliswtnozdmddtmkudfp.supabase.co",
-				"EXPO_PUBLIC_SUPABASE_ANON_KEY": "REEMPLAZA_CON_ANON_KEY_DE_SUPABASE_DASHBOARD",
+				"EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_SboRy2TZG2eocA2kGUUXQQ_WYsq48tG",
 				"EXPO_PUBLIC_FESTIVAL_ID": "les-santes-2026"
 			}
 		},
@@ -23,7 +23,7 @@
 			},
 			"env": {
 				"EXPO_PUBLIC_SUPABASE_URL": "https://cliswtnozdmddtmkudfp.supabase.co",
-				"EXPO_PUBLIC_SUPABASE_ANON_KEY": "REEMPLAZA_CON_ANON_KEY_DE_SUPABASE_DASHBOARD",
+				"EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_SboRy2TZG2eocA2kGUUXQQ_WYsq48tG",
 				"EXPO_PUBLIC_FESTIVAL_ID": "les-santes-2026"
 			}
 		},
@@ -34,7 +34,7 @@
 			},
 			"env": {
 				"EXPO_PUBLIC_SUPABASE_URL": "https://cliswtnozdmddtmkudfp.supabase.co",
-				"EXPO_PUBLIC_SUPABASE_ANON_KEY": "REEMPLAZA_CON_ANON_KEY_DE_SUPABASE_DASHBOARD",
+				"EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_SboRy2TZG2eocA2kGUUXQQ_WYsq48tG",
 				"EXPO_PUBLIC_FESTIVAL_ID": "les-santes-2026"
 			}
 		}
