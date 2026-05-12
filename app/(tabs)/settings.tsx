@@ -1,13 +1,17 @@
 import { Colors, Typography } from '@/shared/constants';
 import { t } from '@/shared/i18n';
 import { LOCALES, useLocaleStore, type AppLocale } from '@/shared/hooks/useLocale';
+import { cancelEventNotification, getScheduledEventNotifications, type ScheduledEventNotification } from '@/shared/lib/notifications';
 import { Screen } from '@/shared/ui';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
+import * as Haptics from 'expo-haptics';
+import { Bell, BellOff } from 'lucide-react-native';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, Linking, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const EVENTS_CACHE_KEY = '@les-santes/events-v1';
-const PRIVACY_POLICY_URL = 'https://www.lessantes.app/privacy';
+const PRIVACY_POLICY_URL = `${SITE_URL}/privacy';
 
 // ─── Build info ──────────────────────────────────────────────────────────────
 const cfg = Constants.expoConfig;
@@ -64,6 +68,19 @@ function LocaleOption({ label, flag, active, onPress }: {
 // ─── Screen ──────────────────────────────────────────────────────────────────
 export default function SettingsScreen() {
   const { locale, setLocale } = useLocaleStore();
+  const [scheduledNotifs, setScheduledNotifs] = useState<ScheduledEventNotification[]>([]);
+
+  // Load scheduled notifications when screen mounts
+  useEffect(() => {
+    getScheduledEventNotifications().then(setScheduledNotifs).catch(() => { });
+  }, []);
+
+  const handleCancelNotif = useCallback((eventId: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    cancelEventNotification(eventId).then(() => {
+      setScheduledNotifs((prev) => prev.filter((n) => n.eventId !== eventId));
+    }).catch(() => { });
+  }, []);
 
   const handleNotifications = () => Linking.openSettings();
 
@@ -113,6 +130,31 @@ export default function SettingsScreen() {
         <View style={styles.card}>
           <ActionRow label={t('settings.openNotificationSettings')} onPress={handleNotifications} />
         </View>
+
+        {/* Scheduled event notifications */}
+        {scheduledNotifs.length > 0 && (
+          <>
+            <SectionTitle label="Actes amb recordatori" />
+            <View style={styles.card}>
+              {scheduledNotifs.map((notif, idx) => (
+                <React.Fragment key={notif.eventId}>
+                  {idx > 0 && <View style={styles.divider} />}
+                  <View style={styles.notifRow}>
+                    <Bell size={16} color={Colors.primary} style={{ flexShrink: 0 }} />
+                    <Text style={styles.notifText} numberOfLines={2}>{notif.title}</Text>
+                    <TouchableOpacity
+                      onPress={() => handleCancelNotif(notif.eventId)}
+                      hitSlop={10}
+                      accessibilityLabel="Cancel·lar recordatori"
+                    >
+                      <BellOff size={18} color={Colors.textDim} />
+                    </TouchableOpacity>
+                  </View>
+                </React.Fragment>
+              ))}
+            </View>
+          </>
+        )}
 
         {/* ── Cache ───────────────────────────────────────────────────────── */}
         <SectionTitle label="Dades" />
@@ -207,4 +249,12 @@ const styles = StyleSheet.create({
   rowLabel: { fontSize: 14, color: Colors.text, ...Typography.regular },
   rowValue: { fontSize: 13, color: Colors.textMuted, ...Typography.regular },
   divider: { height: StyleSheet.hairlineWidth, backgroundColor: Colors.border, marginLeft: 16 },
+  notifRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 13,
+  },
+  notifText: { flex: 1, fontSize: 13, color: Colors.text, lineHeight: 18 },
 });

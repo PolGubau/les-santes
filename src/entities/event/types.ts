@@ -41,6 +41,8 @@ interface EventBase {
 	category: EventCategory;
 	icon: EventIconDef;
 	shortDescription: string;
+	/** Full description — optional, not all events have one. */
+	description?: string;
 	start: string; // ISO 8601
 	end: string;   // ISO 8601
 	imageUrl?: string;

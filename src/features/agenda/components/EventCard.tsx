@@ -86,6 +86,7 @@ export function EventCard({ event, onPress, distanceMeters }: Props) {
       renderRightActions={renderRightActions}
       overshootRight={false}
       friction={2}
+      onSwipeableWillOpen={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
     >
       <Animated.View style={animatedCard}>
         <Pressable

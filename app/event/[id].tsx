@@ -9,10 +9,12 @@ import { Image } from 'expo-image';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, router } from 'expo-router';
+import * as Sharing from 'expo-sharing';
 import { CalendarPlus, Clock, Heart, Map, MapPin, PersonStanding, Share2 } from 'lucide-react-native';
-import React, { useCallback, useEffect, useState } from 'react';
-import { Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Platform, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { captureRef } from 'react-native-view-shot';
 
 const DEFAULT_BLURHASH = 'L6Pj0^jE.AyE_3t7t7R**0o#DgR4';
 const IMAGE_H = 260;
@@ -47,6 +49,7 @@ export default function EventDetailScreen() {
   const isLoading = cacheLoading || fetching;
 
   const favorite = isFavorite(id ?? '');
+  const shareCardRef = useRef<View>(null);
 
   const handleFavorite = useCallback(() => {
     if (!id) return;
@@ -59,11 +62,44 @@ export default function EventDetailScreen() {
     }
   }, [id, favorite, event, toggleFavorite]);
 
-  const handleShare = useCallback(() => {
+  const handleShare = useCallback(async () => {
     if (!event) return;
     Haptics.selectionAsync();
-    Share.share({ message: `${event.title}\n${formatTime(event.start)} – ${formatTime(event.end)}\n${event.shortDescription}` });
-  }, [event]);
+
+    const shareText = [
+      `🎉 ${event.title}`,
+      `🕐 ${formatDayShort(event.start.substring(0, 10))} · ${formatTime(event.start)}–${formatTime(event.end)}`,
+      event.locationName ? `📍 ${event.locationName}` : null,
+      '',
+      'Les Santes 2026 · Mataró',
+    ].filter(Boolean).join('\n');
+
+    try {
+      const uri = shareCardRef.current
+        ? await captureRef(shareCardRef, { format: 'png', quality: 0.9 })
+        : null;
+
+      if (uri) {
+        if (Platform.OS === 'ios') {
+          // iOS: Share.share supports both message + url (image attachment)
+          await Share.share({ message: shareText, url: uri });
+        } else {
+          // Android: share image via expo-sharing; text shown in dialog title
+          const canShare = await Sharing.isAvailableAsync();
+          if (canShare) {
+            await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle: shareText });
+          } else {
+            await Share.share({ message: shareText });
+          }
+        }
+      } else {
+        await Share.share({ message: shareText });
+      }
+    } catch {
+      // Last-resort fallback
+      Share.share({ message: shareText }).catch(() => { });
+    }
+  }, [event, shareCardRef]);
 
   const handleCalendar = useCallback(() => {
     if (!event) return;
@@ -143,7 +179,7 @@ export default function EventDetailScreen() {
           </View>
 
           <Text style={styles.title}>{event.title}</Text>
-          <Text style={styles.desc}>{event.shortDescription}</Text>
+          <Text style={styles.desc}>{event.description ?? event.shortDescription}</Text>
 
           {/* Detail rows */}
           <View style={styles.details}>
@@ -207,6 +243,33 @@ export default function EventDetailScreen() {
           </View>
         </View>
       </ScrollView>
+
+      {/* Invisible share card — captured by react-native-view-shot */}
+      <View
+        ref={shareCardRef}
+        style={styles.shareCard}
+        collapsable={false}
+      >
+        <View style={styles.shareCardBg}>
+          {event.imageUrl && (
+            <Image source={{ uri: event.imageUrl }} style={StyleSheet.absoluteFill} contentFit="cover" />
+          )}
+          <LinearGradient
+            colors={['rgba(0,0,0,0.15)', 'rgba(0,0,0,0.75)']}
+            style={StyleSheet.absoluteFill}
+          />
+          <View style={styles.shareCardContent}>
+            <Text style={styles.shareCardBrand}>🎉 Les Santes 2026</Text>
+            <Text style={styles.shareCardTitle}>{event.title}</Text>
+            <Text style={styles.shareCardMeta}>
+              {formatDayShort(event.start.substring(0, 10))} · {formatTime(event.start)} – {formatTime(event.end)}
+            </Text>
+            {event.locationName && (
+              <Text style={styles.shareCardLocation}>📍 {event.locationName}</Text>
+            )}
+          </View>
+        </View>
+      </View>
     </Screen>
   );
 }
@@ -326,5 +389,20 @@ const styles = StyleSheet.create({
   notFound: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
   notFoundText: { color: Colors.textMuted, fontSize: 15 },
   backStandalone: { marginBottom: 8 },
+  // Share card (off-screen, captured by view-shot)
+  shareCard: { position: 'absolute', top: -2000, left: 0, width: 400 },
+  shareCardBg: {
+    width: 400,
+    height: 220,
+    borderRadius: 20,
+    overflow: 'hidden',
+    backgroundColor: Colors.primary,
+    justifyContent: 'flex-end',
+  },
+  shareCardContent: { padding: 20, gap: 4 },
+  shareCardBrand: { color: 'rgba(255,255,255,0.75)', fontSize: 12, fontWeight: '600' },
+  shareCardTitle: { color: '#fff', fontSize: 22, fontWeight: '800', lineHeight: 28 },
+  shareCardMeta: { color: 'rgba(255,255,255,0.85)', fontSize: 14, marginTop: 4 },
+  shareCardLocation: { color: 'rgba(255,255,255,0.75)', fontSize: 13 },
 });
 

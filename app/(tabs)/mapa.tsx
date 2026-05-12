@@ -12,7 +12,7 @@ import {
 } from '@/features/map';
 import type { EventMapHandle } from '@/features/map/components/EventMap';
 import { Screen } from '@/shared/ui';
-import { useCallback, useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 
 export default function MapaScreen() {
   const { events } = useEvents();
@@ -20,9 +20,7 @@ export default function MapaScreen() {
     useMapEvents(events);
 
   const mapRef = useRef<EventMapHandle | null>(null);
-
   const selection = useMapSelection(mapRef);
-
   const search = useMapSearch(mapEvents, (isSearching) => selection.reset(isSearching));
 
   const handleFocus = useCallback(
@@ -86,3 +84,4 @@ export default function MapaScreen() {
     </Screen>
   );
 }
+

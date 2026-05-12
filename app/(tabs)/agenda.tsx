@@ -9,9 +9,10 @@ import { useUserLocation } from "@/shared/hooks";
 import { AnnouncementBanner, ErrorState, LoadingState, OfflineBanner, Screen } from "@/shared/ui";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
-import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import { Search, X } from "lucide-react-native";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { NativeScrollEvent, NativeSyntheticEvent } from "react-native";
-import { FlatList, StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import { FlatList, Pressable, StyleSheet, Text, TextInput, View, useWindowDimensions } from "react-native";
 
 export default function AgendaScreen() {
   const { width: SCREEN_WIDTH } = useWindowDimensions();
@@ -28,10 +29,14 @@ export default function AgendaScreen() {
   const favoriteIds = useMemo(() => new Set(Object.keys(favorites)), [favorites]);
   const totalFavorites = favoriteIds.size;
 
+  const [searchText, setSearchText] = useState('');
+
   const {
     filteredByDay,
     filters,
+    setSearch,
     setType,
+    setCategory,
     toggleNearMe,
     toggleFavorites,
     selectedDay,
@@ -39,6 +44,17 @@ export default function AgendaScreen() {
     todayKey,
     setDay,
   } = useAgenda(events, userCoords, favoriteIds);
+
+  const handleSearchChange = useCallback((text: string) => {
+    setSearchText(text);
+    setSearch(text);
+  }, [setSearch]);
+
+  const handleClearSearch = useCallback(() => {
+    setSearchText('');
+    setSearch('');
+    Haptics.selectionAsync();
+  }, [setSearch]);
 
   const dayCount = filteredByDay.get(selectedDay)?.length ?? 0;
 
@@ -97,6 +113,26 @@ export default function AgendaScreen() {
           onSelect={setDay}
         />
 
+        {/* Search bar */}
+        <View style={styles.searchWrap}>
+          <Search size={18} color={Colors.textDim} style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            value={searchText}
+            onChangeText={handleSearchChange}
+            placeholder="Cerca un acte…"
+            placeholderTextColor={Colors.textDim}
+            returnKeyType="search"
+            autoCorrect={false}
+            clearButtonMode="never"
+          />
+          {searchText.length > 0 && (
+            <Pressable onPress={handleClearSearch} hitSlop={10} accessibilityLabel="Esborrar cerca">
+              <X size={18} color={Colors.textDim} />
+            </Pressable>
+          )}
+        </View>
+
         <AgendaFilterBar
           filters={filters}
           totalFavorites={totalFavorites}
@@ -104,6 +140,7 @@ export default function AgendaScreen() {
           onToggleFavorites={toggleFavorites}
           onToggleNearMe={toggleNearMe}
           onSetType={setType}
+          onSetCategory={setCategory}
         />
       </View>
 
@@ -113,7 +150,7 @@ export default function AgendaScreen() {
 
       <AnnouncementBanner announcements={announcements} />
 
-      {loading && events.length === 0 && <LoadingState label="Carregant actes…" />}
+      {loading && events.length === 0 && <LoadingState />}
 
       {(!loading || events.length > 0) && <FlatList
         ref={flatRef}
@@ -175,4 +212,24 @@ const styles = StyleSheet.create({
   },
   title: { color: Colors.text, fontSize: 24, fontWeight: "700" },
   count: { color: Colors.textMuted, fontSize: 14, fontVariant: ['tabular-nums'] },
+  // Search
+  searchWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 4,
+    backgroundColor: Colors.surfaceHigh,
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    height: 46,
+    gap: 8,
+  },
+  searchIcon: { flexShrink: 0 },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: Colors.text,
+    paddingVertical: 0,
+  },
 });

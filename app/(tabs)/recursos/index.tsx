@@ -5,7 +5,7 @@ import { Screen } from '@/shared/ui';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { ArrowRight } from 'lucide-react-native';
+import { ArrowRight, BookOpen } from 'lucide-react-native';
 import type React from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSpring } from 'react-native-reanimated';
@@ -24,6 +24,37 @@ const POSTAL_PREVIEWS: { key: string; src: number }[] = [
   { key: '1990', src: require('../../../assets/resources/postals/1990-c.avif') },
 ];
 
+/* ── Historia card ── */
+function HistoriaCard() {
+  const scale = useSharedValue(1);
+  const anim = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  return (
+    <Animated.View style={[styles.historiaCard, anim]}>
+      <View style={styles.historiaLeft}>
+        <View style={styles.historiaIconWrap}>
+          <BookOpen size={28} color={Colors.primary} />
+        </View>
+        <View style={styles.historiaText}>
+          <Text style={styles.historiaLabel}>Guia cultural</Text>
+          <Text style={styles.historiaTitle}>Història de la Festa</Text>
+          <Text style={styles.historiaSub}>Patrones, comparses, tradicions i el Bequetero</Text>
+        </View>
+      </View>
+      <View style={styles.historiaCta}>
+        <ArrowRight size={16} color={Colors.primary} />
+      </View>
+      <Pressable
+        style={StyleSheet.absoluteFill}
+        onPress={() => router.push('/(tabs)/recursos/historia' as never)}
+        onPressIn={() => { scale.value = withTiming(0.975, { duration: 80 }); }}
+        onPressOut={() => { scale.value = withSpring(1, { damping: 12, stiffness: 220 }); }}
+        accessibilityRole="button"
+        accessibilityLabel="Història de les Santes"
+      />
+    </Animated.View>
+  );
+}
+
 /* ── Screen ── */
 export default function RecursosScreen() {
   return (
@@ -35,6 +66,9 @@ export default function RecursosScreen() {
         </View>
 
         <View style={styles.cards}>
+          {/* Historia — new full-width card */}
+          <HistoriaCard />
+
           <HeroCard
             title="Cartells Oficials"
             subtitle="Pòsters oficials des de 1892"
@@ -237,4 +271,42 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   postalsCtaText: { color: Colors.primary, fontSize: 13, fontWeight: '700' },
+  // Historia card
+  historiaCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: 20,
+    padding: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.border,
+    gap: 12,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 8 },
+      android: { elevation: 2 },
+    }),
+  },
+  historiaLeft: { flexDirection: 'row', alignItems: 'center', gap: 14, flex: 1 },
+  historiaIconWrap: {
+    width: 52,
+    height: 52,
+    borderRadius: 14,
+    backgroundColor: `${Colors.primary}12`,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  historiaText: { flex: 1, gap: 2 },
+  historiaLabel: { color: Colors.textDim, fontSize: 11, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.6 },
+  historiaTitle: { color: Colors.text, fontSize: 17, fontWeight: '800', letterSpacing: -0.2 },
+  historiaSub: { color: Colors.textMuted, fontSize: 12, lineHeight: 17, marginTop: 2 },
+  historiaCta: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: `${Colors.primary}12`,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
 });

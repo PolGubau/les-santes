@@ -1,14 +1,15 @@
 import { useAnnouncements } from '@/entities/announcement';
 import { useEvents } from '@/entities/event';
 import { HeroCard, LiveClock, NowCard, UpcomingRow, useNowEvents } from '@/features/now';
+import { useFavoritesStore } from '@/features/favorites';
 import { Colors } from '@/shared/constants';
 import { useNow } from '@/shared/hooks';
 import { t } from '@/shared/i18n';
 import { AnnouncementBanner, ErrorState, LoadingState, OfflineBanner, Screen, SectionHeader } from '@/shared/ui';
 import { router } from 'expo-router';
-import { Clock, Moon } from 'lucide-react-native';
+import { Clock, Heart, Moon } from 'lucide-react-native';
 import React, { useCallback, useMemo } from 'react';
-import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
 // ─── Countdown helpers ───────────────────────────────────────────────────────
 function formatCountdown(ms: number): string {
@@ -29,9 +30,16 @@ export default function AraScreen() {
   const announcements = useAnnouncements();
   const { now, upcoming } = useNowEvents(events);
   const clock = useNow(1_000); // 1-second tick for countdown
+  const { favorites } = useFavoritesStore();
   const handlePress = useCallback((id: string) => {
     router.push(`/event/${id}`);
   }, []);
+
+  // Favorites currently live — shown in a highlighted band
+  const liveAndFavorite = useMemo(
+    () => now.filter((e) => favorites[e.id]),
+    [now, favorites],
+  );
 
   // Find the soonest unstarted event across all events (for countdown)
   const nextEvent = useMemo(() => {
@@ -81,6 +89,29 @@ export default function AraScreen() {
         contentContainerStyle={[styles.scrollContent, { paddingBottom: 32 }]}
         showsVerticalScrollIndicator={false}
       >
+        {/* ❤️ Favourites live — prominent banner for night use */}
+        {liveAndFavorite.length > 0 && (
+          <View style={styles.favBand}>
+            <View style={styles.favBandHeader}>
+              <Heart size={16} color="#fff" fill="#fff" />
+              <Text style={styles.favBandTitle}>Els teus favorits en curs</Text>
+            </View>
+            {liveAndFavorite.map((e) => (
+              <Pressable
+                key={e.id}
+                style={({ pressed }) => [styles.favRow, pressed && { opacity: 0.8 }]}
+                onPress={() => handlePress(e.id)}
+                accessibilityRole="button"
+                accessibilityLabel={e.title}
+              >
+                <View style={styles.favDot} />
+                <Text style={styles.favRowTitle} numberOfLines={1}>{e.title}</Text>
+                <Text style={styles.favRowLocation} numberOfLines={1}>{e.locationName ?? ''}</Text>
+              </Pressable>
+            ))}
+          </View>
+        )}
+
         {/* Live indicator */}
         {now.length > 0 && (
           <View style={styles.liveBar}>
@@ -174,4 +205,29 @@ const styles = StyleSheet.create({
   emptyTitle: { color: Colors.text, fontSize: 18, fontWeight: '700' },
   emptySubtitle: { color: Colors.textMuted, fontSize: 14, textAlign: 'center', maxWidth: 240 },
   countdownValue: { color: Colors.primary, fontSize: 40, fontWeight: '800', letterSpacing: -1 },
+  // Favorites live band
+  favBand: {
+    marginHorizontal: 16,
+    marginBottom: 12,
+    backgroundColor: Colors.primary,
+    borderRadius: 16,
+    overflow: 'hidden',
+    paddingBottom: 4,
+  },
+  favBandHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, padding: 12, paddingBottom: 8 },
+  favBandTitle: { color: '#fff', fontSize: 13, fontWeight: '700' },
+  favRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    marginHorizontal: 8,
+    marginBottom: 6,
+    borderRadius: 10,
+  },
+  favDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#fff', flexShrink: 0 },
+  favRowTitle: { flex: 1, color: '#fff', fontSize: 14, fontWeight: '700' },
+  favRowLocation: { color: 'rgba(255,255,255,0.7)', fontSize: 12, flexShrink: 0, maxWidth: 80 },
 });

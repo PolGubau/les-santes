@@ -3,7 +3,7 @@ import { STATE_COLOR } from '@/entities/event';
 import { Colors } from '@/shared/constants';
 import type { UserCoords } from '@/shared/hooks';
 import { haversineDistance } from '@/shared/lib';
-import { LoadingState } from '@/shared/ui/LoadingState';
+import { AgendaSkeletonList } from './AgendaSkeletonList';
 import { CalendarOff } from 'lucide-react-native';
 import React, { memo } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -94,7 +94,7 @@ export function AgendaList({
   const sections = buildSections(events);
 
   if (loading && sections.length === 0) {
-    return <LoadingState label="Carregant actes…" />;
+    return <AgendaSkeletonList />;
   }
 
   if (sections.length === 0) {

@@ -16,7 +16,9 @@ function applyFilters(
 	userCoords: UserCoords | null | undefined,
 	favoriteIds?: Set<string>,
 ): Event[] {
+	const q = filters.search?.trim().toLowerCase();
 	let result = events.filter((e) => {
+		if (q && !e.title.toLowerCase().includes(q) && !e.shortDescription.toLowerCase().includes(q)) return false;
 		if (filters.onlyFavorites && !favoriteIds?.has(e.id)) return false;
 		if (filters.type && e.type !== filters.type) return false;
 		if (filters.category && e.category !== filters.category) return false;
@@ -58,6 +60,7 @@ function applyFilters(
 const NEAR_ME_RADIUS_M = 600;
 
 export interface AgendaFilters {
+	search?: string;
 	type?: EventType;
 	category?: EventCategory;
 	nearMe?: boolean;
@@ -119,17 +122,11 @@ export function useAgenda(
 		[filteredByDay, effectiveDay],
 	);
 
-	const setType = (type: EventType | undefined) =>
-		setFilters((f) => ({ ...f, type }));
-
-	const setCategory = (category: EventCategory | undefined) =>
-		setFilters((f) => ({ ...f, category }));
-
+	const setSearch = (search: string) => setFilters((f) => ({ ...f, search: search || undefined }));
+	const setType = (type: EventType | undefined) => setFilters((f) => ({ ...f, type }));
+	const setCategory = (category: EventCategory | undefined) => setFilters((f) => ({ ...f, category }));
 	const toggleNearMe = () => setFilters((f) => ({ ...f, nearMe: !f.nearMe }));
-
-	const toggleFavorites = () =>
-		setFilters((f) => ({ ...f, onlyFavorites: !f.onlyFavorites }));
-
+	const toggleFavorites = () => setFilters((f) => ({ ...f, onlyFavorites: !f.onlyFavorites }));
 	const clearFilters = () => setFilters({});
 
 	return {
@@ -140,6 +137,7 @@ export function useAgenda(
 		availableDays,
 		todayKey: nowKey,
 		setDay,
+		setSearch,
 		setType,
 		setCategory,
 		toggleNearMe,

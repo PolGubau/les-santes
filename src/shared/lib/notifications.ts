@@ -113,3 +113,27 @@ export async function cancelEventNotification(eventId: string): Promise<void> {
   const N = await getNotifications();
   await N?.cancelScheduledNotificationAsync(`event-${eventId}`).catch(() => {});
 }
+
+export interface ScheduledEventNotification {
+  eventId: string;
+  title: string;
+  triggerDate: Date;
+}
+
+/** Returns all pending local notifications that belong to favourite events. */
+export async function getScheduledEventNotifications(): Promise<ScheduledEventNotification[]> {
+  const N = await getNotifications();
+  if (!N) return [];
+  const all = await N.getAllScheduledNotificationsAsync().catch(() => [] as import('expo-notifications').NotificationRequest[]);
+  return all
+    .filter((n) => n.identifier.startsWith('event-'))
+    .map((n) => {
+      const trigger = n.trigger as { date?: number } | null;
+      return {
+        eventId: n.identifier.replace('event-', ''),
+        title: (n.content.body ?? n.identifier),
+        triggerDate: trigger?.date ? new Date(trigger.date) : new Date(),
+      };
+    })
+    .sort((a, b) => a.triggerDate.getTime() - b.triggerDate.getTime());
+}

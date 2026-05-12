@@ -30,6 +30,7 @@ interface EventRow {
   kind: string;
   icon_name: string;
   short_description: string;
+  description: string | null;
   start_time: string;
   end_time: string;
   image_url: string | null;
@@ -49,6 +50,7 @@ function rowToRawEvent(row: EventRow): RawEvent {
     category: row.category as EventCategory,
     icon: { name: row.icon_name },
     shortDescription: row.short_description,
+    description: row.description ?? undefined,
     start: row.start_time,
     end: row.end_time,
     imageUrl: row.image_url ?? undefined,

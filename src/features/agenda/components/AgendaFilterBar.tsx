@@ -1,10 +1,10 @@
-import type { EventType } from '@/entities/event';
+import type { EventCategory, EventType } from '@/entities/event';
 import { Colors } from '@/shared/constants';
 import { t } from '@/shared/i18n';
 import type { UserCoords } from '@/shared/hooks';
 import * as Haptics from 'expo-haptics';
 import {
-  Crown, Flag, Flame, Heart, MapPin, Mic, Music, Sailboat, Smile, Ticket, Users,
+  Crown, Flag, Flame, Heart, MapPin, Mic, Moon, Music, Sailboat, Smile, Ticket, Users, Sparkles, BookOpen,
 } from 'lucide-react-native';
 import type { LucideIcon } from 'lucide-react-native';
 import React from 'react';
@@ -23,6 +23,13 @@ const TYPE_FILTERS: Array<{ label: string; value: EventType; Icon?: LucideIcon }
   { label: t('filters.jocs'), value: 'jocs', Icon: Smile },
 ];
 
+const CATEGORY_FILTERS: Array<{ label: string; value: EventCategory; emoji: string; Icon: LucideIcon }> = [
+  { label: 'Nocturn', value: 'nocturn', emoji: '🌙', Icon: Moon },
+  { label: 'Familiar', value: 'familiar', emoji: '👨‍👩‍👧', Icon: Sparkles },
+  { label: 'Tradicional', value: 'tradicional', emoji: '🎭', Icon: Flag },
+  { label: 'Cultural', value: 'cultural', emoji: '🎨', Icon: BookOpen },
+];
+
 interface Props {
   filters: AgendaFilters;
   totalFavorites: number;
@@ -30,73 +37,98 @@ interface Props {
   onToggleFavorites: () => void;
   onToggleNearMe: () => void;
   onSetType: (type: EventType | undefined) => void;
+  onSetCategory: (category: EventCategory | undefined) => void;
 }
 
 export function AgendaFilterBar({
   filters, totalFavorites, userCoords,
-  onToggleFavorites, onToggleNearMe, onSetType,
+  onToggleFavorites, onToggleNearMe, onSetType, onSetCategory,
 }: Props) {
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.container}
-    >
-      {/* Favorits */}
-      <Pressable
-        style={[styles.chip, filters.onlyFavorites && styles.chipFavorites]}
-        onPress={() => { Haptics.selectionAsync(); onToggleFavorites(); }}
-        accessibilityRole="tab"
-        accessibilityLabel="Filtre: Favorits"
-        accessibilityState={{ selected: !!filters.onlyFavorites }}
+    <View>
+      {/* Row 1: Favorits + Aprop meu + Tipus */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.container}
       >
-        <Heart
-          size={15}
-          color={filters.onlyFavorites ? '#fff' : Colors.primary}
-          fill={filters.onlyFavorites ? '#fff' : 'none'}
-        />
-        <Text style={[styles.chipText, filters.onlyFavorites && styles.chipTextActive]}>{t('filters.favorites')}</Text>
-        {totalFavorites > 0 && (
-          <View style={[styles.favBadge, filters.onlyFavorites && styles.favBadgeActive]}>
-            <Text style={[styles.favBadgeText, filters.onlyFavorites && styles.favBadgeTextActive]}>
-              {totalFavorites}
-            </Text>
-          </View>
-        )}
-      </Pressable>
-
-      {/* Aprop meu */}
-      {userCoords && (
+        {/* Favorits */}
         <Pressable
-          style={[styles.chip, filters.nearMe && styles.chipNearMe]}
-          onPress={() => { Haptics.selectionAsync(); onToggleNearMe(); }}
+          style={[styles.chip, filters.onlyFavorites && styles.chipFavorites]}
+          onPress={() => { Haptics.selectionAsync(); onToggleFavorites(); }}
           accessibilityRole="tab"
-          accessibilityLabel="Filtre: Aprop meu"
-          accessibilityState={{ selected: !!filters.nearMe }}
+          accessibilityLabel="Filtre: Favorits"
+          accessibilityState={{ selected: !!filters.onlyFavorites }}
         >
-          <MapPin size={15} color={filters.nearMe ? '#fff' : Colors.primary} />
-          <Text style={[styles.chipText, filters.nearMe && styles.chipTextActive]}>{t('filters.nearMe')}</Text>
+          <Heart
+            size={15}
+            color={filters.onlyFavorites ? '#fff' : Colors.primary}
+            fill={filters.onlyFavorites ? '#fff' : 'none'}
+          />
+          <Text style={[styles.chipText, filters.onlyFavorites && styles.chipTextActive]}>{t('filters.favorites')}</Text>
+          {totalFavorites > 0 && (
+            <View style={[styles.favBadge, filters.onlyFavorites && styles.favBadgeActive]}>
+              <Text style={[styles.favBadgeText, filters.onlyFavorites && styles.favBadgeTextActive]}>
+                {totalFavorites}
+              </Text>
+            </View>
+          )}
         </Pressable>
-      )}
 
-      {/* Type filters */}
-      {TYPE_FILTERS.map((f) => {
-        const active = filters.type === f.value;
-        return (
+        {/* Aprop meu */}
+        {userCoords && (
           <Pressable
-            key={f.label}
-            style={[styles.chip, active && styles.chipActive]}
-            onPress={() => onSetType(active ? undefined : f.value)}
+            style={[styles.chip, filters.nearMe && styles.chipNearMe]}
+            onPress={() => { Haptics.selectionAsync(); onToggleNearMe(); }}
             accessibilityRole="tab"
-            accessibilityLabel={`Filtre: ${f.label}`}
-            accessibilityState={{ selected: active }}
+            accessibilityLabel="Filtre: Aprop meu"
+            accessibilityState={{ selected: !!filters.nearMe }}
           >
-            {f.Icon && <f.Icon size={15} color={active ? '#fff' : Colors.textDim} />}
-            <Text style={[styles.chipText, active && styles.chipTextActive]}>{f.label}</Text>
+            <MapPin size={15} color={filters.nearMe ? '#fff' : Colors.primary} />
+            <Text style={[styles.chipText, filters.nearMe && styles.chipTextActive]}>{t('filters.nearMe')}</Text>
           </Pressable>
-        );
-      })}
-    </ScrollView>
+        )}
+
+        {/* Type filters */}
+        {TYPE_FILTERS.map((f) => {
+          const active = filters.type === f.value;
+          return (
+            <Pressable
+              key={f.label}
+              style={[styles.chip, active && styles.chipActive]}
+              onPress={() => { Haptics.selectionAsync(); onSetType(active ? undefined : f.value); }}
+              accessibilityRole="tab"
+              accessibilityLabel={`Filtre: ${f.label}`}
+              accessibilityState={{ selected: active }}
+            >
+              {f.Icon && <f.Icon size={15} color={active ? '#fff' : Colors.textDim} />}
+              <Text style={[styles.chipText, active && styles.chipTextActive]}>{f.label}</Text>
+            </Pressable>
+          );
+        })}
+
+        {/* Separator */}
+        <View style={styles.separator} />
+
+        {/* Category filters */}
+        {CATEGORY_FILTERS.map((f) => {
+          const active = filters.category === f.value;
+          return (
+            <Pressable
+              key={f.value}
+              style={[styles.chip, active && styles.chipCategoryActive]}
+              onPress={() => { Haptics.selectionAsync(); onSetCategory(active ? undefined : f.value); }}
+              accessibilityRole="tab"
+              accessibilityLabel={`Categoria: ${f.label}`}
+              accessibilityState={{ selected: active }}
+            >
+              <Text style={styles.chipEmoji}>{f.emoji}</Text>
+              <Text style={[styles.chipText, active && styles.chipTextActive]}>{f.label}</Text>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
+    </View>
   );
 }
 
@@ -120,4 +152,7 @@ const styles = StyleSheet.create({
   favBadgeActive: { backgroundColor: 'rgba(255,255,255,0.3)' },
   favBadgeText: { color: '#fff', fontSize: 10, fontWeight: '700', fontVariant: ['tabular-nums'] },
   favBadgeTextActive: { color: '#fff' },
+  chipCategoryActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
+  chipEmoji: { fontSize: 14, lineHeight: 17 },
+  separator: { width: 1, height: 20, backgroundColor: Colors.border, alignSelf: 'center', marginHorizontal: 4 },
 });
