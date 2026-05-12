@@ -4,7 +4,7 @@ import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import * as Location from 'expo-location';
 import { WifiOff } from 'lucide-react-native';
 import React, { forwardRef, memo, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Animated, Pressable, StyleSheet, Text, View, useColorScheme } from 'react-native';
+import { ActivityIndicator, Alert, Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import WebView, { type WebViewMessageEvent } from 'react-native-webview';
 
 const CENTER_LNG = 2.444;
@@ -37,11 +37,13 @@ function buildHtml(isDark: boolean) {
       border-color:rgba(255,255,255,0.95) !important; }
     .m-pin.finished { opacity:0.35; filter:grayscale(0.65); }
     .m-pin .pin-icon { font-size:15px; line-height:1; user-select:none; }
-    .m-label { margin-top:3px; font-size:10px; font-weight:700; color:#1A1110;
-      text-shadow:0 1px 3px rgba(250,248,245,0.95); max-width:76px; text-align:center;
+    .m-label { margin-top:4px; font-size:10px; font-weight:700; color:#1A1110;
+      background:rgba(255,255,255,0.88); -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px);
+      padding:1px 6px 2px; border-radius:7px; max-width:82px; text-align:center;
       white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:.01em;
-      transition:font-size .15s ease; }
-    .m-label.selected { font-size:11.5px; font-weight:800; color:#0A0908; }
+      box-shadow:0 1px 3px rgba(0,0,0,0.13); transition:all .15s ease; }
+    .m-label.selected { font-size:11px; font-weight:800; color:#0A0908;
+      background:rgba(255,255,255,0.97); box-shadow:0 1px 5px rgba(0,0,0,0.2); }
     .m-cluster-wrap { display:inline-flex; cursor:pointer; user-select:none; }
     .m-cluster { width:42px; height:42px; border-radius:50%; background:#1D4ED8;
       border:3px solid #fff; display:flex; align-items:center; justify-content:center;
@@ -101,8 +103,20 @@ function makeMarkerEl(event, overrideColor) {
   lbl.textContent = event.title;
   wrap.appendChild(pin);
   wrap.appendChild(lbl);
+  // On mobile WebViews MapLibre consumes touchstart for pan detection before
+  // the synthetic 'click' fires. Using touchend+preventDefault intercepts first.
+  let _touched = false;
+  wrap.addEventListener('touchend', (e) => {
+    e.stopPropagation();
+    e.preventDefault(); // cancels the subsequent click + prevents map pan
+    _touched = true;
+    selectEvent(event.id);
+    post({ type:'EVENT_PRESS', event });
+    setTimeout(() => { _touched = false; }, 500);
+  }, { passive: false });
   wrap.addEventListener('click', (e) => {
     e.stopPropagation();
+    if (_touched) return; // already handled by touchend
     selectEvent(event.id);
     post({ type:'EVENT_PRESS', event });
   });
@@ -115,7 +129,19 @@ function makeClusterEl(count, onClick) {
   el.className = 'm-cluster';
   el.textContent = '+' + count;
   wrap.appendChild(el);
-  wrap.addEventListener('click', onClick);
+  let _ctouched = false;
+  wrap.addEventListener('touchend', (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    _ctouched = true;
+    onClick(e);
+    setTimeout(() => { _ctouched = false; }, 500);
+  }, { passive: false });
+  wrap.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (_ctouched) return;
+    onClick(e);
+  });
   return wrap;
 }
 
@@ -432,8 +458,6 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
   { events, onEventPress, onClusterPress },
   ref,
 ) {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
   const webviewRef = useRef<WebView>(null);
   const [mapReady, setMapReady] = useState(false);
   const [mapOffline, setMapOffline] = useState(false);
@@ -441,9 +465,8 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
   const pendingFocusId = useRef<string | null>(null);
   const eventsRef = useRef(events);
   eventsRef.current = events;
-  // Memoize HTML so it only rebuilds on dark mode change
-  const htmlRef = useRef(buildHtml(isDark));
-  const prevDarkRef = useRef(isDark);
+  // App is light-mode only — always build with isDark=false
+  const htmlRef = useRef(buildHtml(false));
 
   const injectFocus = useCallback((id: string) => {
     const js = `window.focusOnEvent(${JSON.stringify(id)}, ${JSON.stringify(eventsRef.current)}); true;`;
@@ -481,15 +504,7 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
     pendingFocusId.current = null;
   }, [injectFocus, mapReady]);
 
-  // Inject style change when dark mode toggles (no WebView reload needed)
-  useEffect(() => {
-    if (!mapReady || isDark === prevDarkRef.current) return;
-    prevDarkRef.current = isDark;
-    const styleUrl = isDark
-      ? `https://api.maptiler.com/maps/streets-v2-dark/style.json?key=${MAPTILER_KEY}`
-      : `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}`;
-    webviewRef.current?.injectJavaScript(`window.updateMapStyle(${JSON.stringify(styleUrl)}); true;`);
-  }, [isDark, mapReady]);
+  // Dark mode not supported — app is light-mode only.
 
   // Native location → WebView bridge (with onboarding Alert)
   useEffect(() => {

@@ -1,11 +1,12 @@
 import { POSTERS } from '@/features/recursos';
+import { COMPARSES } from '@/features/recursos/data/comparses';
 import { Colors } from '@/shared/constants';
 import POSTALS from '@/shared/data/postals.json';
 import { Screen } from '@/shared/ui';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { ArrowRight, BookOpen } from 'lucide-react-native';
+import { ArrowRight, BookOpen, Flame, GlassWater } from 'lucide-react-native';
 import type React from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSpring } from 'react-native-reanimated';
@@ -55,6 +56,40 @@ function HistoriaCard() {
   );
 }
 
+/* ── Simple card (compact, half-width) ── */
+function SimpleCard({
+  title, subtitle, count, countLabel, href, icon,
+}: {
+  title: string; subtitle: string; count?: number; countLabel?: string; href: string;
+  icon: React.ReactNode;
+}) {
+  const scale = useSharedValue(1);
+  const anim = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+
+  return (
+    <Animated.View style={[styles.simpleCard, anim]}>
+      <View style={styles.simpleIconWrap}>{icon}</View>
+      {count !== undefined && (
+        <Text style={styles.simpleCount}>{count} {countLabel}</Text>
+      )}
+      <Text style={styles.simpleTitle}>{title}</Text>
+      <Text style={styles.simpleSub}>{subtitle}</Text>
+      <View style={styles.simpleCtaRow}>
+        <Text style={styles.simpleCtaText}>Veure</Text>
+        <ArrowRight size={12} color={Colors.primary} />
+      </View>
+      <Pressable
+        style={StyleSheet.absoluteFill}
+        onPress={() => router.push(href as never)}
+        onPressIn={() => { scale.value = withTiming(0.96, { duration: 80 }); }}
+        onPressOut={() => { scale.value = withSpring(1, { damping: 12, stiffness: 220 }); }}
+        accessibilityRole="button"
+        accessibilityLabel={title}
+      />
+    </Animated.View>
+  );
+}
+
 /* ── Screen ── */
 export default function RecursosScreen() {
   return (
@@ -85,6 +120,24 @@ export default function RecursosScreen() {
             count={POSTALS.length}
             href="/(tabs)/recursos/postals"
           />
+
+          {/* Row: Comparses + Begudes */}
+          <View style={styles.row}>
+            <SimpleCard
+              title="Comparses"
+              subtitle="El seguici festiu"
+              count={COMPARSES.length}
+              countLabel="colles"
+              href="/(tabs)/recursos/comparses"
+              icon={<Flame size={22} color={Colors.primary} />}
+            />
+            <SimpleCard
+              title="Begudes"
+              subtitle="Tradicions líquides"
+              href="/(tabs)/recursos/begudes"
+              icon={<GlassWater size={22} color={Colors.primary} />}
+            />
+          </View>
         </View>
       </ScrollView>
     </Screen>
@@ -184,6 +237,38 @@ const styles = StyleSheet.create({
   title: { color: Colors.text, fontSize: 28, fontWeight: '800', letterSpacing: -0.5 },
   subtitle: { color: Colors.textMuted, fontSize: 14, marginTop: 2 },
   cards: { gap: 14 },
+
+  /* Row (two-column) */
+  row: { flexDirection: 'row', gap: 14 },
+
+  /* Simple card */
+  simpleCard: {
+    flex: 1,
+    borderRadius: 20,
+    backgroundColor: Colors.surface,
+    padding: 16,
+    gap: 4,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.border,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 8 },
+      android: { elevation: 2 },
+    }),
+  },
+  simpleIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: `${Colors.primary}12`,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  simpleCount: { color: Colors.textDim, fontSize: 11, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
+  simpleTitle: { color: Colors.text, fontSize: 16, fontWeight: '800', letterSpacing: -0.2 },
+  simpleSub: { color: Colors.textMuted, fontSize: 12, lineHeight: 17, marginTop: 2 },
+  simpleCtaRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 10 },
+  simpleCtaText: { color: Colors.primary, fontSize: 13, fontWeight: '700' },
 
   /* Hero card */
   heroCard: {

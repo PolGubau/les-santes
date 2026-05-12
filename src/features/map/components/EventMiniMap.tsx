@@ -1,24 +1,23 @@
 import type { Event } from '@/entities/event';
 import { Colors } from '@/shared/constants';
 import React, { useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View, useColorScheme } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import WebView from 'react-native-webview';
 
 declare const process: { env: Record<string, string | undefined> };
 const MAPTILER_KEY = process.env.EXPO_PUBLIC_MAPTILER_KEY ?? 'xvhIdcAsn7WrwOYPt8W2';
 
 // Route palette — same hash function as EventMap for consistent coloring
-const ROUTE_PALETTE = ['#E63946','#FF6B35','#F7C948','#2EC4B6','#3A86FF','#8338EC'];
+const ROUTE_PALETTE = ['#E63946', '#FF6B35', '#F7C948', '#2EC4B6', '#3A86FF', '#8338EC'];
 function routeColor(id: string): string {
   let h = 0;
   for (let i = 0; i < id.length; i++) h = (Math.imul(31, h) + id.charCodeAt(i)) | 0;
   return ROUTE_PALETTE[Math.abs(h) % ROUTE_PALETTE.length];
 }
 
-function buildMiniHtml(event: Event, isDark: boolean): string {
-  const style = isDark
-    ? `https://api.maptiler.com/maps/streets-v2-dark/style.json?key=${MAPTILER_KEY}`
-    : `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}`;
+function buildMiniHtml(event: Event): string {
+  // App is light-mode only — always use light map style
+  const style = `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}`;
   const fallback = 'https://tiles.openfreemap.org/styles/liberty';
 
   // Determine center + zoom
@@ -84,9 +83,8 @@ interface Props {
 const MAP_H = 180;
 
 export function EventMiniMap({ event, onPress }: Props) {
-  const isDark = useColorScheme() === 'dark';
   const [ready, setReady] = useState(false);
-  const html = useRef(buildMiniHtml(event, isDark)).current;
+  const html = useRef(buildMiniHtml(event)).current;
 
   const hasLocation = event.kind === 'static'
     ? !!event.location
@@ -101,7 +99,7 @@ export function EventMiniMap({ event, onPress }: Props) {
       <WebView
         style={StyleSheet.absoluteFill}
         source={{ html, baseUrl: 'https://localhost' }}
-        originWhitelist={['*']}sigo viendo lcu
+        originWhitelist={['*']}
         javaScriptEnabled
         scrollEnabled={false}
         onMessage={() => setReady(true)}
