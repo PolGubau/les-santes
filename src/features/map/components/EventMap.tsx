@@ -1,5 +1,6 @@
 import type { Event } from '@/entities/event';
 import { Colors } from '@/shared/constants';
+import * as FileSystem from 'expo-file-system/legacy';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import * as Location from 'expo-location';
 import { WifiOff } from 'lucide-react-native';
@@ -7,23 +8,77 @@ import React, { forwardRef, memo, useCallback, useEffect, useImperativeHandle, u
 import { ActivityIndicator, Alert, Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import WebView, { type WebViewMessageEvent } from 'react-native-webview';
 
+// ── Cached scripts type ────────────────────────────────────────────────────────
+type CachedScripts = { mlJs: string; mlCss: string; scJs: string };
+
 const CENTER_LNG = 2.444;
 const CENTER_LAT = 41.5378;
 
+// ── Map asset caching ─────────────────────────────────────────────────────────
+// Downloads MapLibre + Supercluster once to FileSystem.cacheDirectory, then
+// reads them from disk on subsequent launches (~50 ms vs 1-2 s CDN load).
+// Kicked off at module evaluation so it runs in parallel with navigation.
+const CACHE_DIR = (FileSystem.cacheDirectory ?? '') + 'map-assets/';
+const MAP_ASSET_URLS = [
+  { key: 'maplibre-gl@3.6.2.js', url: 'https://cdn.jsdelivr.net/npm/maplibre-gl@3.6.2/dist/maplibre-gl.js' },
+  { key: 'maplibre-gl@3.6.2.css', url: 'https://cdn.jsdelivr.net/npm/maplibre-gl@3.6.2/dist/maplibre-gl.css' },
+  { key: 'supercluster@8.0.1.js', url: 'https://cdn.jsdelivr.net/npm/supercluster@8.0.1/dist/supercluster.min.js' },
+] as const;
+
+async function loadMapAssets(): Promise<CachedScripts | null> {
+  try {
+    await FileSystem.makeDirectoryAsync(CACHE_DIR, { intermediates: true });
+    const texts = await Promise.all(
+      MAP_ASSET_URLS.map(async ({ key, url }) => {
+        const path = CACHE_DIR + key;
+        const info = await FileSystem.getInfoAsync(path);
+        if (!info.exists) await FileSystem.downloadAsync(url, path);
+        return FileSystem.readAsStringAsync(path);
+      }),
+    );
+    return { mlJs: texts[0], mlCss: texts[1], scJs: texts[2] };
+  } catch {
+    return null; // fall back to CDN URLs in buildHtml
+  }
+}
+
+// Start immediately — before the component ever mounts.
+// We also populate the disk cache for subsequent launches even when the race
+// below falls back to CDN (i.e. the download keeps running in background).
+const _assetPromise: Promise<CachedScripts | null> = loadMapAssets();
+
+// Resolve whichever comes first: cached scripts or a CDN-fallback timeout.
+// • Subsequent launches: disk read resolves in ~50 ms → inline scripts used.
+// • First launch: 150 ms timeout fires → CDN URLs used (same as before),
+//   while the background download finishes and caches for next time.
+const CACHE_RACE_MS = 150;
+function buildHtmlAsync(isDark: boolean): Promise<string> {
+  const timeout = new Promise<null>((resolve) =>
+    setTimeout(() => resolve(null), CACHE_RACE_MS),
+  );
+  return Promise.race([_assetPromise, timeout]).then(
+    (scripts) => buildHtml(isDark, scripts ?? undefined),
+  );
+}
 
 // MapTiler key — set EXPO_PUBLIC_MAPTILER_KEY in EAS secrets / .env
 // Falls back to bundled key so the map works even without the env var.
 declare const process: { env: Record<string, string | undefined> };
 const MAPTILER_KEY = process.env.EXPO_PUBLIC_MAPTILER_KEY ?? 'xvhIdcAsn7WrwOYPt8W2';
 
-function buildHtml(isDark: boolean) {
+function buildHtml(isDark: boolean, scripts?: CachedScripts) {
+  // When scripts are cached locally, inline them to avoid any network roundtrip.
+  // Fallback to CDN URLs on first launch (before cache is populated).
+  const scriptTags = scripts
+    ? `<style>${scripts.mlCss}</style>\n<script>${scripts.mlJs}</script>\n<script>${scripts.scJs}</script>`
+    : `<link href="https://cdn.jsdelivr.net/npm/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/supercluster@8.0.1/dist/supercluster.min.js"></script>`;
   return `<!DOCTYPE html>
 <html>
 <head>
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-  <link href="https://cdn.jsdelivr.net/npm/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/supercluster@8.0.1/dist/supercluster.min.js"></script>
+  ${scriptTags}
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     body,#map { width:100%; height:100vh; background:#FAF8F5; }
@@ -266,6 +321,14 @@ function renderClusters() {
   });
 }
 
+// ── Time formatter ────────────────────────────────────────────────────────────
+function fmtTime(iso) {
+  try {
+    const d = new Date(iso);
+    return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+  } catch(e) { return ''; }
+}
+
 // ── Arrow SDF image (generated once on map load) ─────────────────────────────
 function addArrowImage() {
   const size = 32;
@@ -296,7 +359,7 @@ function renderRoute(event) {
   _routeSourceIds.push(srcId);
   map.addSource(srcId, {
     type:'geojson',
-    data:{ type:'Feature', properties:{}, geometry:{ type:'LineString', coordinates:coords } },
+    data:{ type:'Feature', properties:{ title:event.title, startTime:fmtTime(event.start) }, geometry:{ type:'LineString', coordinates:coords } },
   });
 
   const isSelected = event.id === _selectedId;
@@ -338,6 +401,31 @@ function renderRoute(event) {
       paint:{ 'icon-color':'#ffffff', 'icon-opacity':0.9 },
     });
   }
+
+  // 4. Route label — event name + start time at line midpoint, only when space allows
+  const labelId = srcId + '-label';
+  _routeLayerIds.push(labelId);
+  map.addLayer({
+    id:labelId, type:'symbol', source:srcId,
+    minzoom:14,
+    layout:{
+      'symbol-placement':'line-center',
+      'text-field':['concat', ['get','title'], '\n', ['get','startTime']],
+      'text-size':10,
+      'text-max-width':12,
+      'text-font':['Open Sans Bold','Arial Unicode MS Bold'],
+      'text-anchor':'center',
+      'text-rotation-alignment':'viewport',
+      'text-allow-overlap':false,
+      'text-ignore-placement':false,
+    },
+    paint:{
+      'text-color': finished ? '#6B7280' : color,
+      'text-halo-color':'#ffffff',
+      'text-halo-width':2.5,
+      'text-opacity': finished ? 0.5 : 1,
+    },
+  });
 
   map.on('click', lineId,   () => { selectEvent(event.id); post({ type:'EVENT_PRESS', event }); });
   map.on('click', casingId, () => { selectEvent(event.id); post({ type:'EVENT_PRESS', event }); });
@@ -465,8 +553,20 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
   const pendingFocusId = useRef<string | null>(null);
   const eventsRef = useRef(events);
   eventsRef.current = events;
-  // App is light-mode only — always build with isDark=false
-  const htmlRef = useRef(buildHtml(false));
+
+  // Build HTML once: uses cached inline scripts if ready within 150 ms,
+  // otherwise falls back to CDN URLs so the WebView always starts quickly.
+  const htmlRef = useRef<string | null>(null);
+  const [htmlReady, setHtmlReady] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    buildHtmlAsync(false).then((html) => {
+      if (cancelled) return;
+      htmlRef.current = html;
+      setHtmlReady(true);
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   const injectFocus = useCallback((id: string) => {
     const js = `window.focusOnEvent(${JSON.stringify(id)}, ${JSON.stringify(eventsRef.current)}); true;`;
@@ -572,15 +672,20 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
 
   return (
     <View style={styles.map}>
-      <WebView
-        ref={webviewRef}
-        style={StyleSheet.absoluteFill}
-        source={{ html: htmlRef.current, baseUrl: 'https://localhost' }}
-        originWhitelist={['*']}
-        javaScriptEnabled
-        domStorageEnabled
-        onMessage={handleMessage}
-      />
+      {htmlReady && htmlRef.current && (
+        <WebView
+          ref={webviewRef}
+          style={StyleSheet.absoluteFill}
+          source={{ html: htmlRef.current, baseUrl: 'https://localhost' }}
+          originWhitelist={['*']}
+          javaScriptEnabled
+          domStorageEnabled
+          cacheEnabled
+          setSupportMultipleWindows={false}
+          renderToHardwareTextureAndroid
+          onMessage={handleMessage}
+        />
+      )}
 
       {/* Loader overlay — fades out when MAP_READY fires */}
       <Animated.View
