@@ -1,12 +1,13 @@
 import { Colors } from '@/shared/constants';
 import { Screen, ScreenHeader } from '@/shared/ui';
+import { Beer, BookOpen, Cherry, Citrus, ClipboardList, FlaskConical, Lightbulb, Sparkles, Wine } from 'lucide-react-native';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
-function SectionTitle({ emoji, title }: { emoji: string; title: string }) {
+function SectionTitle({ icon, title }: { icon: React.ReactNode; title: string }) {
   return (
     <View style={s.sectionHeader}>
-      <Text style={s.sectionEmoji}>{emoji}</Text>
+      <View style={s.sectionIconWrap}>{icon}</View>
       <Text style={s.sectionTitle}>{title}</Text>
     </View>
   );
@@ -16,10 +17,10 @@ function InfoCard({ children }: { children: React.ReactNode }) {
   return <View style={s.infoCard}>{children}</View>;
 }
 
-function IngredientRow({ emoji, text }: { emoji: string; text: string }) {
+function IngredientRow({ icon, text }: { icon: React.ReactNode; text: string }) {
   return (
     <View style={s.ingredientRow}>
-      <Text style={s.ingredientEmoji}>{emoji}</Text>
+      <View style={s.ingredientIcon}>{icon}</View>
       <Text style={s.ingredientText}>{text}</Text>
     </View>
   );
@@ -33,12 +34,14 @@ export default function BegudesScreen() {
 
         {/* Hero */}
         <View style={s.hero}>
-          <Text style={s.heroEmoji}>🍹</Text>
+          <View style={s.heroIconWrap}>
+            <Wine size={40} color={Colors.primary} />
+          </View>
           <Text style={s.heroTitle}>La Juliana</Text>
           <Text style={s.heroSub}>La beguda exclusiva de les Santes</Text>
         </View>
 
-        <SectionTitle emoji="✨" title="Què és la Juliana?" />
+        <SectionTitle icon={<Sparkles size={18} color={Colors.primary} />} title="Què és la Juliana?" />
         <InfoCard>
           <Text style={s.body}>
             La Juliana és el combinat oficial de Les Santes, i allò que la fa especialment especial és la seva
@@ -50,24 +53,27 @@ export default function BegudesScreen() {
           </Text>
         </InfoCard>
 
-        <SectionTitle emoji="📋" title="La Recepta" />
+        <SectionTitle icon={<ClipboardList size={18} color={Colors.primary} />} title="La Recepta" />
         <View style={s.recipeCard}>
           <Text style={s.recipeTitle}>Ingredients per a 1 got</Text>
           <View style={s.ingredients}>
-            <IngredientRow emoji="🍓" text="Granissat de maduixa" />
-            <IngredientRow emoji="🍊" text="Suc de taronja natural" />
-            <IngredientRow emoji="🥂" text="Cava" />
-            <IngredientRow emoji="🫙" text="Ginebra" />
-            <IngredientRow emoji="🫙" text="Rom" />
-            <IngredientRow emoji="🫙" text="Vodka" />
+            <IngredientRow icon={<Cherry size={18} color={Colors.primary} />} text="Granissat de maduixa" />
+            <IngredientRow icon={<Citrus size={18} color={Colors.primary} />} text="Suc de taronja natural" />
+            <IngredientRow icon={<Wine size={18} color={Colors.primary} />} text="Cava" />
+            <IngredientRow icon={<FlaskConical size={18} color={Colors.primary} />} text="Ginebra" />
+            <IngredientRow icon={<FlaskConical size={18} color={Colors.primary} />} text="Rom" />
+            <IngredientRow icon={<FlaskConical size={18} color={Colors.primary} />} text="Vodka" />
           </View>
           <View style={s.recipeDivider} />
-          <Text style={s.recipeNote}>
-            💡 La proporció exacta segueix sent un secret que cada any revisa l'equip de Cultura. El resultat: dolç, refrescant i amb una pujada al cap sorprenentment ràpida.
-          </Text>
+          <View style={s.recipeNoteRow}>
+            <Lightbulb size={14} color={Colors.textDim} />
+            <Text style={s.recipeNote}>
+              La proporció exacta segueix sent un secret que cada any revisa l'equip de Cultura. El resultat: dolç, refrescant i amb una pujada al cap sorprenentment ràpida.
+            </Text>
+          </View>
         </View>
 
-        <SectionTitle emoji="📖" title="La Llegenda" />
+        <SectionTitle icon={<BookOpen size={18} color={Colors.primary} />} title="La Llegenda" />
         <InfoCard>
           <Text style={s.body}>
             La Juliana és una beguda que molts mataronins esperen tot l'any. La seva exclusivitat és part del mite: saber que aquella nit, aquell got, en aquell lloc i amb aquella gent és una experiència irrepetible fins l'any vinent.{'\n\n'}
@@ -75,7 +81,7 @@ export default function BegudesScreen() {
           </Text>
         </InfoCard>
 
-        <SectionTitle emoji="🍺" title="Altres begudes de la festa" />
+        <SectionTitle icon={<Beer size={18} color={Colors.primary} />} title="Altres begudes de la festa" />
         <InfoCard>
           <Text style={s.body}>
             <Text style={s.bold}>La cervesa artesana de Les Santes</Text>{'\n'}
@@ -97,12 +103,12 @@ export default function BegudesScreen() {
 
 const s = StyleSheet.create({
   scroll: { paddingBottom: 48 },
-  hero: { alignItems: 'center', paddingVertical: 32, paddingHorizontal: 20, backgroundColor: Colors.surface, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: Colors.border, gap: 4 },
-  heroEmoji: { fontSize: 56 },
+  hero: { alignItems: 'center', paddingVertical: 32, paddingHorizontal: 20, backgroundColor: Colors.surface, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: Colors.border, gap: 8 },
+  heroIconWrap: { width: 80, height: 80, borderRadius: 24, backgroundColor: `${Colors.primary}12`, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
   heroTitle: { color: Colors.text, fontSize: 28, fontWeight: '900', letterSpacing: -0.5, textAlign: 'center' },
   heroSub: { color: Colors.textMuted, fontSize: 15, textAlign: 'center' },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingTop: 24, paddingBottom: 8 },
-  sectionEmoji: { fontSize: 20 },
+  sectionIconWrap: { width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
   sectionTitle: { color: Colors.text, fontSize: 18, fontWeight: '800', letterSpacing: -0.3 },
   infoCard: { marginHorizontal: 16, backgroundColor: Colors.surface, borderRadius: 14, padding: 16, borderWidth: StyleSheet.hairlineWidth, borderColor: Colors.border },
   body: { color: Colors.text, fontSize: 15, lineHeight: 24 },
@@ -111,10 +117,11 @@ const s = StyleSheet.create({
   recipeTitle: { color: Colors.textDim, fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.6 },
   ingredients: { gap: 8 },
   ingredientRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  ingredientEmoji: { fontSize: 20, width: 28 },
+  ingredientIcon: { width: 28, alignItems: 'center' },
   ingredientText: { color: Colors.text, fontSize: 15, fontWeight: '500' },
   recipeDivider: { height: StyleSheet.hairlineWidth, backgroundColor: Colors.border },
-  recipeNote: { color: Colors.textMuted, fontSize: 13, lineHeight: 19, fontStyle: 'italic' },
+  recipeNoteRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
+  recipeNote: { flex: 1, color: Colors.textMuted, fontSize: 13, lineHeight: 19, fontStyle: 'italic' },
   footer: { marginHorizontal: 16, marginTop: 24, paddingTop: 16, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: Colors.border },
   footerText: { color: Colors.textDim, fontSize: 11, lineHeight: 16, fontStyle: 'italic' },
 });

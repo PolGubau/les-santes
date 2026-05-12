@@ -43,7 +43,6 @@ function ComparsaCard({ comparsa }: { comparsa: ComparsaEntry }) {
           )}
         </View>
         <View style={styles.cardBottom}>
-          <Text style={styles.cardEmoji}>{comparsa.emoji}</Text>
           <View style={styles.cardTextWrap}>
             <Text style={styles.cardSince}>{comparsa.since}</Text>
             <Text style={styles.cardName}>{comparsa.name}</Text>
@@ -130,8 +129,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   fireBadgeText: { color: '#fff', fontSize: 11, fontWeight: '700' },
-  cardBottom: { flexDirection: 'row', alignItems: 'flex-end', gap: 10 },
-  cardEmoji: { fontSize: 32, lineHeight: 38 },
+  cardBottom: { flexDirection: 'row', alignItems: 'flex-end' },
   cardTextWrap: { flex: 1, gap: 1 },
   cardSince: { color: 'rgba(255,255,255,0.65)', fontSize: 11, fontWeight: '600' },
   cardName: { color: '#fff', fontSize: 20, fontWeight: '800', letterSpacing: -0.3, lineHeight: 24 },

@@ -61,7 +61,6 @@ export default function ComparsaDetailScreen() {
       <View style={styles.content}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.emoji}>{comparsa.emoji}</Text>
           <View style={styles.headerText}>
             <Text style={styles.since}>{comparsa.since}</Text>
             <Text style={styles.name}>{comparsa.name}</Text>
@@ -120,8 +119,7 @@ const styles = StyleSheet.create({
   },
   fireBadgeText: { color: '#fff', fontSize: 12, fontWeight: '700' },
   content: { paddingHorizontal: 20, paddingTop: 20, gap: 16 },
-  header: { flexDirection: 'row', alignItems: 'flex-start', gap: 14 },
-  emoji: { fontSize: 40, lineHeight: 48 },
+  header: { flexDirection: 'row', alignItems: 'flex-start' },
   headerText: { flex: 1, gap: 4 },
   since: { color: Colors.textDim, fontSize: 12, fontWeight: '600' },
   name: { color: Colors.text, fontSize: 24, fontWeight: '900', letterSpacing: -0.5, lineHeight: 28 },
