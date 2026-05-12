@@ -4,13 +4,14 @@ import { useFavoritesStore } from '@/features/favorites';
 import { useMapFocusStore } from '@/features/map';
 import { Colors } from '@/shared/constants';
 import { addEventToCalendar, cancelEventNotification, formatDayShort, formatTime, scheduleEventNotification } from '@/shared/lib';
+import { EventMiniMap } from '@/features/map/components/EventMiniMap';
 import { BackButton, EventIcon, LoadingState, Screen } from '@/shared/ui';
 import { Image } from 'expo-image';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, router } from 'expo-router';
 import * as Sharing from 'expo-sharing';
-import { CalendarPlus, Clock, Heart, Map, MapPin, PersonStanding, Share2 } from 'lucide-react-native';
+import { CalendarPlus, Clock, Heart, MapPin, PersonStanding, Share2 } from 'lucide-react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -203,6 +204,9 @@ export default function EventDetailScreen() {
             )}
           </View>
 
+          {/* Mini map */}
+          <EventMiniMap event={event} onPress={handleViewInMap} />
+
           {/* Actions */}
           <View style={styles.actions}>
             <Pressable
@@ -211,13 +215,6 @@ export default function EventDetailScreen() {
             >
               <CalendarPlus size={18} color="#fff" />
               <Text style={styles.calendarBtnText}>Afegir al calendari</Text>
-            </Pressable>
-            <Pressable
-              style={({ pressed }) => [styles.mapBtn, pressed && styles.btnPressed]}
-              onPress={handleViewInMap}
-            >
-              <Map size={18} color={Colors.primary} />
-              <Text style={styles.mapBtnText}>Veure al mapa</Text>
             </Pressable>
           </View>
           {/* Secondary actions */}

@@ -44,7 +44,7 @@ El 1984, el ple de l'Ajuntament va aprovar el Reglament dels Gegants, que fixa q
       'Quatre balls propis: de Grossos, de Petits, de Quatre i de Nans',
       '18 Nans amb nom propi, des del Bufó fins a en Biada',
       'Els portadors són 100% voluntaris des del Reglament de 1984',
-      'Surten molt poc durant l'any: les Santes és el seu gran moment',
+      "Surten molt poc durant l'any: les Santes és el seu gran moment",
     ],
     image: COMPARSA_ASSETS['robafaves'],
     isFire: false,
@@ -67,9 +67,9 @@ Si la veus ballar, para i observa en silenci: els seus moviments lents i preciso
     portadors: '1 sola persona',
     facts: [
       'Precedeix sempre les autoritats als seguicis: és el protocol de la festa',
-      'La música de ministrils imita les cobles del s. XVII–XVIII',
+      'La música de ministrils imita les cobles del s. XVII-XVIII',
       'Corona al cap i colom a la boca: símbols de poder i pau',
-      'Una de les poques figures que treu a ballar a l'aire lliure amb cobla pròpia',
+      "Una de les poques figures que treu a ballar a l'aire lliure amb cobla pròpia",
     ],
     image: COMPARSA_ASSETS['aliga'],
     isFire: false,
@@ -94,7 +94,7 @@ Tant la Momerota com la Momeroteta surt per Carnestoltes i per Les Santes, i par
       'Primera figura de foc recuperada a Mataró (1979)',
       'Pirotècnia: carretilles i titanis a les banyes',
       'La Momeroteta (1982) és la seva filla, amb la llengua treta',
-      'Protagonista principal de l'Escapada a Negra Nit (correfoc del 25 de juliol)',
+      "Protagonista principal de l'Escapada a Negra Nit (correfoc del 25 de juliol)",
     ],
     image: COMPARSA_ASSETS['momerota'],
     isFire: true,
@@ -105,7 +105,7 @@ Tant la Momerota com la Momeroteta surt per Carnestoltes i per Les Santes, i par
     emoji: '🐉',
     type: 'Figures de foc',
     since: '1991 · Dragalió: 2007',
-    shortDesc: 'Inspirat en el drac del casc d'en Robafaves. Surt de nit i comparteix el foc amb el públic.',
+    shortDesc: "Inspirat en el drac del casc d'en Robafaves. Surt de nit i comparteix el foc amb el públic.",
     fullDesc: `El Drac de Mataró va néixer el 1991, inspirat directament en el drac alat que figura esculpit al casc d'en Robafaves. A diferència d'altres dracs de Catalunya, és portat per una sola persona, la qual cosa el fa molt àgil i permet que es mogui entre el públic de ben a prop.
 
 La pirotècnia que llueix —ales, cua i boca— és especialment amable: permet que la gent balli i l'acompanyi sense por. Pren un protagonisme especial per la Fogonada de Sant Jordi, en què s'adapta la llegenda del sant amb una lluita teatralitzada.
@@ -116,10 +116,10 @@ Les dues figures participen juntes a Les Santes, les festes de barris i els corr
     music: 'Tabalers del Drac',
     portadors: '1 sola persona per figura',
     facts: [
-      'Inspirat en el drac esculpit al casc d'en Robafaves',
-      'Protagonista de la Fogonada de Sant Jordi, cada 23 d'abril',
-      'El Dragalió va "néixer" d'un ou enviat a la festa el 2007',
-      'Foc per ales, cua i boca — la pirotècnia més amable del bestiari',
+      "Inspirat en el drac esculpit al casc d'en Robafaves",
+      "Protagonista de la Fogonada de Sant Jordi, cada 23 d'abril",
+      "El Dragalió va \"néixer\" d'un ou enviat a la festa el 2007",
+      "Foc per ales, cua i boca — la pirotècnia més amable del bestiari",
     ],
     image: COMPARSA_ASSETS['drac'],
     isFire: true,
@@ -130,7 +130,7 @@ Les dues figures participen juntes a Les Santes, les festes de barris i els corr
     emoji: '😈',
     type: 'Colla de foc femenina',
     since: '1985',
-    shortDesc: 'Una de les poques colles de foc totalment femenines de Catalunya.',
+    shortDesc: "Una de les poques colles de foc totalment femenines de Catalunya.",
     fullDesc: `Les Diablesses van néixer el 1985 i des del primer moment han estat una de les colles de foc íntegrament femenines més reconegudes de Catalunya. La seva presència als correfocs i cercaviles és inconfusible: vermell i negre, foc i nit.
 
 Cada membre de la colla porta una massa de la qual brota foc, sota la qual conviden el públic a passar de ben a prop —una experiència intensa que qui la viu no oblida. A més, la colla té una forca que encenen en moments de lluïment especial.
@@ -141,10 +141,10 @@ La música que les acompanya és interpretada pels Tabalers Do Maresme, una coll
     music: 'Tabalers Do Maresme',
     portadors: 'Colla femenina · nombre variable',
     facts: [
-      'Una de les poques colles de foc totalment femenines de Catalunya',
-      'Indumentària amb dissenys originals de l'artista mataronina Nefer',
-      'La forca encesa és el seu moment de màxim lluïment',
-      'Conviden el públic a passar sota el foc de les masses',
+      "Una de les poques colles de foc totalment femenines de Catalunya",
+      "Indumentària amb dissenys originals de l'artista mataronina Nefer",
+      "La forca encesa és el seu moment de màxim lluïment",
+      "Conviden el públic a passar sota el foc de les masses",
     ],
     image: COMPARSA_ASSETS['diablesses'],
     isFire: true,
