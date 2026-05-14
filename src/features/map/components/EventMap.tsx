@@ -1,6 +1,5 @@
 import type { Event } from '@/entities/event';
 import { Colors } from '@/shared/constants';
-import * as FileSystem from 'expo-file-system/legacy';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import * as Location from 'expo-location';
 import { WifiOff } from 'lucide-react-native';
@@ -8,77 +7,22 @@ import React, { forwardRef, memo, useCallback, useEffect, useImperativeHandle, u
 import { ActivityIndicator, Alert, Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import WebView, { type WebViewMessageEvent } from 'react-native-webview';
 
-// ── Cached scripts type ────────────────────────────────────────────────────────
-type CachedScripts = { mlJs: string; mlCss: string; scJs: string };
-
 const CENTER_LNG = 2.444;
 const CENTER_LAT = 41.5378;
-
-// ── Map asset caching ─────────────────────────────────────────────────────────
-// Downloads MapLibre + Supercluster once to FileSystem.cacheDirectory, then
-// reads them from disk on subsequent launches (~50 ms vs 1-2 s CDN load).
-// Kicked off at module evaluation so it runs in parallel with navigation.
-const CACHE_DIR = (FileSystem.cacheDirectory ?? '') + 'map-assets/';
-const MAP_ASSET_URLS = [
-  { key: 'maplibre-gl@3.6.2.js', url: 'https://cdn.jsdelivr.net/npm/maplibre-gl@3.6.2/dist/maplibre-gl.js' },
-  { key: 'maplibre-gl@3.6.2.css', url: 'https://cdn.jsdelivr.net/npm/maplibre-gl@3.6.2/dist/maplibre-gl.css' },
-  { key: 'supercluster@8.0.1.js', url: 'https://cdn.jsdelivr.net/npm/supercluster@8.0.1/dist/supercluster.min.js' },
-] as const;
-
-async function loadMapAssets(): Promise<CachedScripts | null> {
-  try {
-    await FileSystem.makeDirectoryAsync(CACHE_DIR, { intermediates: true });
-    const texts = await Promise.all(
-      MAP_ASSET_URLS.map(async ({ key, url }) => {
-        const path = CACHE_DIR + key;
-        const info = await FileSystem.getInfoAsync(path);
-        if (!info.exists) await FileSystem.downloadAsync(url, path);
-        return FileSystem.readAsStringAsync(path);
-      }),
-    );
-    return { mlJs: texts[0], mlCss: texts[1], scJs: texts[2] };
-  } catch {
-    return null; // fall back to CDN URLs in buildHtml
-  }
-}
-
-// Start immediately — before the component ever mounts.
-// We also populate the disk cache for subsequent launches even when the race
-// below falls back to CDN (i.e. the download keeps running in background).
-const _assetPromise: Promise<CachedScripts | null> = loadMapAssets();
-
-// Resolve whichever comes first: cached scripts or a CDN-fallback timeout.
-// • Subsequent launches: disk read resolves in ~50 ms → inline scripts used.
-// • First launch: 150 ms timeout fires → CDN URLs used (same as before),
-//   while the background download finishes and caches for next time.
-const CACHE_RACE_MS = 150;
-function buildHtmlAsync(isDark: boolean): Promise<string> {
-  const timeout = new Promise<null>((resolve) =>
-    setTimeout(() => resolve(null), CACHE_RACE_MS),
-  );
-  return Promise.race([_assetPromise, timeout]).then(
-    (scripts) => buildHtml(isDark, scripts ?? undefined),
-  );
-}
 
 // MapTiler key — set EXPO_PUBLIC_MAPTILER_KEY in EAS secrets / .env
 // Falls back to bundled key so the map works even without the env var.
 declare const process: { env: Record<string, string | undefined> };
 const MAPTILER_KEY = process.env.EXPO_PUBLIC_MAPTILER_KEY ?? 'xvhIdcAsn7WrwOYPt8W2';
 
-function buildHtml(isDark: boolean, scripts?: CachedScripts) {
-  // When scripts are cached locally, inline them to avoid any network roundtrip.
-  // Fallback to CDN URLs on first launch (before cache is populated).
-  const scriptTags = scripts
-    ? `<style>${scripts.mlCss}</style>\n<script>${scripts.mlJs}</script>\n<script>${scripts.scJs}</script>`
-    : `<link href="https://cdn.jsdelivr.net/npm/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/supercluster@8.0.1/dist/supercluster.min.js"></script>`;
+function buildHtml(isDark: boolean) {
   return `<!DOCTYPE html>
 <html>
 <head>
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-  ${scriptTags}
+  <link href="https://cdn.jsdelivr.net/npm/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/supercluster@8.0.1/dist/supercluster.min.js"></script>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     body,#map { width:100%; height:100vh; background:#FAF8F5; }
@@ -110,6 +54,9 @@ function buildHtml(isDark: boolean, scripts?: CachedScripts) {
 <body>
 <div id="map"></div>
 <script>
+window.onerror = function(msg, _src, line) {
+  post({ type:'JS_ERROR', msg: String(msg), line: line });
+};
 const STATE_COLOR = { now:'#007A5A', upcoming:'#1D4ED8', finished:'#9CA3AF' };
 // Metro-style route palette — vivid, high-contrast, clearly distinct
 const ROUTE_PALETTE = [
@@ -514,12 +461,12 @@ window.updateUserLocation = function(lat, lng) {
 };
 
 map.on('style.load', () => {
-  addArrowImage();
+  try { addArrowImage(); } catch(e) { post({ type:'JS_ERROR', msg:'addArrowImage: '+String(e), line:0 }); }
   if (!_mapReady) {
     _mapReady = true;
     post({ type:'MAP_READY' });
   }
-  if (_pending) { renderEvents(_pending); _pending = null; }
+  if (_pending) { try { renderEvents(_pending); } catch(e) { post({ type:'JS_ERROR', msg:'renderEvents: '+String(e), line:0 }); } _pending = null; }
   else if (_scLoaded) renderClusters();
 });
 
@@ -554,19 +501,8 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
   const eventsRef = useRef(events);
   eventsRef.current = events;
 
-  // Build HTML once: uses cached inline scripts if ready within 150 ms,
-  // otherwise falls back to CDN URLs so the WebView always starts quickly.
-  const htmlRef = useRef<string | null>(null);
-  const [htmlReady, setHtmlReady] = useState(false);
-  useEffect(() => {
-    let cancelled = false;
-    buildHtmlAsync(false).then((html) => {
-      if (cancelled) return;
-      htmlRef.current = html;
-      setHtmlReady(true);
-    });
-    return () => { cancelled = true; };
-  }, []);
+  // App is light-mode only — always build with isDark=false
+  const htmlRef = useRef(buildHtml(false));
 
   const injectFocus = useCallback((id: string) => {
     const js = `window.focusOnEvent(${JSON.stringify(id)}, ${JSON.stringify(eventsRef.current)}); true;`;
@@ -658,6 +594,8 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
         onEventPress(data.event as Event);
       } else if (data.type === 'CLUSTER_PRESS' && onClusterPress) {
         onClusterPress(data.events as Event[]);
+      } else if (data.type === 'JS_ERROR') {
+        console.error('[EventMap WebView error]', data.msg, 'line:', data.line);
       } else if (data.type === 'MAP_OFFLINE') {
         setMapOffline(true);
         // Fade out the loader (prevents it from staying on top of offline overlay)
@@ -672,20 +610,18 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
 
   return (
     <View style={styles.map}>
-      {htmlReady && htmlRef.current && (
-        <WebView
-          ref={webviewRef}
-          style={StyleSheet.absoluteFill}
-          source={{ html: htmlRef.current, baseUrl: 'https://localhost' }}
-          originWhitelist={['*']}
-          javaScriptEnabled
-          domStorageEnabled
-          cacheEnabled
-          setSupportMultipleWindows={false}
-          renderToHardwareTextureAndroid
-          onMessage={handleMessage}
-        />
-      )}
+      <WebView
+        ref={webviewRef}
+        style={StyleSheet.absoluteFill}
+        source={{ html: htmlRef.current, baseUrl: 'https://localhost' }}
+        originWhitelist={['*']}
+        javaScriptEnabled
+        domStorageEnabled
+        cacheEnabled
+        setSupportMultipleWindows={false}
+        renderToHardwareTextureAndroid
+        onMessage={handleMessage}
+      />
 
       {/* Loader overlay — fades out when MAP_READY fires */}
       <Animated.View
