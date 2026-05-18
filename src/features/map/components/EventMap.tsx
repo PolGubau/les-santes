@@ -109,15 +109,15 @@ function makeMarkerEl(event, overrideColor) {
     e.stopPropagation();
     e.preventDefault(); // cancels the subsequent click + prevents map pan
     _touched = true;
-    selectEvent(event.id);
-    post({ type:'EVENT_PRESS', event });
+    post({ type:'EVENT_PRESS', event }); // send before selectEvent to avoid being blocked by renderClusters
+    try { selectEvent(event.id); } catch(err) {}
     setTimeout(() => { _touched = false; }, 500);
   }, { passive: false });
   wrap.addEventListener('click', (e) => {
     e.stopPropagation();
     if (_touched) return; // already handled by touchend
-    selectEvent(event.id);
     post({ type:'EVENT_PRESS', event });
+    try { selectEvent(event.id); } catch(err) {}
   });
   return wrap;
 }
@@ -431,8 +431,8 @@ function renderRoute(event) {
     });
   }
 
-  map.on('click', lineId,   () => { selectEvent(event.id); post({ type:'EVENT_PRESS', event }); });
-  map.on('click', casingId, () => { selectEvent(event.id); post({ type:'EVENT_PRESS', event }); });
+  map.on('click', lineId,   () => { post({ type:'EVENT_PRESS', event }); try { selectEvent(event.id); } catch(e) {} });
+  map.on('click', casingId, () => { post({ type:'EVENT_PRESS', event }); try { selectEvent(event.id); } catch(e) {} });
   // Note: start-of-route marker is handled by Supercluster (renderClusters),
   // so mobile events cluster correctly with co-located events.
 }
