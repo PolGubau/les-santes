@@ -1,4 +1,5 @@
 import { Colors, Typography } from '@/shared/constants';
+import { t } from '@/shared/i18n';
 import { formatDayShort } from '@/shared/lib';
 import * as Haptics from 'expo-haptics';
 import { List, Search, X } from 'lucide-react-native';
@@ -116,7 +117,7 @@ export const MapHeader = React.memo(function MapHeader({
               }}
             >
               <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
-                {isToday ? 'Avui' : formatDayShort(day)}
+                {isToday ? t('common.today') : formatDayShort(day)}
               </Text>
             </Pressable>
           );

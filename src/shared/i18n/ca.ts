@@ -4,6 +4,7 @@
  */
 export interface Translations {
   tabs: { ara: string; mapa: string; agenda: string; recursos: string };
+  common: { today: string };
   eventState: { now: string; upcoming: string; finished: string };
   agenda: {
     title: string;
@@ -60,6 +61,11 @@ export interface Translations {
  * Catalan (ca) translations — primary language of the app.
  */
 export const ca: Translations = {
+  // ── Common ────────────────────────────────────────────────────────────────
+  common: {
+    today: 'Avui',
+  },
+
   // ── Tabs ──────────────────────────────────────────────────────────────────
   tabs: {
     ara: 'Ara',

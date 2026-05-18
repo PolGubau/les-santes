@@ -1,4 +1,5 @@
 import { Colors } from "@/shared/constants";
+import { t } from "@/shared/i18n";
 import * as Haptics from "expo-haptics";
 import React, { useCallback, useEffect, useRef } from "react";
 import {
@@ -67,7 +68,7 @@ function DayChip({ dateKey, selected, isToday, onSelect, onLayout }: ChipProps) 
 			onPressOut={handlePressOut}
 			onLayout={(e) => onLayout(dateKey, e.nativeEvent.layout.x)}
 			accessibilityRole="tab"
-			accessibilityLabel={`${weekday} ${day}${isToday ? ', avui' : ''}`}
+			accessibilityLabel={`${weekday} ${day}${isToday ? `, ${t('common.today').toLowerCase()}` : ''}`}
 			accessibilityState={{ selected }}
 		>
 			<Animated.View

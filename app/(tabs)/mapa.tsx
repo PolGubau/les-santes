@@ -13,6 +13,7 @@ import {
 import type { EventMapHandle } from '@/features/map/components/EventMap';
 import { FESTIVAL_END, FESTIVAL_START } from '@/shared/constants';
 import { getAppNow } from '@/shared/hooks';
+import { toFestivalDayKey } from '@/shared/lib';
 import { Screen } from '@/shared/ui';
 import { MoveHorizontal, RotateCcw } from 'lucide-react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -55,7 +56,6 @@ function SimScrubber({
   ).current;
 
   const d = new Date(simTime);
-  const dayLabel = `${WEEKDAY_CA[d.getDay()]} ${d.getDate()}`;
   const timeLabel = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 
   // Festival day: 06:00 → 06:00 next calendar day (same as toFestivalDayKey -6h logic).
@@ -155,21 +155,36 @@ export default function MapaScreen() {
     mapRef.current?.setSimTime(ms);
   }, []);
 
-  // When the selected day changes (chip tap), keep the same HH:MM but move to the new festival day.
-  // Hours 00:00–05:59 belong to the festival day that started the previous calendar date
-  // (same toFestivalDayKey -6h logic), so we place them on the day AFTER the selected day key.
-  useEffect(() => {
+  // Single source of truth for day-chip taps: update sim time AND day chip together
+  // in the same tick. Doing this via separate effects caused a race where each
+  // effect saw a stale value of the other state and ping-ponged between days.
+  const selectedDayRef = useRef(selectedDay);
+  selectedDayRef.current = selectedDay;
+  const handleDayChange = useCallback((nextDay: string) => {
+    if (nextDay === selectedDayRef.current) return;
     const prev = new Date(simTimeRef.current);
     const hh = prev.getHours();
     const mm = prev.getMinutes();
-    const [y, m, d] = selectedDay.split('-').map(Number);
+    const [y, m, d] = nextDay.split('-').map(Number);
     // Night hours (0–5) are the tail of the festival day — put them on the next calendar date.
     const calendarDate = hh < 6 ? new Date(y, m - 1, d + 1) : new Date(y, m - 1, d);
     const next = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), calendarDate.getDate(), hh, mm, 0, 0);
     const ms = Math.max(FESTIVAL_START.getTime(), Math.min(FESTIVAL_END.getTime(), next.getTime()));
-    setSimTime(ms);
-    mapRef.current?.setSimTime(ms);
-  }, [selectedDay]); // eslint-disable-line react-hooks/exhaustive-deps
+    setDay(nextDay);
+    if (ms !== simTimeRef.current) {
+      setSimTime(ms);
+      mapRef.current?.setSimTime(ms);
+    }
+  }, [setDay]);
+
+  // Reverse sync: when the scrubber crosses a festival day boundary (or reset
+  // jumps to a different day), update the chip so visible events match the
+  // simulated time. Depending only on simTime avoids the day-chip-tap race
+  // condition — chip taps already update both states via handleDayChange.
+  useEffect(() => {
+    const newDay = toFestivalDayKey(new Date(simTime));
+    if (newDay !== selectedDayRef.current) setDay(newDay);
+  }, [simTime, setDay]);
 
   // Stable deps: setSelectedEvent and setShowDrawer are React state setters (never change)
   const { setSelectedEvent, setShowDrawer } = selection;
@@ -181,7 +196,7 @@ export default function MapaScreen() {
     [setSelectedEvent, setShowDrawer],
   );
 
-  useMapFocusSync({ mapEvents, mapRef, setDay, onFocus: handleFocus });
+  useMapFocusSync({ mapEvents, mapRef, setDay: handleDayChange, onFocus: handleFocus });
 
   return (
     <Screen safe={false}>
@@ -199,7 +214,7 @@ export default function MapaScreen() {
         liveCount={liveCount}
         searchText={search.searchText}
         isFiltering={search.isSearching}
-        onDayChange={setDay}
+        onDayChange={handleDayChange}
         onListPress={selection.handleListPress}
         onSearchChange={search.handleSearchChange}
         onSearchFocus={search.handleSearchFocus}

@@ -92,10 +92,22 @@ function post(msg) {
   if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(JSON.stringify(msg));
 }
 
+// Derive the visual state from the current sim/fake time so pins reflect the
+// scrubbed moment, not the value baked into the event when it was sent from JS.
+function computeState(event, nowMs) {
+  const s = new Date(event.start).getTime();
+  const e = new Date(event.end).getTime();
+  if (!isFinite(s) || !isFinite(e)) return event.state || 'upcoming';
+  if (nowMs < s) return 'upcoming';
+  if (nowMs > e) return 'finished';
+  return 'now';
+}
+
 // ── Marker elements ───────────────────────────────────────────────────────────
 function makeMarkerEl(event, overrideColor) {
-  const color = overrideColor || STATE_COLOR[event.state] || '#888';
-  const finished = event.state === 'finished';
+  const state = computeState(event, getNowMs());
+  const color = overrideColor || STATE_COLOR[state] || '#888';
+  const finished = state === 'finished';
   const selected = event.id === _selectedId;
   const wrap = document.createElement('div');
   wrap.className = 'm-wrap';
@@ -439,7 +451,7 @@ function addArrowImage() {
 // ── Route rendering (metro style) ────────────────────────────────────────────
 function renderRoute(event) {
   const color = routeColor(event.id);
-  const finished = event.state === 'finished';
+  const finished = computeState(event, getNowMs()) === 'finished';
   const opacity = finished ? 0.45 : 1;
   const coords = event.route.map(p => [p.lng, p.lat]);
   const srcId = 'route-' + event.id;
@@ -690,6 +702,10 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
   const pendingFocusId = useRef<string | null>(null);
   const eventsRef = useRef(events);
   eventsRef.current = events;
+  // Track the last sim time set via the imperative handle so re-injecting
+  // events (e.g. when the day chip changes) doesn't snap _simTimeMs back to
+  // fake-now and visually "lose" the scrubbed moment.
+  const lastSimTimeMsRef = useRef<number | null>(null);
   // Build the HTML string once and load it into the local asset cache.
   // useLocalMapAssets copies MapLibre + Supercluster from the app bundle to the
   // device cache dir, writes the HTML next to them, and returns a file:// URI.
@@ -714,9 +730,10 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
       webviewRef.current?.injectJavaScript('window.selectEvent(null); true;');
     },
     setSimTime: (ms: number | null) => {
-      if (!mapReady) return;
       // In DEV, "clear" means revert to fake time — never expose real Date.now().
       const resolvedMs = ms ?? (__DEV__ ? getAppNow().getTime() : null);
+      lastSimTimeMsRef.current = resolvedMs;
+      if (!mapReady) return;
       const js = resolvedMs === null
         ? 'window.clearSimTime(); true;'
         : `window.setSimTime(${resolvedMs}); true;`;
@@ -746,8 +763,11 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
   useEffect(() => {
     if (!mapReady) return;
     // In DEV, prepend setSimTime so _simTimeMs is set atomically before
-    // renderEvents runs — guarantees correct fake-time positioning on first load.
-    const prefix = __DEV__ ? `window.setSimTime(${getAppNow().getTime()});` : '';
+    // renderEvents runs — guarantees correct positioning on first load AND
+    // preserves any user-scrubbed time across event-list changes (e.g. when
+    // the day chip auto-syncs after dragging across a day boundary).
+    const simMs = lastSimTimeMsRef.current ?? (__DEV__ ? getAppNow().getTime() : null);
+    const prefix = simMs !== null ? `window.setSimTime(${simMs});` : '';
     const js = `${prefix}window.updateEvents(${JSON.stringify(events)}); true;`;
     webviewRef.current?.injectJavaScript(js);
   }, [events, mapReady]);

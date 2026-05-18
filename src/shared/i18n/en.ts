@@ -4,6 +4,11 @@ import type { Translations } from './ca';
  * English (en) translations.
  */
 export const en: Translations = {
+  // ── Common ────────────────────────────────────────────────────────────────
+  common: {
+    today: 'Today',
+  },
+
   // ── Tabs ──────────────────────────────────────────────────────────────────
   tabs: {
     ara: 'Now',
