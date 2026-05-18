@@ -15,7 +15,7 @@ import { FESTIVAL_END, FESTIVAL_START } from '@/shared/constants';
 import { getAppNow } from '@/shared/hooks';
 import { Screen } from '@/shared/ui';
 import { MoveHorizontal, RotateCcw } from 'lucide-react-native';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { PanResponder, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 // ── Time scrubber (dev-only) ──────────────────────────────────────────────────
@@ -58,49 +58,43 @@ function SimScrubber({
   const dayLabel = `${WEEKDAY_CA[d.getDay()]} ${d.getDate()}`;
   const timeLabel = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 
-  const festivalMs = FESTIVAL_END.getTime() - FESTIVAL_START.getTime();
-  const progress = Math.max(0.005, Math.min(0.995,
-    (simTime - FESTIVAL_START.getTime()) / festivalMs));
+  // Festival day: 06:00 → 06:00 next calendar day (same as toFestivalDayKey -6h logic).
+  // Hours 0–5 belong to the end of the previous festival day → shift them past midnight.
+  const rawMinutes = d.getHours() * 60 + d.getMinutes();
+  const festivalMinutes = rawMinutes < 6 * 60
+    ? rawMinutes + 18 * 60        // 00:00–05:59 → maps to 18:00–23:59 range
+    : rawMinutes - 6 * 60;        // 06:00–23:59 → maps to 00:00–17:59 range
+  const progress = Math.max(0.005, Math.min(0.995, festivalMinutes / (24 * 60)));
 
   return (
     <View {...panResponder.panHandlers} style={simStyles.pill}>
-      {/* ── Label + reset ── */}
-      <View style={simStyles.topRow}>
-        <Text style={simStyles.label}>Hora simulada · arrossega</Text>
-        <TouchableOpacity
-          onPress={() => onChangeRef.current(getAppNow().getTime())}
-          hitSlop={10}
-          accessibilityLabel="Restablir hora"
-        >
-          <RotateCcw size={11} color="#9CA3AF" />
-        </TouchableOpacity>
-      </View>
-
-      {/* ── Time display ── */}
-      <View style={simStyles.timeRow}>
-        <MoveHorizontal size={14} color="#6B7280" />
-        <Text style={simStyles.dayText}>{dayLabel}</Text>
-        <Text style={simStyles.dot}>·</Text>
-        <Text style={simStyles.clockText}>{timeLabel}</Text>
-      </View>
-
-      {/* ── Festival progress bar ── */}
+      <MoveHorizontal size={13} color="#9CA3AF" />
+      <Text style={simStyles.clockText}>{timeLabel}</Text>
       <View style={simStyles.trackBg}>
         <View style={[simStyles.trackFill, { flex: progress }]} />
         <View style={simStyles.thumb} />
         <View style={{ flex: 1 - progress }} />
       </View>
+      <TouchableOpacity
+        onPress={() => onChangeRef.current(getAppNow().getTime())}
+        hitSlop={10}
+        accessibilityLabel="Restablir hora"
+      >
+        <RotateCcw size={13} color="#9CA3AF" />
+      </TouchableOpacity>
     </View>
   );
 }
 
 const simStyles = StyleSheet.create({
   pill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
     backgroundColor: '#fff',
     borderRadius: 16,
-    paddingHorizontal: 14,
-    paddingTop: 10,
-    paddingBottom: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.08)',
     shadowColor: '#000',
@@ -108,22 +102,22 @@ const simStyles = StyleSheet.create({
     shadowOpacity: 0.10,
     shadowRadius: 8,
     elevation: 4,
-    gap: 4,
   },
-  topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  label: { fontSize: 10, color: '#9CA3AF', fontWeight: '600', letterSpacing: 0.2 },
-  timeRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  dayText: { fontSize: 14, fontWeight: '700', color: '#374151' },
-  dot: { fontSize: 14, color: '#D1D5DB' },
-  clockText: { fontSize: 20, fontWeight: '800', color: '#111827', fontVariant: ['tabular-nums'], letterSpacing: -0.5 },
+  clockText: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#111827',
+    fontVariant: ['tabular-nums'],
+    letterSpacing: -0.3,
+    minWidth: 38,
+  },
   trackBg: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     height: 4,
     borderRadius: 2,
     backgroundColor: '#F3F4F6',
-    marginTop: 4,
-    overflow: 'visible',
   },
   trackFill: { height: 4, backgroundColor: '#3B82F6', borderRadius: 2 },
   thumb: {
@@ -153,10 +147,29 @@ export default function MapaScreen() {
   const search = useMapSearch(mapEvents, (isSearching) => selection.reset(isSearching));
   // Dev: always start from fake app date; scrubber keeps it as a number (never null).
   const [simTime, setSimTime] = useState<number>(() => getAppNow().getTime());
+  const simTimeRef = useRef(simTime);
+  simTimeRef.current = simTime;
+
   const handleSimTimeChange = useCallback((ms: number) => {
     setSimTime(ms);
     mapRef.current?.setSimTime(ms);
   }, []);
+
+  // When the selected day changes (chip tap), keep the same HH:MM but move to the new festival day.
+  // Hours 00:00–05:59 belong to the festival day that started the previous calendar date
+  // (same toFestivalDayKey -6h logic), so we place them on the day AFTER the selected day key.
+  useEffect(() => {
+    const prev = new Date(simTimeRef.current);
+    const hh = prev.getHours();
+    const mm = prev.getMinutes();
+    const [y, m, d] = selectedDay.split('-').map(Number);
+    // Night hours (0–5) are the tail of the festival day — put them on the next calendar date.
+    const calendarDate = hh < 6 ? new Date(y, m - 1, d + 1) : new Date(y, m - 1, d);
+    const next = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), calendarDate.getDate(), hh, mm, 0, 0);
+    const ms = Math.max(FESTIVAL_START.getTime(), Math.min(FESTIVAL_END.getTime(), next.getTime()));
+    setSimTime(ms);
+    mapRef.current?.setSimTime(ms);
+  }, [selectedDay]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Stable deps: setSelectedEvent and setShowDrawer are React state setters (never change)
   const { setSelectedEvent, setShowDrawer } = selection;
