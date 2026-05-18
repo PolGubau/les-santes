@@ -49,6 +49,12 @@ function buildHtml(isDark: boolean) {
       font-size:13px; font-weight:800; color:#fff;
       box-shadow:0 2px 10px rgba(0,0,0,0.2); transition:transform .1s; font-family:sans-serif; }
     .m-cluster-wrap:active .m-cluster { transform:scale(1.1); }
+    .m-live-ring { position:absolute; inset:-7px; border-radius:50%; border:2.5px solid;
+      opacity:0; animation:liveRing 1.8s ease-out infinite; pointer-events:none; }
+    @keyframes liveRing {
+      0%   { transform:scale(0.75); opacity:0.75; }
+      100% { transform:scale(1.65); opacity:0; }
+    }
   </style>
 </head>
 <body>
@@ -177,6 +183,7 @@ let _selectedId = null;
 const sc = new Supercluster({ radius:55, maxZoom:16 });
 let _scLoaded = false;
 let _currentEvents = [], _simTimeMs = null;
+let _liveMarkers = {}; // eventId → { marker, el }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function clearStaticMarkers() {
@@ -284,11 +291,58 @@ function haversineDist(a, b) {
   return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1-x));
 }
 
-// ── Live position ─────────────────────────────────────────────────────────────
-function getNowMs() { return _simTimeMs !== null ? _simTimeMs : Date.now(); }
-function computeLivePositions() {
-  const nowMs = getNowMs();
+// Compass bearing a→b (0=N, 90=E). Flipped when ≥180° so text-rotate=bearing-90
+// never produces upside-down text (text-rotate stays in [-90, 90]).
+function segmentBearing(a, b) {
+  const lat1 = a[1] * Math.PI / 180, lat2 = b[1] * Math.PI / 180;
+  const dL   = (b[0] - a[0]) * Math.PI / 180;
+  const y = Math.sin(dL) * Math.cos(lat2);
+  const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dL);
+  let deg = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+  if (deg >= 180) deg -= 180; // flip: keeps text-rotate in [-90, 90]
+  return Math.round(deg);
+}
+// GeoJSON Point features every spacingM metres, each with an interpolated time
+// label and the segment bearing so MapLibre can rotate text along the route.
+function routeLabelPoints(event, spacingM) {
+  const coords = event.route.map(p => [p.lng, p.lat]);
+  if (coords.length < 2) return [];
+  const cum = [0];
+  for (let i = 1; i < coords.length; i++)
+    cum.push(cum[i-1] + haversineDist(coords[i-1], coords[i]));
+  const total = cum[cum.length-1];
+  if (total < spacingM * 0.4) return [];
+  const startMs = new Date(event.start).getTime();
+  const endMs   = new Date(event.end).getTime();
   const features = [];
+  for (let d = spacingM / 2; d < total; d += spacingM) {
+    let j = 1;
+    while (j < cum.length - 1 && cum[j] < d) j++;
+    const t = (cum[j] - cum[j-1]) === 0 ? 0 : (d - cum[j-1]) / (cum[j] - cum[j-1]);
+    const lng = coords[j-1][0] + t * (coords[j][0] - coords[j-1][0]);
+    const lat = coords[j-1][1] + t * (coords[j][1] - coords[j-1][1]);
+    const timeStr = fmtTime(new Date(startMs + (d / total) * (endMs - startMs)).toISOString());
+    features.push({
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [lng, lat] },
+      properties: {
+        label: event.title + ' · ' + timeStr,
+        bearing: segmentBearing(coords[j-1], coords[j]),
+      },
+    });
+  }
+  return features;
+}
+
+// ── Live position (HTML markers — clickable, always above route lines) ─────────
+function getNowMs() { return _simTimeMs !== null ? _simTimeMs : Date.now(); }
+function clearLiveMarkers() {
+  Object.values(_liveMarkers).forEach(function(m) { m.marker.remove(); });
+  _liveMarkers = {};
+}
+function tickLive() {
+  const nowMs = getNowMs();
+  const activeIds = new Set();
   _currentEvents.forEach(function(event) {
     if (event.kind !== 'mobile' || !event.route || event.route.length < 2) return;
     const startMs = new Date(event.start).getTime();
@@ -308,26 +362,24 @@ function computeLivePositions() {
     const t = seg === 0 ? 0 : (target - cum[j-1]) / seg;
     const lng = coords[j-1][0] + t * (coords[j][0] - coords[j-1][0]);
     const lat = coords[j-1][1] + t * (coords[j][1] - coords[j-1][1]);
-    features.push({ type:'Feature',
-      geometry:{ type:'Point', coordinates:[lng,lat] },
-      properties:{ color:routeColor(event.id) } });
+    activeIds.add(event.id);
+    if (_liveMarkers[event.id]) {
+      _liveMarkers[event.id].marker.setLngLat([lng, lat]);
+    } else {
+      const color = routeColor(event.id);
+      const el = makeMarkerEl(event, color);
+      const ring = document.createElement('div');
+      ring.className = 'm-live-ring';
+      ring.style.borderColor = color;
+      el.querySelector('.m-pin').appendChild(ring);
+      const marker = new maplibregl.Marker({ element: el, anchor: 'bottom' })
+        .setLngLat([lng, lat]).addTo(map);
+      _liveMarkers[event.id] = { marker, el };
+    }
   });
-  return { type:'FeatureCollection', features:features };
-}
-function initLiveLayer() {
-  if (!map.getSource('live-pos'))
-    map.addSource('live-pos', { type:'geojson', data:computeLivePositions() });
-  if (!map.getLayer('live-halo'))
-    map.addLayer({ id:'live-halo', type:'circle', source:'live-pos',
-      paint:{ 'circle-radius':18, 'circle-color':['get','color'], 'circle-opacity':0.22 } });
-  if (!map.getLayer('live-dot'))
-    map.addLayer({ id:'live-dot', type:'circle', source:'live-pos',
-      paint:{ 'circle-radius':9, 'circle-color':['get','color'],
-              'circle-stroke-width':2.5, 'circle-stroke-color':'#fff' } });
-}
-function tickLive() {
-  const src = map.getSource('live-pos');
-  if (src) src.setData(computeLivePositions());
+  Object.keys(_liveMarkers).forEach(function(id) {
+    if (!activeIds.has(id)) { _liveMarkers[id].marker.remove(); delete _liveMarkers[id]; }
+  });
 }
 setInterval(tickLive, 20000);
 
@@ -404,25 +456,27 @@ function renderRoute(event) {
     });
   }
 
-  // 4. Labels following the line — placed directly on the route source so
-  //    MapLibre handles rotation automatically (no manual bearing needed).
-  if (!finished) {
-    const txtId = srcId + '-label';
-    _routeLayerIds.push(txtId);
+  // 4. Point labels every ~350m with interpolated time + correct rotation.
+  //    text-rotate = bearing - 90 keeps text parallel to the path, never upside-down.
+  const labelFeatures = finished ? [] : routeLabelPoints(event, 350);
+  if (labelFeatures.length > 0) {
+    const ptSrcId = srcId + '-pts';
+    const ptLblId = srcId + '-label';
+    _routeSourceIds.push(ptSrcId);
+    _routeLayerIds.push(ptLblId);
+    map.addSource(ptSrcId, { type:'geojson', data:{ type:'FeatureCollection', features:labelFeatures } });
     map.addLayer({
-      id: txtId, type: 'symbol', source: srcId,
+      id: ptLblId, type: 'symbol', source: ptSrcId,
       minzoom: 14,
       layout: {
-        'symbol-placement': 'line',
-        'symbol-spacing': 300,
-        'text-field': event.title + ' · ' + fmtTime(event.start),
+        'text-field': ['get', 'label'],
         'text-size': 11,
         'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
+        'text-anchor': 'center',
+        'text-rotate': ['-', ['get', 'bearing'], 90],
+        'text-rotation-alignment': 'map',
         'text-allow-overlap': false,
         'text-ignore-placement': false,
-        'text-rotation-alignment': 'map',
-        'text-pitch-alignment': 'viewport',
-        'text-padding': 4,
       },
       paint: {
         'text-color': '#fff',
@@ -443,6 +497,8 @@ function renderEvents(events) {
   _currentEvents = events;
   clearStaticMarkers();
   clearRoutes();
+  clearLiveMarkers();
+  const nowMs = getNowMs();
   const points = [];
   events.forEach(event => {
     if (event.kind === 'static' && event.location) {
@@ -452,17 +508,21 @@ function renderEvents(events) {
     }
     if (event.kind === 'mobile' && event.route && event.route.length > 1) {
       renderRoute(event);
-      // Also add the start point to Supercluster so co-located mobile events
-      // cluster together and are individually selectable via the drawer.
-      const [startLng, startLat] = [event.route[0].lng, event.route[0].lat];
-      points.push({ type:'Feature',
-        geometry:{ type:'Point', coordinates:[startLng, startLat] },
-        properties:{ _event:event } });
+      // Only show static start marker when event is NOT in progress.
+      // While in progress, the live marker (tickLive) IS the clickable pin.
+      const startMs = new Date(event.start).getTime();
+      const endMs   = new Date(event.end).getTime();
+      const ratio   = (nowMs - startMs) / (endMs - startMs);
+      if (ratio < 0 || ratio > 1) {
+        const [startLng, startLat] = [event.route[0].lng, event.route[0].lat];
+        points.push({ type:'Feature',
+          geometry:{ type:'Point', coordinates:[startLng, startLat] },
+          properties:{ _event:event } });
+      }
     }
   });
   sc.load(points); _scLoaded = true;
   renderClusters();
-  initLiveLayer();
   tickLive();
 }
 
@@ -482,6 +542,12 @@ function selectEvent(id) {
     const eid = el.dataset.eventId;
     el.querySelector('.m-pin')?.classList.toggle('selected', eid === id);
     el.querySelector('.m-label')?.classList.toggle('selected', eid === id);
+  });
+
+  // 3. Update live markers selection state
+  Object.entries(_liveMarkers).forEach(function([eid, m]) {
+    m.el.querySelector('.m-pin')?.classList.toggle('selected', eid === id);
+    m.el.querySelector('.m-label')?.classList.toggle('selected', eid === id);
   });
 
   // 3. Animate route line widths via paint properties
@@ -528,7 +594,7 @@ map.on('style.load', () => {
     post({ type:'MAP_READY' });
   }
   if (_pending) { renderEvents(_pending); _pending = null; }
-  else if (_scLoaded) { renderClusters(); initLiveLayer(); tickLive(); }
+  else if (_scLoaded) { renderClusters(); tickLive(); }
 });
 
 window.setSimTime = function(ms) { _simTimeMs = ms; tickLive(); };

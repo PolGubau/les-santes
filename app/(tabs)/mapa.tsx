@@ -51,24 +51,24 @@ function SimTimeBar({ simTime, onChange }: {
 
 const simStyles = StyleSheet.create({
   livePill: {
-    position: 'absolute', bottom: 96, left: 16, zIndex: 50,
-    backgroundColor: 'rgba(29,78,216,0.88)',
-    paddingHorizontal: 12, paddingVertical: 7, borderRadius: 20,
+    paddingHorizontal: 10, paddingVertical: 7, borderRadius: 20,
+    backgroundColor: 'rgba(29,78,216,0.10)',
+    borderWidth: 1, borderColor: 'rgba(29,78,216,0.4)',
   },
-  liveText: { color: '#fff', fontSize: 12, fontWeight: '700' },
+  liveText: { color: '#1D4ED8', fontSize: 12, fontWeight: '700' },
   bar: {
-    position: 'absolute', bottom: 96, left: 16, zIndex: 50,
-    flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: 'rgba(255,255,255,0.97)', borderRadius: 24,
-    paddingHorizontal: 12, paddingVertical: 8,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15, shadowRadius: 6, elevation: 4,
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    backgroundColor: '#fff', borderRadius: 20,
+    paddingHorizontal: 8, paddingVertical: 6,
+    borderWidth: 1, borderColor: 'rgba(0,0,0,0.10)',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.10, shadowRadius: 4, elevation: 3,
   },
-  btn: { backgroundColor: '#F3F4F6', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 5 },
-  btnTxt: { fontSize: 12, fontWeight: '700', color: '#374151' },
-  time: { fontSize: 15, fontWeight: '800', color: '#111827', minWidth: 48, textAlign: 'center' },
-  closeBtn: { paddingHorizontal: 4, paddingVertical: 4 },
-  closeTxt: { fontSize: 20, color: '#9CA3AF', fontWeight: '400', lineHeight: 22 },
+  btn: { backgroundColor: '#F3F4F6', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 4 },
+  btnTxt: { fontSize: 11, fontWeight: '700', color: '#374151' },
+  time: { fontSize: 13, fontWeight: '800', color: '#111827', minWidth: 40, textAlign: 'center' },
+  closeBtn: { paddingHorizontal: 2, paddingVertical: 2 },
+  closeTxt: { fontSize: 18, color: '#9CA3AF', fontWeight: '400', lineHeight: 20 },
 });
 
 // ── Screen ────────────────────────────────────────────────────────────────────
@@ -118,6 +118,7 @@ export default function MapaScreen() {
         onListPress={selection.handleListPress}
         onSearchChange={search.handleSearchChange}
         onSearchFocus={search.handleSearchFocus}
+        simSlot={__DEV__ ? <SimTimeBar simTime={simTime} onChange={handleSimTimeChange} /> : undefined}
       />
 
       {selection.showDrawer && (
@@ -147,7 +148,6 @@ export default function MapaScreen() {
         />
       )}
 
-      <SimTimeBar simTime={simTime} onChange={handleSimTimeChange} />
     </Screen>
   );
 }

@@ -17,6 +17,7 @@ interface Props {
   onListPress: () => void;
   onSearchChange: (text: string) => void;
   onSearchFocus: () => void;
+  simSlot?: React.ReactNode;
 }
 
 export const MapHeader = React.memo(function MapHeader({
@@ -30,6 +31,7 @@ export const MapHeader = React.memo(function MapHeader({
   onListPress,
   onSearchChange,
   onSearchFocus,
+  simSlot,
 }: Props) {
   const insets = useSafeAreaInsets();
   const scrollRef = useRef<ScrollView>(null);
@@ -90,38 +92,42 @@ export const MapHeader = React.memo(function MapHeader({
         </Pressable>
       </View>
 
-      {/* ── Day chips ── */}
-      <ScrollView
-        ref={scrollRef}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.chipsContent}
-        style={styles.chipsRow}
-        pointerEvents="auto"
-        onLayout={(e) => { scrollWidthRef.current = e.nativeEvent.layout.width; }}
-      >
-        {availableDays.map((day) => {
-          const isSelected = day === selectedDay;
-          const isToday = day === todayKey;
-          return (
-            <Pressable
-              key={day}
-              style={[styles.chip, isSelected && styles.chipSelected]}
-              onPress={() => handleDaySelect(day)}
-              onLayout={(e) => {
-                const { x, width } = e.nativeEvent.layout;
-                chipOffsetsRef.current[day] = { x, width };
-                // Cover initial render: scroll if this is the selected chip
-                if (day === selectedDayRef.current) scrollToDay(day);
-              }}
-            >
-              <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
-                {isToday ? 'Avui' : formatDayShort(day)}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </ScrollView>
+      {/* ── Day chips + sim slot ── */}
+      <View style={styles.chipsRow} pointerEvents="box-none">
+        <ScrollView
+          ref={scrollRef}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.chipsContent}
+          style={styles.chipsScroll}
+          pointerEvents="auto"
+          onLayout={(e) => { scrollWidthRef.current = e.nativeEvent.layout.width; }}
+        >
+          {availableDays.map((day) => {
+            const isSelected = day === selectedDay;
+            const isToday = day === todayKey;
+            return (
+              <Pressable
+                key={day}
+                style={[styles.chip, isSelected && styles.chipSelected]}
+                onPress={() => handleDaySelect(day)}
+                onLayout={(e) => {
+                  const { x, width } = e.nativeEvent.layout;
+                  chipOffsetsRef.current[day] = { x, width };
+                  if (day === selectedDayRef.current) scrollToDay(day);
+                }}
+              >
+                <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
+                  {isToday ? 'Avui' : formatDayShort(day)}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+        {simSlot != null && (
+          <View style={styles.simWrap} pointerEvents="auto">{simSlot}</View>
+        )}
+      </View>
 
     </View>
   );
@@ -187,9 +193,11 @@ const styles = StyleSheet.create({
     borderColor: Colors.surface,
   },
 
-  // Day chips
-  chipsRow: { flexGrow: 0 },
+  // Day chips row
+  chipsRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  chipsScroll: { flex: 1, flexGrow: 0 },
   chipsContent: { paddingHorizontal: 2, gap: 6 },
+  simWrap: { flexShrink: 0 },
   chip: {
     paddingHorizontal: 14,
     paddingVertical: 8,
