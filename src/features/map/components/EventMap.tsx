@@ -536,15 +536,14 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
     return () => { deactivateKeepAwake(); };
   }, []);
 
-  // Hard timeout: if after 25 s neither MAP_READY nor MAP_OFFLINE has arrived
-  // (bridge issue, total network failure, etc.), treat it as offline so the
-  // loader disappears and the user gets the retry button.
+  // Fallback: if MAP_READY hasn't arrived in 30 s the JS-side safety-net should
+  // have already posted MAP_OFFLINE. This is a last-resort for bridge failures.
   useEffect(() => {
     if (mapReady || mapOffline) return;
     const t = setTimeout(() => {
       setMapOffline(true);
       Animated.timing(loaderOpacity, { toValue: 0, duration: 300, useNativeDriver: true }).start();
-    }, 25_000);
+    }, 30_000);
     return () => clearTimeout(t);
   }, [mapReady, mapOffline, loaderOpacity]);
 
@@ -637,9 +636,6 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
         originWhitelist={['*']}
         javaScriptEnabled
         domStorageEnabled
-        cacheEnabled
-        setSupportMultipleWindows={false}
-        renderToHardwareTextureAndroid
         onMessage={handleMessage}
       />
 
@@ -664,7 +660,10 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
           <Pressable
             style={styles.offlineBtn}
             onPress={() => {
+              // Reset all state so the loader reappears correctly
               setMapOffline(false);
+              setMapReady(false);
+              loaderOpacity.setValue(1);
               webviewRef.current?.reload();
             }}
           >

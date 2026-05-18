@@ -69,7 +69,14 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <StatusBar style="auto" />
-        <Stack screenOptions={{ headerShown: false }} />
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            animation: 'fade_from_bottom',
+            animationDuration: 320,
+            gestureEnabled: true,
+          }}
+        />
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

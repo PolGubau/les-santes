@@ -176,7 +176,7 @@ const s = StyleSheet.create({
   recipeNoteText: { color: Colors.textMuted, fontSize: 13, lineHeight: 20, fontStyle: 'italic' },
 
   /* Quote */
-  quoteCard: { marginHorizontal: 16, backgroundColor: Colors.surface, borderRadius: 16, padding: 20, borderWidth: StyleSheet.hairlineWidth, borderColor: Colors.border, gap: 10 },
+  quoteCard: { marginHorizontal: 16, backgroundColor: Colors.surface, borderRadius: 16, padding: 20, gap: 10 },
   quoteMark: { color: Colors.primary, fontSize: 52, fontWeight: '900', lineHeight: 44, marginBottom: -4 },
   quoteText: { color: Colors.text, fontSize: 17, fontWeight: '600', lineHeight: 26, fontStyle: 'italic', letterSpacing: -0.2 },
   quoteAttrib: { color: Colors.textMuted, fontSize: 14, lineHeight: 22, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: Colors.border, paddingTop: 12 },

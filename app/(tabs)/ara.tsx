@@ -3,10 +3,10 @@ import { useEvents } from '@/entities/event';
 import { HeroCard, LiveClock, NowCard, UpcomingRow, useNowEvents } from '@/features/now';
 import { useFavoritesStore } from '@/features/favorites';
 import { Colors } from '@/shared/constants';
-import { useNow } from '@/shared/hooks';
+import { useNavPush, useNow } from '@/shared/hooks';
 import { t } from '@/shared/i18n';
 import { AnnouncementBanner, ErrorState, LoadingState, OfflineBanner, Screen, SectionHeader } from '@/shared/ui';
-import { router } from 'expo-router';
+
 import { Clock, Heart, Moon } from 'lucide-react-native';
 import React, { useCallback, useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
@@ -31,9 +31,10 @@ export default function AraScreen() {
   const { now, upcoming } = useNowEvents(events);
   const clock = useNow(1_000); // 1-second tick for countdown
   const { favorites } = useFavoritesStore();
+  const push = useNavPush();
   const handlePress = useCallback((id: string) => {
-    router.push(`/event/${id}`);
-  }, []);
+    push(`/event/${id}`);
+  }, [push]);
 
   // Favorites currently live — shown in a highlighted band
   const liveAndFavorite = useMemo(

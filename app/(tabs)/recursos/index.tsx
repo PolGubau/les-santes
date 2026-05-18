@@ -29,13 +29,13 @@ function ResourceCard({
   return (
     <Animated.View style={[s.card, { height, flex }, anim]}>
       <Image source={imageSource} contentFit="cover" style={StyleSheet.absoluteFill} transition={300} />
+      {/* Gradient panel — covers the full bottom half so text is always legible */}
       <LinearGradient
-        colors={['transparent', 'rgba(0,0,0,0.5)', 'rgba(0,0,0,0.94)']}
-        locations={[0.1, 0.5, 1]}
-        style={StyleSheet.absoluteFill}
+        colors={['transparent', 'rgba(0,0,0,0.6)', 'rgba(0,0,0,0.95)']}
+        locations={[0, 0.4, 1]}
+        style={s.cardPanel}
         pointerEvents="none"
-      />
-      <View style={s.cardContent} pointerEvents="none">
+      >
         {label && <Text style={s.cardLabel}>{label}</Text>}
         <Text style={s.cardTitle}>{title}</Text>
         {subtitle && <Text style={s.cardSubtitle}>{subtitle}</Text>}
@@ -43,7 +43,7 @@ function ResourceCard({
           <Text style={s.cardCtaText}>Explorar</Text>
           <ArrowRight size={13} color="#fff" />
         </View>
-      </View>
+      </LinearGradient>
       <Pressable
         style={StyleSheet.absoluteFill}
         onPress={() => router.push(href as never)}
@@ -130,35 +130,22 @@ const s = StyleSheet.create({
       android: { elevation: 4 },
     }),
   },
-  cardContent: {
+  cardPanel: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
-    padding: 18, gap: 2,
+    paddingTop: 40, padding: 16, gap: 2,
   },
   cardLabel: {
-    color: 'rgba(255,255,255,0.75)',
+    color: 'rgba(255,255,255,0.72)',
     fontSize: 11, fontWeight: '600',
     textTransform: 'uppercase', letterSpacing: 0.8,
     marginBottom: 2,
-    textShadowColor: 'rgba(0,0,0,0.5)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
   },
-  cardTitle: {
-    color: '#fff', fontSize: 20, fontWeight: '800', letterSpacing: -0.3,
-    textShadowColor: 'rgba(0,0,0,0.6)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
-  },
-  cardSubtitle: {
-    color: 'rgba(255,255,255,0.85)', fontSize: 13, lineHeight: 18, marginTop: 2,
-    textShadowColor: 'rgba(0,0,0,0.5)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
-  },
+  cardTitle: { color: '#fff', fontSize: 20, fontWeight: '800', letterSpacing: -0.3 },
+  cardSubtitle: { color: 'rgba(255,255,255,0.82)', fontSize: 13, lineHeight: 18, marginTop: 2 },
   cardCta: {
     flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 10,
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(0,0,0,0.35)',
+    backgroundColor: 'rgba(255,255,255,0.15)',
     paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20,
   },
   cardCtaText: { color: '#fff', fontSize: 12, fontWeight: '700' },

@@ -5,10 +5,10 @@ import { AgendaFilterBar, AgendaList, DayPicker, useAgenda } from "@/features/ag
 import { useFavoritesStore } from "@/features/favorites";
 import { Colors } from "@/shared/constants";
 import { t } from "@/shared/i18n";
-import { useUserLocation } from "@/shared/hooks";
+import { useNavPush, useUserLocation } from "@/shared/hooks";
 import { AnnouncementBanner, ErrorState, LoadingState, OfflineBanner, Screen } from "@/shared/ui";
 import * as Haptics from "expo-haptics";
-import { router } from "expo-router";
+
 import { Search, X } from "lucide-react-native";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { NativeScrollEvent, NativeSyntheticEvent } from "react-native";
@@ -83,9 +83,10 @@ export default function AgendaScreen() {
     [SCREEN_WIDTH, availableDays, selectedDay, setDay],
   );
 
+  const push = useNavPush();
   const handleEventPress = useCallback((event: Event) => {
-    router.push(`/event/${event.id}`);
-  }, []);
+    push(`/event/${event.id}`);
+  }, [push]);
 
   if (error && events.length === 0) {
     return (
