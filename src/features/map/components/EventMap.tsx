@@ -470,6 +470,14 @@ map.on('style.load', () => {
   else if (_scLoaded) renderClusters();
 });
 
+// Safety net: if after 20 s the style still hasn't loaded (CDN/tile server
+// hanging without firing an error), report offline so the RN loader disappears.
+setTimeout(function() {
+  if (!_mapReady) {
+    post({ type:'MAP_OFFLINE' });
+  }
+}, 20000);
+
 window.updateMapStyle = function(styleUrl) {
   map.setStyle(styleUrl);
 };
@@ -527,6 +535,18 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
     activateKeepAwakeAsync();
     return () => { deactivateKeepAwake(); };
   }, []);
+
+  // Hard timeout: if after 25 s neither MAP_READY nor MAP_OFFLINE has arrived
+  // (bridge issue, total network failure, etc.), treat it as offline so the
+  // loader disappears and the user gets the retry button.
+  useEffect(() => {
+    if (mapReady || mapOffline) return;
+    const t = setTimeout(() => {
+      setMapOffline(true);
+      Animated.timing(loaderOpacity, { toValue: 0, duration: 300, useNativeDriver: true }).start();
+    }, 25_000);
+    return () => clearTimeout(t);
+  }, [mapReady, mapOffline, loaderOpacity]);
 
   useEffect(() => {
     if (!mapReady) return;

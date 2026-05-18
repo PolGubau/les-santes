@@ -6,82 +6,48 @@ import { Screen } from '@/shared/ui';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { ArrowRight, BookOpen, Flame, GlassWater } from 'lucide-react-native';
-import type React from 'react';
+import { ArrowRight } from 'lucide-react-native';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSpring } from 'react-native-reanimated';
-
-/* ── Layout constants ── */
-const CELL_SIZE = 72;
-const MOSAIC_SIZE = CELL_SIZE * 2;
+import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 
 /* ── Static assets (Metro requires literal paths) ── */
 const BANNER = require('../../../assets/media/posters-banner.avif');
+const ALIGA = require('../../../assets/media/comparses/aliga.avif');
+const ROBAFAVES = require('../../../assets/media/comparses/familia-robafabes.avif');
+const JULIANA = require('../../../assets/media/juliana.avif');
+const POSTAL = require('../../../assets/resources/postals/2024-c.avif');
 
-const POSTAL_PREVIEWS: { key: string; src: number }[] = [
-  { key: '2024', src: require('../../../assets/resources/postals/2024-c.avif') },
-  { key: '2010', src: require('../../../assets/resources/postals/2010-d.avif') },
-  { key: '1999', src: require('../../../assets/resources/postals/1999-d.avif') },
-  { key: '1990', src: require('../../../assets/resources/postals/1990-c.avif') },
-];
-
-/* ── Historia card ── */
-function HistoriaCard() {
-  const scale = useSharedValue(1);
-  const anim = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
-  return (
-    <Animated.View style={[styles.historiaCard, anim]}>
-      <View style={styles.historiaLeft}>
-        <View style={styles.historiaIconWrap}>
-          <BookOpen size={28} color={Colors.primary} />
-        </View>
-        <View style={styles.historiaText}>
-          <Text style={styles.historiaLabel}>Guia cultural</Text>
-          <Text style={styles.historiaTitle}>Història de la Festa</Text>
-          <Text style={styles.historiaSub}>Patrones, comparses, tradicions i el Bequetero</Text>
-        </View>
-      </View>
-      <View style={styles.historiaCta}>
-        <ArrowRight size={16} color={Colors.primary} />
-      </View>
-      <Pressable
-        style={StyleSheet.absoluteFill}
-        onPress={() => router.push('/(tabs)/recursos/historia' as never)}
-        onPressIn={() => { scale.value = withTiming(0.975, { duration: 80 }); }}
-        onPressOut={() => { scale.value = withSpring(1, { damping: 12, stiffness: 220 }); }}
-        accessibilityRole="button"
-        accessibilityLabel="Història de les Santes"
-      />
-    </Animated.View>
-  );
-}
-
-/* ── Simple card (compact, half-width) ── */
-function SimpleCard({
-  title, subtitle, count, countLabel, href, icon,
+/* ── Single card component for all resources ── */
+function ResourceCard({
+  imageSource, label, title, subtitle, href, height = 200, flex,
 }: {
-  title: string; subtitle: string; count?: number; countLabel?: string; href: string;
-  icon: React.ReactNode;
+  imageSource: number; label?: string; title: string; subtitle?: string;
+  href: string; height?: number; flex?: number;
 }) {
   const scale = useSharedValue(1);
   const anim = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
-
   return (
-    <Animated.View style={[styles.simpleCard, anim]}>
-      <View style={styles.simpleIconWrap}>{icon}</View>
-      {count !== undefined && (
-        <Text style={styles.simpleCount}>{count} {countLabel}</Text>
-      )}
-      <Text style={styles.simpleTitle}>{title}</Text>
-      <Text style={styles.simpleSub}>{subtitle}</Text>
-      <View style={styles.simpleCtaRow}>
-        <Text style={styles.simpleCtaText}>Veure</Text>
-        <ArrowRight size={12} color={Colors.primary} />
+    <Animated.View style={[s.card, { height, flex }, anim]}>
+      <Image source={imageSource} contentFit="cover" style={StyleSheet.absoluteFill} transition={300} />
+      <LinearGradient
+        colors={['transparent', 'rgba(0,0,0,0.55)', 'rgba(0,0,0,0.85)']}
+        locations={[0.2, 0.6, 1]}
+        style={StyleSheet.absoluteFill}
+        pointerEvents="none"
+      />
+      <View style={s.cardContent} pointerEvents="none">
+        {label && <Text style={s.cardLabel}>{label}</Text>}
+        <Text style={s.cardTitle}>{title}</Text>
+        {subtitle && <Text style={s.cardSubtitle}>{subtitle}</Text>}
+        <View style={s.cardCta}>
+          <Text style={s.cardCtaText}>Explorar</Text>
+          <ArrowRight size={13} color="#fff" />
+        </View>
       </View>
       <Pressable
         style={StyleSheet.absoluteFill}
         onPress={() => router.push(href as never)}
-        onPressIn={() => { scale.value = withTiming(0.96, { duration: 80 }); }}
+        onPressIn={() => { scale.value = withTiming(0.975, { duration: 80 }); }}
         onPressOut={() => { scale.value = withSpring(1, { damping: 12, stiffness: 220 }); }}
         accessibilityRole="button"
         accessibilityLabel={title}
@@ -94,48 +60,52 @@ function SimpleCard({
 export default function RecursosScreen() {
   return (
     <Screen>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Recursos</Text>
-          <Text style={styles.subtitle}>Arxiu històric de les Santes</Text>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
+        <View style={s.header}>
+          <Text style={s.title}>Recursos</Text>
+          <Text style={s.subtitle}>Arxiu de les Santes</Text>
         </View>
-
-        <View style={styles.cards}>
-          {/* Historia — new full-width card */}
-          <HistoriaCard />
-
-          <HeroCard
+        <View style={s.cards}>
+          <ResourceCard
+            imageSource={BANNER}
+            label={`${POSTERS.length} peces`}
             title="Cartells Oficials"
-            subtitle="Pòsters oficials des de 1892"
-            count={POSTERS.length}
+            subtitle="Pòsters des de 1892"
             href="/(tabs)/recursos/cartells"
-            renderVisual={() => (
-              <Image source={BANNER} contentFit="cover" style={StyleSheet.absoluteFill} transition={300} />
-            )}
+            height={220}
           />
-
-          <PostalsCard
+          <ResourceCard
+            imageSource={ALIGA}
+            label="Guia cultural"
+            title="Història de la Festa"
+            subtitle="Patrones, comparses, tradicions i el Bequetero"
+            href="/(tabs)/recursos/historia"
+            height={160}
+          />
+          <ResourceCard
+            imageSource={POSTAL}
+            label={`${POSTALS.length} postals`}
             title="Postals de Gegants"
             subtitle="Escaneacions de geganters convidats"
-            count={POSTALS.length}
             href="/(tabs)/recursos/postals"
+            height={160}
           />
-
-          {/* Row: Comparses + Begudes */}
-          <View style={styles.row}>
-            <SimpleCard
+          <View style={s.row}>
+            <ResourceCard
+              imageSource={ROBAFAVES}
+              label={`${COMPARSES.length} colles`}
               title="Comparses"
-              subtitle="El seguici festiu"
-              count={COMPARSES.length}
-              countLabel="colles"
               href="/(tabs)/recursos/comparses"
-              icon={<Flame size={22} color={Colors.primary} />}
+              height={180}
+              flex={1}
             />
-            <SimpleCard
+            <ResourceCard
+              imageSource={JULIANA}
+              label="La Juliana i més"
               title="Begudes"
-              subtitle="Tradicions líquides"
               href="/(tabs)/recursos/begudes"
-              icon={<GlassWater size={22} color={Colors.primary} />}
+              height={180}
+              flex={1}
             />
           </View>
         </View>
@@ -143,255 +113,40 @@ export default function RecursosScreen() {
     </Screen>
   );
 }
-
-/* ── Hero card (banner image background) ── */
-function HeroCard({
-  title, subtitle, count, href, renderVisual,
-}: {
-  title: string; subtitle: string; count: number; href: string;
-  renderVisual: () => React.ReactNode;
-}) {
-  const scale = useSharedValue(1);
-  const anim = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
-
-  return (
-    <Animated.View style={[styles.heroCard, anim]}>
-      {renderVisual()}
-      <LinearGradient
-        colors={['transparent', 'rgba(0,0,0,0.6)', 'rgba(0,0,0,0.82)']}
-        locations={[0, 0.4, 1]}
-        style={StyleSheet.absoluteFill}
-        pointerEvents="none"
-      />
-      <View style={styles.heroContent} pointerEvents="none">
-        <View>
-          <Text style={styles.heroLabel}>{count} peces</Text>
-          <Text style={styles.heroTitle}>{title}</Text>
-          <Text style={styles.heroSubtitle}>{subtitle}</Text>
-        </View>
-        <View style={styles.heroCta}>
-          <Text style={styles.heroCtaText}>Explorar</Text>
-          <ArrowRight size={14} color="#fff" />
-        </View>
-      </View>
-      <Pressable
-        style={StyleSheet.absoluteFill}
-        onPress={() => router.push(href as never)}
-        onPressIn={() => { scale.value = withTiming(0.975, { duration: 80 }); }}
-        onPressOut={() => { scale.value = withSpring(1, { damping: 12, stiffness: 220 }); }}
-        accessibilityRole="button"
-        accessibilityLabel={title}
-      />
-    </Animated.View>
-  );
-}
-
-/* ── Postals card (mosaic grid) ── */
-function PostalsCard({
-  title, subtitle, count, href,
-}: {
-  title: string; subtitle: string; count: number; href: string;
-}) {
-  const scale = useSharedValue(1);
-  const anim = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
-
-  return (
-    <Animated.View style={[styles.postalsCard, anim]}>
-      {/* Left: mosaic */}
-      <View style={styles.mosaic} pointerEvents="none">
-        {POSTAL_PREVIEWS.map(({ key, src }) => (
-          <View key={key} style={styles.mosaicCell}>
-            <Image source={src} contentFit="cover" style={{ width: CELL_SIZE, height: CELL_SIZE }} transition={200} />
-          </View>
-        ))}
-      </View>
-
-      {/* Right: text */}
-      <View style={styles.postalsContent} pointerEvents="none">
-        <View>
-          <Text style={styles.postalsLabel}>{count} postals</Text>
-          <Text style={styles.postalsTitle}>{title}</Text>
-          <Text style={styles.postalsSubtitle}>{subtitle}</Text>
-        </View>
-        <View style={styles.postalsCta}>
-          <Text style={styles.postalsCtaText}>Veure</Text>
-          <ArrowRight size={13} color={Colors.primary} />
-        </View>
-      </View>
-
-      <Pressable
-        style={StyleSheet.absoluteFill}
-        onPress={() => router.push(href as never)}
-        onPressIn={() => { scale.value = withTiming(0.975, { duration: 80 }); }}
-        onPressOut={() => { scale.value = withSpring(1, { damping: 12, stiffness: 220 }); }}
-        accessibilityRole="button"
-        accessibilityLabel={title}
-      />
-    </Animated.View>
-  );
-}
-
-const styles = StyleSheet.create({
+const s = StyleSheet.create({
   scroll: { paddingHorizontal: 16, paddingBottom: 48 },
   header: { paddingTop: 20, paddingBottom: 24 },
   title: { color: Colors.text, fontSize: 28, fontWeight: '800', letterSpacing: -0.5 },
   subtitle: { color: Colors.textMuted, fontSize: 14, marginTop: 2 },
-  cards: { gap: 14 },
+  cards: { gap: 12 },
+  row: { flexDirection: 'row', gap: 12 },
 
-  /* Row (two-column) */
-  row: { flexDirection: 'row', gap: 14 },
-
-  /* Simple card */
-  simpleCard: {
-    flex: 1,
-    borderRadius: 20,
-    backgroundColor: Colors.surface,
-    padding: 16,
-    gap: 4,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.border,
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 8 },
-      android: { elevation: 2 },
-    }),
-  },
-  simpleIconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: `${Colors.primary}12`,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  simpleCount: { color: Colors.textDim, fontSize: 11, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
-  simpleTitle: { color: Colors.text, fontSize: 16, fontWeight: '800', letterSpacing: -0.2 },
-  simpleSub: { color: Colors.textMuted, fontSize: 12, lineHeight: 17, marginTop: 2 },
-  simpleCtaRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 10 },
-  simpleCtaText: { color: Colors.primary, fontSize: 13, fontWeight: '700' },
-
-  /* Hero card */
-  heroCard: {
-    height: 240,
+  card: {
     borderRadius: 20,
     overflow: 'hidden',
     backgroundColor: Colors.text,
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.18, shadowRadius: 16 },
-      android: { elevation: 6 },
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.14, shadowRadius: 12 },
+      android: { elevation: 4 },
     }),
   },
-  heroContent: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    padding: 20,
-    gap: 12,
+  cardContent: {
+    position: 'absolute', bottom: 0, left: 0, right: 0,
+    padding: 18, gap: 2,
   },
-  heroLabel: {
-    color: 'rgba(255,255,255,0.65)',
-    fontSize: 11,
-    fontWeight: '600',
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-    marginBottom: 4,
+  cardLabel: {
+    color: 'rgba(255,255,255,0.6)',
+    fontSize: 11, fontWeight: '600',
+    textTransform: 'uppercase', letterSpacing: 0.8,
+    marginBottom: 2,
   },
-  heroTitle: { color: '#fff', fontSize: 22, fontWeight: '800', letterSpacing: -0.3 },
-  heroSubtitle: { color: 'rgba(255,255,255,0.72)', fontSize: 13, marginTop: 2, lineHeight: 18 },
-  heroCta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: Colors.primary,
+  cardTitle: { color: '#fff', fontSize: 20, fontWeight: '800', letterSpacing: -0.3 },
+  cardSubtitle: { color: 'rgba(255,255,255,0.7)', fontSize: 13, lineHeight: 18, marginTop: 2 },
+  cardCta: {
+    flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 10,
     alignSelf: 'flex-start',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20,
   },
-  heroCtaText: { color: '#fff', fontSize: 13, fontWeight: '700' },
-
-  /* Postals card */
-  postalsCard: {
-    flexDirection: 'row',
-    borderRadius: 20,
-    overflow: 'hidden',
-    backgroundColor: Colors.surface,
-    minHeight: 160,
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.08, shadowRadius: 10 },
-      android: { elevation: 3 },
-    }),
-  },
-  mosaic: {
-    width: MOSAIC_SIZE,
-    height: MOSAIC_SIZE,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    flexShrink: 0,
-  },
-  mosaicCell: {
-    width: CELL_SIZE,
-    height: CELL_SIZE,
-    overflow: 'hidden',
-    backgroundColor: Colors.surfaceHigh,
-  },
-  postalsContent: {
-    flex: 1,
-    padding: 18,
-    justifyContent: 'space-between',
-  },
-  postalsLabel: {
-    color: Colors.textDim,
-    fontSize: 11,
-    fontWeight: '600',
-    letterSpacing: 0.6,
-    textTransform: 'uppercase',
-    marginBottom: 4,
-  },
-  postalsTitle: { color: Colors.text, fontSize: 17, fontWeight: '800', letterSpacing: -0.2 },
-  postalsSubtitle: { color: Colors.textMuted, fontSize: 12, lineHeight: 17, marginTop: 4 },
-  postalsCta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginTop: 12,
-  },
-  postalsCtaText: { color: Colors.primary, fontSize: 13, fontWeight: '700' },
-  // Historia card
-  historiaCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.surface,
-    borderRadius: 20,
-    padding: 16,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.border,
-    gap: 12,
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 8 },
-      android: { elevation: 2 },
-    }),
-  },
-  historiaLeft: { flexDirection: 'row', alignItems: 'center', gap: 14, flex: 1 },
-  historiaIconWrap: {
-    width: 52,
-    height: 52,
-    borderRadius: 14,
-    backgroundColor: `${Colors.primary}12`,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  historiaText: { flex: 1, gap: 2 },
-  historiaLabel: { color: Colors.textDim, fontSize: 11, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.6 },
-  historiaTitle: { color: Colors.text, fontSize: 17, fontWeight: '800', letterSpacing: -0.2 },
-  historiaSub: { color: Colors.textMuted, fontSize: 12, lineHeight: 17, marginTop: 2 },
-  historiaCta: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: `${Colors.primary}12`,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
+  cardCtaText: { color: '#fff', fontSize: 12, fontWeight: '700' },
 });
