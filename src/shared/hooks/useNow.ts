@@ -6,7 +6,8 @@ declare const process: { env: Record<string, string | undefined> };
 // Mid-Les Santes 2026 - used when no EXPO_PUBLIC_DEV_DATE is set in dev
 const DEV_DEFAULT = "2026-07-27T19:00:00";
 
-function getInitialNow(): Date {
+/** Returns the "now" used by the app — fake frozen date in DEV, real clock in prod. */
+export function getAppNow(): Date {
 	if (__DEV__) {
 		const override = process.env.EXPO_PUBLIC_DEV_DATE ?? DEV_DEFAULT;
 		return new Date(override);
@@ -21,7 +22,7 @@ function getInitialNow(): Date {
  * In production, always uses the real clock.
  */
 export function useNow(intervalMs = 10_000): Date {
-	const [now, setNow] = useState(getInitialNow);
+	const [now, setNow] = useState(getAppNow);
 
 	useEffect(() => {
 		if (__DEV__) return; // frozen in dev

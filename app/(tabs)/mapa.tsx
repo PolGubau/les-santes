@@ -11,6 +11,7 @@ import {
   useMapSelection,
 } from '@/features/map';
 import type { EventMapHandle } from '@/features/map/components/EventMap';
+import { getAppNow } from '@/shared/hooks';
 import { Screen } from '@/shared/ui';
 import React, { useCallback, useRef, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -24,7 +25,7 @@ function SimTimeBar({ simTime, onChange }: {
 }) {
   if (simTime === null) {
     return (
-      <TouchableOpacity style={simStyles.livePill} onPress={() => onChange(Date.now())}>
+      <TouchableOpacity style={simStyles.livePill} onPress={() => onChange(getAppNow().getTime())}>
         <Text style={simStyles.liveText}>⏱ SIM</Text>
       </TouchableOpacity>
     );
