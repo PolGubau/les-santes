@@ -22,13 +22,6 @@ export function NowCard({ event, onPress }: Props) {
 
   return (
     <Animated.View style={[styles.card, animStyle]}>
-      <Pressable
-        style={StyleSheet.absoluteFill}
-        onPress={onPress}
-        onPressIn={() => { scale.value = withTiming(0.96, { duration: 80 }); }}
-        onPressOut={() => { scale.value = withSpring(1, { damping: 10, stiffness: 200 }); }}
-        accessibilityRole="button"
-      />
       <Image
         source={event.imageUrl ? { uri: event.imageUrl } : undefined}
         style={styles.image}
@@ -47,6 +40,13 @@ export function NowCard({ event, onPress }: Props) {
         <Text style={styles.title} numberOfLines={2}>{event.title}</Text>
         <Text style={styles.time}>fins {formatTime(event.end)}</Text>
       </LinearGradient>
+      <Pressable
+        style={StyleSheet.absoluteFill}
+        onPress={onPress}
+        onPressIn={() => { scale.value = withTiming(0.96, { duration: 80 }); }}
+        onPressOut={() => { scale.value = withSpring(1, { damping: 10, stiffness: 200 }); }}
+        accessibilityRole="button"
+      />
     </Animated.View>
   );
 }

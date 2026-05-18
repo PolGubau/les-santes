@@ -205,7 +205,7 @@ export default function EventDetailScreen() {
           </View>
 
           {/* Mini map */}
-          <EventMiniMap event={event} onPress={handleViewInMap} />
+          <EventMiniMap event={event} onPress={handleViewInMap} zoom={14} />
 
           {/* Actions */}
           <View style={styles.actions}>

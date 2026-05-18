@@ -23,13 +23,6 @@ export function HeroCard({ event, onPress }: Props) {
 
   return (
     <Animated.View style={[styles.hero, animStyle]}>
-      <Pressable
-        style={StyleSheet.absoluteFill}
-        onPress={onPress}
-        onPressIn={() => { scale.value = withTiming(0.96, { duration: 80 }); }}
-        onPressOut={() => { scale.value = withSpring(1, { damping: 10, stiffness: 200 }); }}
-        accessibilityRole="button"
-      />
       <Image
         source={event.imageUrl ? { uri: event.imageUrl } : undefined}
         style={styles.heroImage}
@@ -68,6 +61,13 @@ export function HeroCard({ event, onPress }: Props) {
           </View>
         </View>
       </LinearGradient>
+      <Pressable
+        style={StyleSheet.absoluteFill}
+        onPress={onPress}
+        onPressIn={() => { scale.value = withTiming(0.96, { duration: 80 }); }}
+        onPressOut={() => { scale.value = withSpring(1, { damping: 10, stiffness: 200 }); }}
+        accessibilityRole="button"
+      />
     </Animated.View>
   );
 }

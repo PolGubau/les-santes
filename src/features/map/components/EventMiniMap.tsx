@@ -15,7 +15,11 @@ function routeColor(id: string): string {
   return ROUTE_PALETTE[Math.abs(h) % ROUTE_PALETTE.length];
 }
 
-function buildMiniHtml(event: Event): string {
+type BuildMiniHtml = {
+  event: Event,
+  zoom: number
+}
+function buildMiniHtml({ event, zoom = 15.5 }: BuildMiniHtml): string {
   // App is light-mode only — always use light map style
   const style = `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}`;
   const fallback = 'https://tiles.openfreemap.org/styles/liberty';
@@ -23,15 +27,15 @@ function buildMiniHtml(event: Event): string {
   // Determine center + zoom
   let centerLng: number;
   let centerLat: number;
-  let zoom: number;
   let routeCoords = '';
+  let parsedZoom = zoom;
   let pinMarker = '';
   const color = routeColor(event.id);
 
   if (event.kind === 'static') {
     centerLng = event.location.lng;
     centerLat = event.location.lat;
-    zoom = 15.5;
+
     pinMarker = `
       const el = document.createElement('div');
       el.style.cssText = 'width:28px;height:28px;border-radius:50%;background:${color};border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.35);';
@@ -43,7 +47,7 @@ function buildMiniHtml(event: Event): string {
     const lats = pts.map(p => p.lat);
     centerLng = (Math.min(...lngs) + Math.max(...lngs)) / 2;
     centerLat = (Math.min(...lats) + Math.max(...lats)) / 2;
-    zoom = 13.5;
+    parsedZoom = zoom - 0.5; // Zoom out a bit for routes to fit better in the mini map
     const coords = JSON.stringify(pts.map(p => [p.lng, p.lat]));
     routeCoords = `
       map.on('load', () => {
@@ -65,7 +69,7 @@ function buildMiniHtml(event: Event): string {
 </head><body><div id="map"></div><script>
 const map = new maplibregl.Map({
   container:'map', style:'${style}',
-  center:[${centerLng},${centerLat}], zoom:${zoom},
+  center:[${centerLng},${centerLat}], zoom:${parsedZoom},
   interactive:false, attributionControl:false,
 });
 map.on('error', () => { map.setStyle('${fallback}'); });
@@ -78,13 +82,14 @@ map.on('load', () => { window.ReactNativeWebView?.postMessage('ready'); });
 interface Props {
   event: Event;
   onPress: () => void;
+  zoom?: number;
 }
 
 const MAP_H = 180;
 
-export function EventMiniMap({ event, onPress }: Props) {
+export function EventMiniMap({ event, onPress, zoom = 15.5 }: Props) {
   const [ready, setReady] = useState(false);
-  const html = useRef(buildMiniHtml(event)).current;
+  const html = useRef(buildMiniHtml({ event, zoom })).current;
 
   const hasLocation = event.kind === 'static'
     ? !!event.location

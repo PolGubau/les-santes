@@ -30,8 +30,8 @@ function ResourceCard({
     <Animated.View style={[s.card, { height, flex }, anim]}>
       <Image source={imageSource} contentFit="cover" style={StyleSheet.absoluteFill} transition={300} />
       <LinearGradient
-        colors={['transparent', 'rgba(0,0,0,0.55)', 'rgba(0,0,0,0.85)']}
-        locations={[0.2, 0.6, 1]}
+        colors={['transparent', 'rgba(0,0,0,0.5)', 'rgba(0,0,0,0.94)']}
+        locations={[0.1, 0.5, 1]}
         style={StyleSheet.absoluteFill}
         pointerEvents="none"
       />
@@ -135,17 +135,30 @@ const s = StyleSheet.create({
     padding: 18, gap: 2,
   },
   cardLabel: {
-    color: 'rgba(255,255,255,0.6)',
+    color: 'rgba(255,255,255,0.75)',
     fontSize: 11, fontWeight: '600',
     textTransform: 'uppercase', letterSpacing: 0.8,
     marginBottom: 2,
+    textShadowColor: 'rgba(0,0,0,0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
-  cardTitle: { color: '#fff', fontSize: 20, fontWeight: '800', letterSpacing: -0.3 },
-  cardSubtitle: { color: 'rgba(255,255,255,0.7)', fontSize: 13, lineHeight: 18, marginTop: 2 },
+  cardTitle: {
+    color: '#fff', fontSize: 20, fontWeight: '800', letterSpacing: -0.3,
+    textShadowColor: 'rgba(0,0,0,0.6)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
+  cardSubtitle: {
+    color: 'rgba(255,255,255,0.85)', fontSize: 13, lineHeight: 18, marginTop: 2,
+    textShadowColor: 'rgba(0,0,0,0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
   cardCta: {
     flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 10,
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(255,255,255,0.18)',
+    backgroundColor: 'rgba(0,0,0,0.35)',
     paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20,
   },
   cardCtaText: { color: '#fff', fontSize: 12, fontWeight: '700' },
