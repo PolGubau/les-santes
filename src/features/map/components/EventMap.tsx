@@ -54,9 +54,6 @@ function buildHtml(isDark: boolean) {
 <body>
 <div id="map"></div>
 <script>
-window.onerror = function(msg, _src, line) {
-  post({ type:'JS_ERROR', msg: String(msg), line: line });
-};
 const STATE_COLOR = { now:'#007A5A', upcoming:'#1D4ED8', finished:'#9CA3AF' };
 // Metro-style route palette — vivid, high-contrast, clearly distinct
 const ROUTE_PALETTE = [
@@ -276,6 +273,61 @@ function fmtTime(iso) {
   } catch(e) { return ''; }
 }
 
+// ── Route label helpers ───────────────────────────────────────────────────────
+// Haversine distance between two [lng, lat] points in metres.
+function haversineDist(a, b) {
+  const R = 6371000;
+  const p1 = a[1] * Math.PI / 180, p2 = b[1] * Math.PI / 180;
+  const dp = (b[1]-a[1]) * Math.PI / 180, dl = (b[0]-a[0]) * Math.PI / 180;
+  const x = Math.sin(dp/2)*Math.sin(dp/2) + Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)*Math.sin(dl/2);
+  return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1-x));
+}
+// Compass bearing (degrees, clockwise from north) from point a to point b.
+// Normalised so text is never rendered upside-down.
+function segmentBearing(a, b) {
+  const lat1 = a[1] * Math.PI / 180, lat2 = b[1] * Math.PI / 180;
+  const dL = (b[0] - a[0]) * Math.PI / 180;
+  const y = Math.sin(dL) * Math.cos(lat2);
+  const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dL);
+  let deg = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+  // Flip if text would render upside-down
+  if (deg > 90 && deg < 270) deg = (deg + 180) % 360;
+  return Math.round(deg);
+}
+
+// Returns GeoJSON Point features evenly distributed along the route, each
+// carrying the interpolated clock time the event should be passing that spot
+// and the bearing of the route at that point so text follows the line.
+function routeLabelPoints(event, spacingM) {
+  const coords = event.route.map(p => [p.lng, p.lat]);
+  if (coords.length < 2) return [];
+  const cum = [0];
+  for (let i = 1; i < coords.length; i++)
+    cum.push(cum[i-1] + haversineDist(coords[i-1], coords[i]));
+  const total = cum[cum.length-1];
+  if (total < spacingM * 0.4) return [];
+  const startMs = new Date(event.start).getTime();
+  const endMs   = new Date(event.end).getTime();
+  const features = [];
+  for (let d = spacingM / 2; d < total; d += spacingM) {
+    let j = 1;
+    while (j < cum.length - 1 && cum[j] < d) j++;
+    const t = (cum[j] - cum[j-1]) === 0 ? 0 : (d - cum[j-1]) / (cum[j] - cum[j-1]);
+    const lng = coords[j-1][0] + t * (coords[j][0] - coords[j-1][0]);
+    const lat = coords[j-1][1] + t * (coords[j][1] - coords[j-1][1]);
+    const timeStr = fmtTime(new Date(startMs + (d / total) * (endMs - startMs)).toISOString());
+    features.push({
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [lng, lat] },
+      properties: {
+        label: event.title + ' · ' + timeStr,
+        bearing: segmentBearing(coords[j-1], coords[j]),
+      },
+    });
+  }
+  return features;
+}
+
 // ── Arrow SDF image (generated once on map load) ─────────────────────────────
 function addArrowImage() {
   const size = 32;
@@ -349,30 +401,35 @@ function renderRoute(event) {
     });
   }
 
-  // 4. Route label — event name + start time at line midpoint, only when space allows
-  const labelId = srcId + '-label';
-  _routeLayerIds.push(labelId);
-  map.addLayer({
-    id:labelId, type:'symbol', source:srcId,
-    minzoom:14,
-    layout:{
-      'symbol-placement':'line-center',
-      'text-field':['concat', ['get','title'], '\n', ['get','startTime']],
-      'text-size':10,
-      'text-max-width':12,
-      'text-font':['Open Sans Bold','Arial Unicode MS Bold'],
-      'text-anchor':'center',
-      'text-rotation-alignment':'viewport',
-      'text-allow-overlap':false,
-      'text-ignore-placement':false,
-    },
-    paint:{
-      'text-color': finished ? '#6B7280' : color,
-      'text-halo-color':'#ffffff',
-      'text-halo-width':2.5,
-      'text-opacity': finished ? 0.5 : 1,
-    },
-  });
+  // 4. Labels with interpolated time — pre-computed Point features every ~350m.
+  //    Each label shows the clock time the event is expected at that spot.
+  const labelFeatures = finished ? [] : routeLabelPoints(event, 350);
+  if (labelFeatures.length > 0) {
+    const ptSrcId = srcId + '-pts';
+    const ptLblId = srcId + '-label';
+    _routeSourceIds.push(ptSrcId);
+    _routeLayerIds.push(ptLblId);
+    map.addSource(ptSrcId, { type:'geojson', data:{ type:'FeatureCollection', features:labelFeatures } });
+    map.addLayer({
+      id:ptLblId, type:'symbol', source:ptSrcId,
+      minzoom:14,
+      layout:{
+        'text-field':['get','label'],
+        'text-size':11,
+        'text-font':['Open Sans Bold','Arial Unicode MS Bold'],
+        'text-anchor':'center',
+        'text-rotate':['get','bearing'],
+        'text-rotation-alignment':'map',
+        'text-allow-overlap':false,
+        'text-ignore-placement':false,
+      },
+      paint:{
+        'text-color':'#fff',
+        'text-halo-color':color,
+        'text-halo-width':2.5,
+      },
+    });
+  }
 
   map.on('click', lineId,   () => { selectEvent(event.id); post({ type:'EVENT_PRESS', event }); });
   map.on('click', casingId, () => { selectEvent(event.id); post({ type:'EVENT_PRESS', event }); });
@@ -461,22 +518,14 @@ window.updateUserLocation = function(lat, lng) {
 };
 
 map.on('style.load', () => {
-  try { addArrowImage(); } catch(e) { post({ type:'JS_ERROR', msg:'addArrowImage: '+String(e), line:0 }); }
+  addArrowImage();
   if (!_mapReady) {
     _mapReady = true;
     post({ type:'MAP_READY' });
   }
-  if (_pending) { try { renderEvents(_pending); } catch(e) { post({ type:'JS_ERROR', msg:'renderEvents: '+String(e), line:0 }); } _pending = null; }
+  if (_pending) { renderEvents(_pending); _pending = null; }
   else if (_scLoaded) renderClusters();
 });
-
-// Safety net: if after 20 s the style still hasn't loaded (CDN/tile server
-// hanging without firing an error), report offline so the RN loader disappears.
-setTimeout(function() {
-  if (!_mapReady) {
-    post({ type:'MAP_OFFLINE' });
-  }
-}, 20000);
 
 window.updateMapStyle = function(styleUrl) {
   map.setStyle(styleUrl);
@@ -613,8 +662,6 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
         onEventPress(data.event as Event);
       } else if (data.type === 'CLUSTER_PRESS' && onClusterPress) {
         onClusterPress(data.events as Event[]);
-      } else if (data.type === 'JS_ERROR') {
-        console.error('[EventMap WebView error]', data.msg, 'line:', data.line);
       } else if (data.type === 'MAP_OFFLINE') {
         setMapOffline(true);
         // Fade out the loader (prevents it from staying on top of offline overlay)
