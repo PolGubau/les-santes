@@ -733,7 +733,10 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
 
   useEffect(() => {
     if (!mapReady) return;
-    const js = `window.updateEvents(${JSON.stringify(events)}); true;`;
+    // In DEV, prepend setSimTime so _simTimeMs is set atomically before
+    // renderEvents runs — guarantees correct fake-time positioning on first load.
+    const prefix = __DEV__ ? `window.setSimTime(${getAppNow().getTime()});` : '';
+    const js = `${prefix}window.updateEvents(${JSON.stringify(events)}); true;`;
     webviewRef.current?.injectJavaScript(js);
   }, [events, mapReady]);
 
@@ -795,11 +798,7 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
         }).start();
         // In dev, sync the WebView clock to the frozen app date so mobile
         // event positions (cercaviles, correfocs…) are shown correctly
-        // without needing to open the SIM panel manually.
-        if (__DEV__) {
-          const devMs = getAppNow().getTime();
-          webviewRef.current?.injectJavaScript(`window.setSimTime(${devMs}); true;`);
-        }
+        // Dev fake-time is injected atomically in the updateEvents useEffect below.
       } else if (data.type === 'EVENT_PRESS' && onEventPress) {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         onEventPress(data.event as Event);
