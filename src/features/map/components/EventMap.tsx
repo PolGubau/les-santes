@@ -525,6 +525,33 @@ function renderRoute(event) {
   // so mobile events cluster correctly with co-located events.
 }
 
+// ── Cluster point builder ─────────────────────────────────────────────────────
+// Extracted so setSimTime can reload Supercluster without re-rendering routes.
+function buildClusterPoints(nowMs) {
+  var points = [];
+  _currentEvents.forEach(function(event) {
+    if (event.kind === 'static' && event.location) {
+      points.push({ type:'Feature',
+        geometry:{ type:'Point', coordinates:[event.location.lng, event.location.lat] },
+        properties:{ _event:event } });
+    }
+    if (event.kind === 'mobile' && event.route && event.route.length > 1) {
+      // Only show static start marker when the event is NOT in progress.
+      // While in progress, tickLive() places the live position marker instead.
+      var startMs = new Date(event.start).getTime();
+      var endMs   = new Date(event.end).getTime();
+      var ratio   = (nowMs - startMs) / (endMs - startMs);
+      if (ratio < 0 || ratio > 1) {
+        var startLng = event.route[0].lng, startLat = event.route[0].lat;
+        points.push({ type:'Feature',
+          geometry:{ type:'Point', coordinates:[startLng, startLat] },
+          properties:{ _event:event } });
+      }
+    }
+  });
+  return points;
+}
+
 // ── Main render ───────────────────────────────────────────────────────────────
 function renderEvents(events) {
   _currentEvents = events;
@@ -532,29 +559,12 @@ function renderEvents(events) {
   clearRoutes();
   clearLiveMarkers();
   const nowMs = getNowMs();
-  const points = [];
   events.forEach(event => {
-    if (event.kind === 'static' && event.location) {
-      points.push({ type:'Feature',
-        geometry:{ type:'Point', coordinates:[event.location.lng, event.location.lat] },
-        properties:{ _event:event } });
-    }
     if (event.kind === 'mobile' && event.route && event.route.length > 1) {
       renderRoute(event);
-      // Only show static start marker when event is NOT in progress.
-      // While in progress, the live marker (tickLive) IS the clickable pin.
-      const startMs = new Date(event.start).getTime();
-      const endMs   = new Date(event.end).getTime();
-      const ratio   = (nowMs - startMs) / (endMs - startMs);
-      if (ratio < 0 || ratio > 1) {
-        const [startLng, startLat] = [event.route[0].lng, event.route[0].lat];
-        points.push({ type:'Feature',
-          geometry:{ type:'Point', coordinates:[startLng, startLat] },
-          properties:{ _event:event } });
-      }
     }
   });
-  sc.load(points); _scLoaded = true;
+  sc.load(buildClusterPoints(nowMs)); _scLoaded = true;
   renderClusters();
   tickLive();
 }
@@ -637,18 +647,18 @@ map.on('style.load', () => {
   else if (_scLoaded) { renderClusters(); tickLive(); }
 });
 
-// Sim time update — only refresh live marker positions and cluster pins.
+// Sim time update — reload cluster points and live markers without re-rendering routes.
 // Routes are time-independent visuals; clearing them causes an unnecessary flash.
-window.setSimTime = function(ms) {
-  _simTimeMs = ms;
+// sc.load() is called so the static start pin appears/disappears correctly when
+// a mobile event transitions between upcoming ↔ in-progress.
+function _applySimTime() {
+  if (!_currentEvents.length) return;
+  sc.load(buildClusterPoints(getNowMs())); _scLoaded = true;
+  renderClusters();
   tickLive();
-  if (_scLoaded) renderClusters();
-};
-window.clearSimTime = function() {
-  _simTimeMs = null;
-  tickLive();
-  if (_scLoaded) renderClusters();
-};
+}
+window.setSimTime = function(ms) { _simTimeMs = ms; _applySimTime(); };
+window.clearSimTime = function() { _simTimeMs = null; _applySimTime(); };
 window.updateMapStyle = function(styleUrl) {
   map.setStyle(styleUrl);
 };
