@@ -1,5 +1,4 @@
 import type { Event } from '@/entities/event';
-import { MOCK_EVENTS } from '@/entities/event';
 import type { EventMapHandle } from '@/features/map/components/EventMap';
 import { useMapFocusStore } from '@/features/map/store/useMapFocusStore';
 import { toFestivalDayKey } from '@/shared/lib/time';
@@ -31,16 +30,15 @@ export function useMapFocusSync({
   const { focusedEventId, clearFocus } = useMapFocusStore();
   const [pendingFocusId, setPendingFocusId] = useState<string | null>(null);
 
-  // Phase 1: external focus request → switch day
+  // Phase 1: external focus request → switch day.
+  // focusedEventStart is stored alongside id so we never need MOCK_EVENTS lookup.
+  const { focusedEventStart } = useMapFocusStore();
   useEffect(() => {
-    if (!focusedEventId) return;
-    const event = MOCK_EVENTS.find((e) => e.id === focusedEventId);
-    if (event) {
-      setDay(toFestivalDayKey(new Date(event.start)));
-      setPendingFocusId(focusedEventId);
-    }
+    if (!focusedEventId || !focusedEventStart) return;
+    setDay(toFestivalDayKey(new Date(focusedEventStart)));
+    setPendingFocusId(focusedEventId);
     clearFocus();
-  }, [focusedEventId, clearFocus, setDay]);
+  }, [focusedEventId, focusedEventStart, clearFocus, setDay]);
 
   // Phase 2: day has changed, mapEvents updated → fire imperative focus
   useEffect(() => {

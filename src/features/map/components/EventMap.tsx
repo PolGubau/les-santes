@@ -176,6 +176,7 @@ let _userMarker = null, _mapReady = false, _pending = null;
 let _selectedId = null;
 const sc = new Supercluster({ radius:55, maxZoom:16 });
 let _scLoaded = false;
+let _currentEvents = [], _simTimeMs = null;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function clearStaticMarkers() {
@@ -328,6 +329,53 @@ function routeLabelPoints(event, spacingM) {
   return features;
 }
 
+// ── Live position ─────────────────────────────────────────────────────────────
+function getNowMs() { return _simTimeMs !== null ? _simTimeMs : Date.now(); }
+function computeLivePositions() {
+  const nowMs = getNowMs();
+  const features = [];
+  _currentEvents.forEach(function(event) {
+    if (event.kind !== 'mobile' || !event.route || event.route.length < 2) return;
+    const startMs = new Date(event.start).getTime();
+    const endMs   = new Date(event.end).getTime();
+    if (endMs <= startMs) return;
+    const ratio = (nowMs - startMs) / (endMs - startMs);
+    if (ratio < 0 || ratio > 1) return;
+    const coords = event.route.map(function(p) { return [p.lng, p.lat]; });
+    const cum = [0];
+    for (let i = 1; i < coords.length; i++)
+      cum.push(cum[i-1] + haversineDist(coords[i-1], coords[i]));
+    const total = cum[cum.length-1];
+    const target = ratio * total;
+    let j = 1;
+    while (j < cum.length - 1 && cum[j] < target) j++;
+    const seg = cum[j] - cum[j-1];
+    const t = seg === 0 ? 0 : (target - cum[j-1]) / seg;
+    const lng = coords[j-1][0] + t * (coords[j][0] - coords[j-1][0]);
+    const lat = coords[j-1][1] + t * (coords[j][1] - coords[j-1][1]);
+    features.push({ type:'Feature',
+      geometry:{ type:'Point', coordinates:[lng,lat] },
+      properties:{ color:routeColor(event.id) } });
+  });
+  return { type:'FeatureCollection', features:features };
+}
+function initLiveLayer() {
+  if (!map.getSource('live-pos'))
+    map.addSource('live-pos', { type:'geojson', data:computeLivePositions() });
+  if (!map.getLayer('live-halo'))
+    map.addLayer({ id:'live-halo', type:'circle', source:'live-pos',
+      paint:{ 'circle-radius':18, 'circle-color':['get','color'], 'circle-opacity':0.22 } });
+  if (!map.getLayer('live-dot'))
+    map.addLayer({ id:'live-dot', type:'circle', source:'live-pos',
+      paint:{ 'circle-radius':9, 'circle-color':['get','color'],
+              'circle-stroke-width':2.5, 'circle-stroke-color':'#fff' } });
+}
+function tickLive() {
+  const src = map.getSource('live-pos');
+  if (src) src.setData(computeLivePositions());
+}
+setInterval(tickLive, 20000);
+
 // ── Arrow SDF image (generated once on map load) ─────────────────────────────
 function addArrowImage() {
   const size = 32;
@@ -439,6 +487,7 @@ function renderRoute(event) {
 
 // ── Main render ───────────────────────────────────────────────────────────────
 function renderEvents(events) {
+  _currentEvents = events;
   clearStaticMarkers();
   clearRoutes();
   const points = [];
@@ -460,6 +509,8 @@ function renderEvents(events) {
   });
   sc.load(points); _scLoaded = true;
   renderClusters();
+  initLiveLayer();
+  tickLive();
 }
 
 map.on('moveend', renderClusters);
@@ -524,9 +575,11 @@ map.on('style.load', () => {
     post({ type:'MAP_READY' });
   }
   if (_pending) { renderEvents(_pending); _pending = null; }
-  else if (_scLoaded) renderClusters();
+  else if (_scLoaded) { renderClusters(); initLiveLayer(); tickLive(); }
 });
 
+window.setSimTime = function(ms) { _simTimeMs = ms; tickLive(); };
+window.clearSimTime = function() { _simTimeMs = null; tickLive(); };
 window.updateMapStyle = function(styleUrl) {
   map.setStyle(styleUrl);
 };
@@ -538,6 +591,7 @@ window.updateMapStyle = function(styleUrl) {
 export interface EventMapHandle {
   focusOnEvent: (id: string) => void;
   deselect: () => void;
+  setSimTime: (ms: number | null) => void;
 }
 
 interface Props {
@@ -576,6 +630,13 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
     },
     deselect: () => {
       webviewRef.current?.injectJavaScript('window.selectEvent(null); true;');
+    },
+    setSimTime: (ms: number | null) => {
+      if (!mapReady) return;
+      const js = ms === null
+        ? 'window.clearSimTime(); true;'
+        : `window.setSimTime(${ms}); true;`;
+      webviewRef.current?.injectJavaScript(js);
     },
   }), [injectFocus, mapReady]);
 

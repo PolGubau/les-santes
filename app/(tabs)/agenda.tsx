@@ -1,7 +1,7 @@
 import { useAnnouncements } from "@/entities/announcement";
 import type { Event } from "@/entities/event";
 import { useEvents } from "@/entities/event";
-import { AgendaFilterBar, AgendaList, DayPicker, useAgenda } from "@/features/agenda";
+import { AgendaFilterBar, AgendaList, DayPicker, useAgenda, useAgendaFocusStore } from "@/features/agenda";
 import { useFavoritesStore } from "@/features/favorites";
 import { Colors } from "@/shared/constants";
 import { t } from "@/shared/i18n";
@@ -44,6 +44,14 @@ export default function AgendaScreen() {
     todayKey,
     setDay,
   } = useAgenda(events, userCoords, favoriteIds);
+
+  // Jump to a specific day when requested from another screen (e.g. event detail)
+  const { requestedDay, clearDay } = useAgendaFocusStore();
+  useEffect(() => {
+    if (!requestedDay) return;
+    setDay(requestedDay);
+    clearDay();
+  }, [requestedDay, setDay, clearDay]);
 
   const handleSearchChange = useCallback((text: string) => {
     setSearchText(text);

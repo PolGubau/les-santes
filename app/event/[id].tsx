@@ -1,5 +1,6 @@
 import { type Event, STATE_COLOR, STATE_LABEL_SHORT, useEvents } from '@/entities/event';
 import { eventRepository } from '@/entities/event/repository';
+import { useAgendaFocusStore } from '@/features/agenda';
 import { useFavoritesStore } from '@/features/favorites';
 import { useMapFocusStore } from '@/features/map';
 import { Colors } from '@/shared/constants';
@@ -11,7 +12,7 @@ import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, router } from 'expo-router';
 import * as Sharing from 'expo-sharing';
-import { CalendarPlus, Clock, Heart, MapPin, PersonStanding, Share2 } from 'lucide-react-native';
+import { CalendarDays, CalendarPlus, Clock, Heart, MapPin, PersonStanding, Share2 } from 'lucide-react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -25,6 +26,7 @@ export default function EventDetailScreen() {
   const { events, loading: cacheLoading } = useEvents();
   const insets = useSafeAreaInsets();
   const focusEvent = useMapFocusStore((s) => s.focusEvent);
+  const requestAgendaDay = useAgendaFocusStore((s) => s.requestDay);
   const { isFavorite, toggleFavorite } = useFavoritesStore();
 
   // Try cache first; fall back to individual fetch if cache is still loading or misses
@@ -110,9 +112,15 @@ export default function EventDetailScreen() {
 
   const handleViewInMap = useCallback(() => {
     if (!event) return;
-    focusEvent(event.id);
+    focusEvent(event.id, event.start); // pass start so map can resolve the day without MOCK_EVENTS
     router.push('/(tabs)/mapa');
   }, [event, focusEvent]);
+
+  const handleViewInAgenda = useCallback(() => {
+    if (!event) return;
+    requestAgendaDay(event.start.substring(0, 10));
+    router.push('/(tabs)/agenda');
+  }, [event, requestAgendaDay]);
 
   if (isLoading && !event) {
     return (
@@ -228,6 +236,14 @@ export default function EventDetailScreen() {
               <Text style={[styles.secondaryBtnText, favorite && styles.secondaryBtnTextActive]}>
                 {favorite ? 'Afegit a favorits' : 'Afegir a favorits'}
               </Text>
+            </Pressable>
+            <Pressable
+              style={({ pressed }) => [styles.secondaryBtn, pressed && styles.btnPressed]}
+              onPress={handleViewInAgenda}
+              accessibilityLabel="Veure a l'agenda"
+            >
+              <CalendarDays size={18} color={Colors.textDim} />
+              <Text style={styles.secondaryBtnText}>Agenda</Text>
             </Pressable>
             <Pressable
               style={({ pressed }) => [styles.secondaryBtn, pressed && styles.btnPressed]}

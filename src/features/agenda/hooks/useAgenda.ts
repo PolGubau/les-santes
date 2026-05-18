@@ -18,7 +18,7 @@ function applyFilters(
 ): Event[] {
 	const q = filters.search?.trim().toLowerCase();
 	let result = events.filter((e) => {
-		if (q && !e.title.toLowerCase().includes(q) && !e.shortDescription.toLowerCase().includes(q)) return false;
+		if (q && !e.title.toLowerCase().includes(q) && !(e.shortDescription?.toLowerCase().includes(q))) return false;
 		if (filters.onlyFavorites && !favoriteIds?.has(e.id)) return false;
 		if (filters.type && e.type !== filters.type) return false;
 		if (filters.category && e.category !== filters.category) return false;
