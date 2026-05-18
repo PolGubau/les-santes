@@ -705,9 +705,11 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
     },
     setSimTime: (ms: number | null) => {
       if (!mapReady) return;
-      const js = ms === null
+      // In DEV, "clear" means revert to fake time — never expose real Date.now().
+      const resolvedMs = ms ?? (__DEV__ ? getAppNow().getTime() : null);
+      const js = resolvedMs === null
         ? 'window.clearSimTime(); true;'
-        : `window.setSimTime(${ms}); true;`;
+        : `window.setSimTime(${resolvedMs}); true;`;
       webviewRef.current?.injectJavaScript(js);
     },
   }), [injectFocus, mapReady]);
