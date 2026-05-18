@@ -304,24 +304,30 @@ function segmentBearing(a, b) {
 }
 // GeoJSON Point features every spacingM metres, each with an interpolated time
 // label and the segment bearing so MapLibre can rotate text along the route.
+// NOTE: loop var named 'dist' (not 'd') to avoid shadowing 'const d' in fmtTime.
 function routeLabelPoints(event, spacingM) {
-  const coords = event.route.map(p => [p.lng, p.lat]);
+  var coords = event.route.map(function(p) { return [p.lng, p.lat]; });
   if (coords.length < 2) return [];
-  const cum = [0];
-  for (let i = 1; i < coords.length; i++)
+  var cum = [0];
+  for (var i = 1; i < coords.length; i++)
     cum.push(cum[i-1] + haversineDist(coords[i-1], coords[i]));
-  const total = cum[cum.length-1];
+  var total = cum[cum.length-1];
   if (total < spacingM * 0.4) return [];
-  const startMs = new Date(event.start).getTime();
-  const endMs   = new Date(event.end).getTime();
-  const features = [];
-  for (let d = spacingM / 2; d < total; d += spacingM) {
-    let j = 1;
-    while (j < cum.length - 1 && cum[j] < d) j++;
-    const t = (cum[j] - cum[j-1]) === 0 ? 0 : (d - cum[j-1]) / (cum[j] - cum[j-1]);
-    const lng = coords[j-1][0] + t * (coords[j][0] - coords[j-1][0]);
-    const lat = coords[j-1][1] + t * (coords[j][1] - coords[j-1][1]);
-    const timeStr = fmtTime(new Date(startMs + (d / total) * (endMs - startMs)).toISOString());
+  var startMs = new Date(event.start).getTime();
+  var endMs   = new Date(event.end).getTime();
+  var duration = endMs - startMs;
+  if (!isFinite(startMs) || !isFinite(endMs) || duration <= 0) return [];
+  var features = [];
+  for (var dist = spacingM / 2; dist < total; dist += spacingM) {
+    var j = 1;
+    while (j < cum.length - 1 && cum[j] < dist) j++;
+    var seg = cum[j] - cum[j-1];
+    var t = seg === 0 ? 0 : (dist - cum[j-1]) / seg;
+    var lng = coords[j-1][0] + t * (coords[j][0] - coords[j-1][0]);
+    var lat = coords[j-1][1] + t * (coords[j][1] - coords[j-1][1]);
+    var interpMs = startMs + (dist / total) * duration;
+    var dt = new Date(interpMs);
+    var timeStr = dt.getHours().toString().padStart(2,'0') + ':' + dt.getMinutes().toString().padStart(2,'0');
     features.push({
       type: 'Feature',
       geometry: { type: 'Point', coordinates: [lng, lat] },
@@ -372,7 +378,7 @@ function tickLive() {
       ring.className = 'm-live-ring';
       ring.style.borderColor = color;
       el.querySelector('.m-pin').appendChild(ring);
-      const marker = new maplibregl.Marker({ element: el, anchor: 'bottom' })
+      const marker = new maplibregl.Marker({ element: el })
         .setLngLat([lng, lat]).addTo(map);
       _liveMarkers[event.id] = { marker, el };
     }
@@ -572,6 +578,13 @@ window.focusOnEvent = function(id, allEvents) {
   selectEvent(id);
   const ev = allEvents.find(e => e.id === id);
   if (!ev) return;
+  // If the event is currently moving, centre on its live position.
+  const lm = _liveMarkers[id];
+  if (lm) {
+    const ll = lm.marker.getLngLat();
+    map.easeTo({ center: [ll.lng, ll.lat], zoom:16.5, duration:600 });
+    return;
+  }
   const center = ev.kind === 'static' && ev.location
     ? [ev.location.lng, ev.location.lat]
     : ev.route && ev.route.length ? [ev.route[0].lng, ev.route[0].lat] : null;
@@ -597,8 +610,16 @@ map.on('style.load', () => {
   else if (_scLoaded) { renderClusters(); tickLive(); }
 });
 
-window.setSimTime = function(ms) { _simTimeMs = ms; tickLive(); };
-window.clearSimTime = function() { _simTimeMs = null; tickLive(); };
+// When sim time changes we must re-render so Supercluster drops/adds the static
+// start markers correctly (renderEvents uses getNowMs() to decide).
+window.setSimTime = function(ms) {
+  _simTimeMs = ms;
+  if (_currentEvents.length) renderEvents(_currentEvents); else tickLive();
+};
+window.clearSimTime = function() {
+  _simTimeMs = null;
+  if (_currentEvents.length) renderEvents(_currentEvents); else tickLive();
+};
 window.updateMapStyle = function(styleUrl) {
   map.setStyle(styleUrl);
 };
