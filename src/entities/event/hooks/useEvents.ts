@@ -1,8 +1,12 @@
 import { useEffect, useRef, useState } from "react";
+import { AppState, type AppStateStatus } from "react-native";
 import { readEventCache, writeEventCache } from "../cache";
 import { eventRepository } from "../repository";
 import { withState } from "../state";
 import type { Event, RawEvent } from "../types";
+
+/** How often (ms) to auto-refresh events while the app is in foreground. */
+const AUTO_REFRESH_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 
 export interface UseEventsResult {
 	events: Event[];
@@ -92,6 +96,28 @@ export function useEvents(): UseEventsResult {
 	}, [tick]);
 
 	const refresh = () => setTick((t) => t + 1);
+
+	// Auto-refresh every AUTO_REFRESH_INTERVAL_MS while in foreground
+	useEffect(() => {
+		const intervalId = setInterval(() => {
+			if (AppState.currentState === 'active') {
+				setTick((t) => t + 1);
+			}
+		}, AUTO_REFRESH_INTERVAL_MS);
+
+		// Also refresh when the app comes back to foreground after being backgrounded
+		const handleAppStateChange = (nextState: AppStateStatus) => {
+			if (nextState === 'active') {
+				setTick((t) => t + 1);
+			}
+		};
+		const subscription = AppState.addEventListener('change', handleAppStateChange);
+
+		return () => {
+			clearInterval(intervalId);
+			subscription.remove();
+		};
+	}, []);
 
 	return { events, loading, error, isOffline, isRefreshing, cacheTimestamp, refresh };
 }

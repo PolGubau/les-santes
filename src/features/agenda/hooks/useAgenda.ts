@@ -105,7 +105,21 @@ export function useAgenda(
 		[events, now],
 	);
 
-	/** Events grouped by day key, with type/nearMe filters applied */
+	/**
+	 * Filtered events for the currently selected day only.
+	 * Computing all days at once was wasteful — only the active day is rendered.
+	 */
+	const filtered = useMemo((): Event[] => {
+		const forDay = withStates.filter(
+			(e) => toFestivalDayKey(new Date(e.start)) === effectiveDay,
+		);
+		return applyFilters(forDay, filters, userCoords, favoriteIds);
+	}, [withStates, effectiveDay, filters, userCoords, favoriteIds]);
+
+	/**
+	 * Full map (unfiltered) used by DayPicker counts and AgendaList pagination.
+	 * Kept separate so switching days doesn't trigger a full filter recompute.
+	 */
 	const filteredByDay = useMemo((): Map<string, Event[]> => {
 		const map = new Map<string, Event[]>();
 		for (const day of availableDays) {
@@ -116,11 +130,6 @@ export function useAgenda(
 		}
 		return map;
 	}, [withStates, availableDays, filters, userCoords, favoriteIds]);
-
-	const filtered = useMemo(
-		() => filteredByDay.get(effectiveDay) ?? [],
-		[filteredByDay, effectiveDay],
-	);
 
 	const setSearch = (search: string) => setFilters((f) => ({ ...f, search: search || undefined }));
 	const setType = (type: EventType | undefined) => setFilters((f) => ({ ...f, type }));

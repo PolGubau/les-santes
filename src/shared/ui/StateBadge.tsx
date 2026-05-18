@@ -1,4 +1,4 @@
-import { type EventState, STATE_COLOR, STATE_LABEL_SHORT } from '@/entities/event';
+import { type EventState, STATE_COLOR, getStateLabel } from '@/entities/event';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -9,7 +9,7 @@ interface Props {
 export function StateBadge({ state }: Props) {
   return (
     <View style={[styles.badge, { backgroundColor: STATE_COLOR[state] }]}>
-      <Text style={styles.label}>{STATE_LABEL_SHORT[state]}</Text>
+      <Text style={styles.label}>{getStateLabel(state)}</Text>
     </View>
   );
 }

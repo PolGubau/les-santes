@@ -1,28 +1,32 @@
 import type { Event } from '@/entities/event';
 import { Colors } from '@/shared/constants';
+import { getAppNow } from '@/shared/hooks';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
+import * as Haptics from 'expo-haptics';
 import * as Location from 'expo-location';
+import { useFocusEffect } from 'expo-router';
 import { WifiOff } from 'lucide-react-native';
 import React, { forwardRef, memo, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import WebView, { type WebViewMessageEvent } from 'react-native-webview';
+import { useLocalMapAssets } from '../hooks/useLocalMapAssets';
 
 const CENTER_LNG = 2.444;
 const CENTER_LAT = 41.5378;
 
-// MapTiler key — set EXPO_PUBLIC_MAPTILER_KEY in EAS secrets / .env
-// Falls back to bundled key so the map works even without the env var.
+// MapTiler key — must be set via EXPO_PUBLIC_MAPTILER_KEY in EAS secrets / .env.local
+// If not set the map falls back to the free OpenFreeMap tile source.
 declare const process: { env: Record<string, string | undefined> };
-const MAPTILER_KEY = process.env.EXPO_PUBLIC_MAPTILER_KEY ?? 'xvhIdcAsn7WrwOYPt8W2';
+const MAPTILER_KEY = process.env.EXPO_PUBLIC_MAPTILER_KEY ?? '';
 
-function buildHtml(isDark: boolean) {
+function buildHtml(isDark: boolean, maptilerKey: string) {
   return `<!DOCTYPE html>
 <html>
 <head>
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-  <link href="https://cdn.jsdelivr.net/npm/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/supercluster@8.0.1/dist/supercluster.min.js"></script>
+  <link href="maplibre-gl.css" rel="stylesheet">
+  <script src="maplibre-gl.js"></script>
+  <script src="supercluster.min.js"></script>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     body,#map { width:100%; height:100vh; background:#FAF8F5; }
@@ -36,6 +40,7 @@ function buildHtml(isDark: boolean) {
       border-color:rgba(255,255,255,0.95) !important; }
     .m-pin.finished { opacity:0.35; filter:grayscale(0.65); }
     .m-pin .pin-icon { font-size:15px; line-height:1; user-select:none; }
+    .m-pin .pin-img { width:100%; height:100%; border-radius:50%; object-fit:cover; display:block; pointer-events:none; }
     .m-label { margin-top:4px; font-size:10px; font-weight:700; color:#1A1110;
       background:rgba(255,255,255,0.88); -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px);
       padding:1px 6px 2px; border-radius:7px; max-width:82px; text-align:center;
@@ -98,11 +103,29 @@ function makeMarkerEl(event, overrideColor) {
   const pin = document.createElement('div');
   pin.className = 'm-pin' + (finished ? ' finished' : '') + (selected ? ' selected' : '');
   pin.style.background = color;
-  pin.style.borderColor = finished ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.55)';
-  const ic = document.createElement('span');
-  ic.className = 'pin-icon';
-  ic.textContent = resolveIcon(event.icon);
-  pin.appendChild(ic);
+  // When showing a photo the border becomes the state-colour ring; keep white for emoji pins
+  pin.style.borderColor = event.imageUrl
+    ? (finished ? 'rgba(0,0,0,0.15)' : color)
+    : (finished ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.55)');
+  if (event.imageUrl) {
+    const img = document.createElement('img');
+    img.className = 'pin-img';
+    img.src = event.imageUrl;
+    img.alt = '';
+    img.onerror = function() {
+      img.remove();
+      const fb = document.createElement('span');
+      fb.className = 'pin-icon';
+      fb.textContent = resolveIcon(event.icon);
+      pin.appendChild(fb);
+    };
+    pin.appendChild(img);
+  } else {
+    const ic = document.createElement('span');
+    ic.className = 'pin-icon';
+    ic.textContent = resolveIcon(event.icon);
+    pin.appendChild(ic);
+  }
   const lbl = document.createElement('div');
   lbl.className = 'm-label' + (selected ? ' selected' : '');
   lbl.textContent = event.title;
@@ -151,10 +174,14 @@ function makeClusterEl(count, onClick) {
 }
 
 // ── Map ───────────────────────────────────────────────────────────────────────
-const STYLE_LIGHT    = 'https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}';
-const STYLE_DARK     = 'https://api.maptiler.com/maps/streets-v2-dark/style.json?key=${MAPTILER_KEY}';
-const STYLE_PRIMARY  = ${isDark ? 'STYLE_DARK' : 'STYLE_LIGHT'};
 const STYLE_FALLBACK = 'https://tiles.openfreemap.org/styles/liberty';
+const STYLE_LIGHT    = ${JSON.stringify(maptilerKey)}
+  ? 'https://api.maptiler.com/maps/streets-v2/style.json?key=' + ${JSON.stringify(maptilerKey)}
+  : STYLE_FALLBACK;
+const STYLE_DARK     = ${JSON.stringify(maptilerKey)}
+  ? 'https://api.maptiler.com/maps/streets-v2-dark/style.json?key=' + ${JSON.stringify(maptilerKey)}
+  : STYLE_FALLBACK;
+const STYLE_PRIMARY  = ${isDark ? 'STYLE_DARK' : 'STYLE_LIGHT'};
 let _styleFailed = false;
 let _offlineNotified = false;
 const map = new maplibregl.Map({
@@ -387,7 +414,7 @@ function tickLive() {
     if (!activeIds.has(id)) { _liveMarkers[id].marker.remove(); delete _liveMarkers[id]; }
   });
 }
-setInterval(tickLive, 20000);
+setInterval(tickLive, 15000);
 
 // ── Arrow SDF image (generated once on map load) ─────────────────────────────
 function addArrowImage() {
@@ -610,15 +637,17 @@ map.on('style.load', () => {
   else if (_scLoaded) { renderClusters(); tickLive(); }
 });
 
-// When sim time changes we must re-render so Supercluster drops/adds the static
-// start markers correctly (renderEvents uses getNowMs() to decide).
+// Sim time update — only refresh live marker positions and cluster pins.
+// Routes are time-independent visuals; clearing them causes an unnecessary flash.
 window.setSimTime = function(ms) {
   _simTimeMs = ms;
-  if (_currentEvents.length) renderEvents(_currentEvents); else tickLive();
+  tickLive();
+  if (_scLoaded) renderClusters();
 };
 window.clearSimTime = function() {
   _simTimeMs = null;
-  if (_currentEvents.length) renderEvents(_currentEvents); else tickLive();
+  tickLive();
+  if (_scLoaded) renderClusters();
 };
 window.updateMapStyle = function(styleUrl) {
   map.setStyle(styleUrl);
@@ -651,9 +680,12 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
   const pendingFocusId = useRef<string | null>(null);
   const eventsRef = useRef(events);
   eventsRef.current = events;
-
-  // App is light-mode only — always build with isDark=false
-  const htmlRef = useRef(buildHtml(false));
+  // Build the HTML string once and load it into the local asset cache.
+  // useLocalMapAssets copies MapLibre + Supercluster from the app bundle to the
+  // device cache dir, writes the HTML next to them, and returns a file:// URI.
+  // This makes the map work fully offline (tiles still need internet).
+  const htmlContent = useRef(buildHtml(false, MAPTILER_KEY)).current;
+  const localHtmlUri = useLocalMapAssets(htmlContent);
 
   const injectFocus = useCallback((id: string) => {
     const js = `window.focusOnEvent(${JSON.stringify(id)}, ${JSON.stringify(eventsRef.current)}); true;`;
@@ -680,11 +712,13 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
     },
   }), [injectFocus, mapReady]);
 
-  // Keep screen on while map is visible
-  useEffect(() => {
-    activateKeepAwakeAsync();
-    return () => { deactivateKeepAwake(); };
-  }, []);
+  // Keep screen on only while the map tab is focused
+  useFocusEffect(
+    useCallback(() => {
+      activateKeepAwakeAsync();
+      return () => { deactivateKeepAwake(); };
+    }, []),
+  );
 
   // Fallback: if MAP_READY hasn't arrived in 30 s the JS-side safety-net should
   // have already posted MAP_OFFLINE. This is a last-resort for bridge failures.
@@ -759,7 +793,15 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
           duration: 400,
           useNativeDriver: true,
         }).start();
+        // In dev, sync the WebView clock to the frozen app date so mobile
+        // event positions (cercaviles, correfocs…) are shown correctly
+        // without needing to open the SIM panel manually.
+        if (__DEV__) {
+          const devMs = getAppNow().getTime();
+          webviewRef.current?.injectJavaScript(`window.setSimTime(${devMs}); true;`);
+        }
       } else if (data.type === 'EVENT_PRESS' && onEventPress) {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         onEventPress(data.event as Event);
       } else if (data.type === 'CLUSTER_PRESS' && onClusterPress) {
         onClusterPress(data.events as Event[]);
@@ -780,10 +822,14 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
       <WebView
         ref={webviewRef}
         style={StyleSheet.absoluteFill}
-        source={{ html: htmlRef.current, baseUrl: 'https://localhost' }}
+        source={localHtmlUri
+          ? { uri: localHtmlUri }
+          : { html: htmlContent, baseUrl: 'https://localhost' }}
         originWhitelist={['*']}
         javaScriptEnabled
         domStorageEnabled
+        allowFileAccess
+        allowUniversalAccessFromFileURLs
         onMessage={handleMessage}
       />
 

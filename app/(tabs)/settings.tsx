@@ -134,7 +134,7 @@ export default function SettingsScreen() {
         {/* Scheduled event notifications */}
         {scheduledNotifs.length > 0 && (
           <>
-            <SectionTitle label="Actes amb recordatori" />
+            <SectionTitle label={t('settings.scheduledReminders')} />
             <View style={styles.card}>
               {scheduledNotifs.map((notif, idx) => (
                 <React.Fragment key={notif.eventId}>
@@ -157,7 +157,7 @@ export default function SettingsScreen() {
         )}
 
         {/* ── Cache ───────────────────────────────────────────────────────── */}
-        <SectionTitle label="Dades" />
+        <SectionTitle label={t('settings.data')} />
         <View style={styles.card}>
           <ActionRow label={t('settings.clearCache')} onPress={handleClearCache} destructive />
         </View>

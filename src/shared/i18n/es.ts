@@ -42,12 +42,21 @@ export const es: Translations = {
     havaneres: 'Habaneras',
     espectacle: 'Espectáculo',
     jocs: 'Familiar',
+    categoryNocturn: 'Nocturno',
+    categoryFamiliar: 'Familiar',
+    categoryTradicional: 'Tradicional',
+    categoryCultural: 'Cultural',
   },
 
   // ── Now screen ────────────────────────────────────────────────────────────
   now: {
     appTitle: 'Les Santes',
     subtitle: 'Mataró · Fiesta Mayor',
+    emptyNow: 'Nada en este momento',
+    emptyNowSubtext: 'Consulta la agenda para los próximos actos',
+    festivalEnded: 'La fiesta mayor ha terminado',
+    festivalEndedSubtext: '¡Hasta el año que viene! 🎉',
+    liveCount: '%{count} acto%{plural} en curso ahora',
   },
 
   // ── Offline / Error ───────────────────────────────────────────────────────
@@ -95,10 +104,12 @@ export const es: Translations = {
     envBare: 'Desarrollo',
     notifications: 'Notificaciones',
     openNotificationSettings: 'Gestionar notificaciones',
+    scheduledReminders: 'Actos con recordatorio',
     clearCache: 'Borrar caché',
     clearCacheConfirm: 'Se borrarán los datos guardados localmente. La app los volverá a descargar.',
     clearCacheSuccess: 'Caché borrada correctamente',
     privacyPolicy: 'Política de privacidad',
     links: 'Enlaces',
+    data: 'Datos',
   },
 };

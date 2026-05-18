@@ -1,4 +1,4 @@
-import { type Event, STATE_COLOR, STATE_LABEL_SHORT, useEvents } from '@/entities/event';
+import { type Event, STATE_COLOR, getStateLabel, useEvents } from '@/entities/event';
 import { eventRepository } from '@/entities/event/repository';
 import { useAgendaFocusStore } from '@/features/agenda';
 import { useFavoritesStore } from '@/features/favorites';
@@ -183,7 +183,7 @@ export default function EventDetailScreen() {
           <View style={[styles.badge, { backgroundColor: `${stateColor}15` }]}>
             <View style={[styles.badgeDot, { backgroundColor: stateColor }]} />
             <Text style={[styles.badgeLabel, { color: stateColor }]}>
-              {STATE_LABEL_SHORT[event.state]}
+              {getStateLabel(event.state)}
             </Text>
           </View>
 
@@ -257,11 +257,14 @@ export default function EventDetailScreen() {
         </View>
       </ScrollView>
 
-      {/* Invisible share card — captured by react-native-view-shot */}
+      {/* Invisible share card — captured by react-native-view-shot.
+          Uses opacity:0 + pointerEvents:none instead of top:-2000
+          to avoid visibility on unusually tall devices. */}
       <View
         ref={shareCardRef}
         style={styles.shareCard}
         collapsable={false}
+        pointerEvents="none"
       >
         <View style={styles.shareCardBg}>
           {event.imageUrl && (
@@ -402,8 +405,8 @@ const styles = StyleSheet.create({
   notFound: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
   notFoundText: { color: Colors.textMuted, fontSize: 15 },
   backStandalone: { marginBottom: 8 },
-  // Share card (off-screen, captured by view-shot)
-  shareCard: { position: 'absolute', top: -2000, left: 0, width: 400 },
+  // Share card: opacity:0 keeps it off-screen safely on any device height
+  shareCard: { position: 'absolute', opacity: 0, left: 0, width: 400 },
   shareCardBg: {
     width: 400,
     height: 220,

@@ -42,12 +42,21 @@ export const en: Translations = {
     havaneres: 'Havaneres',
     espectacle: 'Show',
     jocs: 'Family',
+    categoryNocturn: 'Night',
+    categoryFamiliar: 'Family',
+    categoryTradicional: 'Traditional',
+    categoryCultural: 'Cultural',
   },
 
   // ── Now screen ────────────────────────────────────────────────────────────
   now: {
     appTitle: 'Les Santes',
     subtitle: 'Mataró · Festival',
+    emptyNow: 'Nothing on right now',
+    emptyNowSubtext: 'Check the schedule for upcoming events',
+    festivalEnded: 'The festival has ended',
+    festivalEndedSubtext: "See you next year! 🎉",
+    liveCount: '%{count} event%{plural} happening now',
   },
 
   // ── Offline / Error ───────────────────────────────────────────────────────
@@ -95,10 +104,12 @@ export const en: Translations = {
     envBare: 'Development',
     notifications: 'Notifications',
     openNotificationSettings: 'Manage notifications',
+    scheduledReminders: 'Events with reminders',
     clearCache: 'Clear cache',
     clearCacheConfirm: 'This will delete locally saved data. The app will re-download it.',
     clearCacheSuccess: 'Cache cleared successfully',
     privacyPolicy: 'Privacy policy',
     links: 'Links',
+    data: 'Data',
   },
 };

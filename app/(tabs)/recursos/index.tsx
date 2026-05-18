@@ -15,7 +15,7 @@ const BANNER = require('../../../assets/media/posters-banner.avif');
 const ALIGA = require('../../../assets/media/comparses/aliga.avif');
 const ROBAFAVES = require('../../../assets/media/comparses/familia-robafabes.avif');
 const JULIANA = require('../../../assets/media/juliana.avif');
-const POSTAL = require('../../../assets/resources/postals/2024-c.avif');
+const POSTAL = require('../../../assets/resources/postals/2025-casament-c.avif');
 
 /* ── Single card component for all resources ── */
 function ResourceCard({

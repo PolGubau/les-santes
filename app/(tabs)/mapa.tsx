@@ -80,7 +80,10 @@ export default function MapaScreen() {
   const mapRef = useRef<EventMapHandle | null>(null);
   const selection = useMapSelection(mapRef);
   const search = useMapSearch(mapEvents, (isSearching) => selection.reset(isSearching));
-  const [simTime, setSimTime] = useState<number | null>(null);
+  // In dev, start with the frozen app date so the map is immediately in sync
+  const [simTime, setSimTime] = useState<number | null>(
+    __DEV__ ? getAppNow().getTime() : null,
+  );
   const handleSimTimeChange = useCallback((ms: number | null) => {
     setSimTime(ms);
     mapRef.current?.setSimTime(ms);

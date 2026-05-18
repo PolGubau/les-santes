@@ -1,4 +1,4 @@
-﻿import { STATE_COLOR, STATE_LABEL_SHORT, type Event } from '@/entities/event';
+﻿import { STATE_COLOR, getStateLabel, type Event } from '@/entities/event';
 import { Colors } from '@/shared/constants';
 import { addEventToCalendar, formatDayShort, formatTime } from '@/shared/lib';
 import BottomSheet, {
@@ -101,7 +101,7 @@ export function EventSnapSheet({ event, onClose, showViewInMap, onViewInMap }: P
                 <View style={[styles.badge, { backgroundColor: `${stateColor}15` }]}>
                   <View style={[styles.badgeDot, { backgroundColor: stateColor }]} />
                   <Text style={[styles.badgeLabel, { color: stateColor }]}>
-                    {STATE_LABEL_SHORT[event.state]}
+                    {getStateLabel(event.state)}
                   </Text>
                 </View>
               </View>

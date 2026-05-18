@@ -14,11 +14,9 @@ export const STATE_COLOR: Record<EventState, string> = {
 };
 
 /**
- * Short labels for badges and list rows.
- * For section headers use context-specific labels co-located with the UI.
+ * Returns the short label for an event state using the current locale.
+ * Called lazily at render time so it always reflects the hydrated locale.
  */
-export const STATE_LABEL_SHORT: Record<EventState, string> = {
-  now: t('eventState.now'),
-  upcoming: t('eventState.upcoming'),
-  finished: t('eventState.finished'),
-};
+export function getStateLabel(state: EventState): string {
+  return t(`eventState.${state}`);
+}

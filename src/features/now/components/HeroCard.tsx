@@ -4,9 +4,9 @@ import { formatTime } from '@/shared/lib';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Clock, MapPin } from 'lucide-react-native';
-import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
+import React, { useEffect, useRef } from 'react';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import ReAnimated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 
 const DEFAULT_BLURHASH = 'L6Pj0^jE.AyE_3t7t7R**0o#DgR4';
 const HERO_H = 280;
@@ -21,8 +21,22 @@ export function HeroCard({ event, onPress }: Props) {
   const scale = useSharedValue(1);
   const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
+  // Pulsing live dot animation (opacity 1 → 0.2 → 1 every 1.8 s)
+  const dotOpacity = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    if (!isLive) return;
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(dotOpacity, { toValue: 0.2, duration: 900, useNativeDriver: true }),
+        Animated.timing(dotOpacity, { toValue: 1, duration: 900, useNativeDriver: true }),
+      ]),
+    );
+    pulse.start();
+    return () => pulse.stop();
+  }, [isLive, dotOpacity]);
+
   return (
-    <Animated.View style={[styles.hero, animStyle]}>
+    <ReAnimated.View style={[styles.hero, animStyle]}>
       <Image
         source={event.imageUrl ? { uri: event.imageUrl } : undefined}
         style={styles.heroImage}
@@ -37,7 +51,7 @@ export function HeroCard({ event, onPress }: Props) {
       >
         {isLive && (
           <View style={styles.liveBadge}>
-            <View style={styles.liveDot} />
+            <Animated.View style={[styles.liveDot, { opacity: dotOpacity }]} />
             <Text style={styles.liveBadgeText}>EN CURS</Text>
           </View>
         )}
@@ -67,8 +81,10 @@ export function HeroCard({ event, onPress }: Props) {
         onPressIn={() => { scale.value = withTiming(0.96, { duration: 80 }); }}
         onPressOut={() => { scale.value = withSpring(1, { damping: 10, stiffness: 200 }); }}
         accessibilityRole="button"
+        accessibilityLabel={event.title}
+        accessibilityHint="Toca per veure els detalls de l'acte"
       />
-    </Animated.View>
+    </ReAnimated.View>
   );
 }
 

@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
 
   // Day chips row
   chipsRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  chipsScroll: { flex: 1, flexGrow: 0 },
+  chipsScroll: { flex: 1 },
   chipsContent: { paddingHorizontal: 2, gap: 6 },
   simWrap: { flexShrink: 0 },
   chip: {

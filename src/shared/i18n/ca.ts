@@ -17,8 +17,15 @@ export interface Translations {
     favorites: string; nearMe: string; correfoc: string; concert: string;
     sardanes: string; gegants: string; castellera: string; cercavila: string;
     havaneres: string; espectacle: string; jocs: string;
+    categoryNocturn: string; categoryFamiliar: string;
+    categoryTradicional: string; categoryCultural: string;
   };
-  now: { appTitle: string; subtitle: string };
+  now: {
+    appTitle: string; subtitle: string;
+    emptyNow: string; emptyNowSubtext: string;
+    festivalEnded: string; festivalEndedSubtext: string;
+    liveCount: string;
+  };
   offline: {
     label: string; cacheAge: string; refresh: string; checking: string;
     agoMoment: string; agoMinutes: string; agoHours: string; agoDays: string;
@@ -37,14 +44,15 @@ export interface Translations {
     envStoreClient: string;
     envStandalone: string;
     envBare: string;
-    // New
     notifications: string;
     openNotificationSettings: string;
+    scheduledReminders: string;
     clearCache: string;
     clearCacheConfirm: string;
     clearCacheSuccess: string;
     privacyPolicy: string;
     links: string;
+    data: string;
   };
 }
 
@@ -90,12 +98,21 @@ export const ca: Translations = {
     havaneres: 'Havaneres',
     espectacle: 'Espectacle',
     jocs: 'Familiar',
+    categoryNocturn: 'Nocturn',
+    categoryFamiliar: 'Familiar',
+    categoryTradicional: 'Tradicional',
+    categoryCultural: 'Cultural',
   },
 
   // ── Now screen ────────────────────────────────────────────────────────────
   now: {
     appTitle: 'Les Santes',
     subtitle: 'Mataró · Festa Major',
+    emptyNow: 'Sense actes ara',
+    emptyNowSubtext: "Consulta l'agenda per als propers actes",
+    festivalEnded: 'La festa major ha acabat',
+    festivalEndedSubtext: 'Fins a les Santes de l\'any que ve! 🎉',
+    liveCount: '%{count} acte%{plural} en curs ara',
   },
 
   // ── Offline / Error ───────────────────────────────────────────────────────
@@ -143,10 +160,12 @@ export const ca: Translations = {
     envBare: 'Desenvolupament',
     notifications: 'Notificacions',
     openNotificationSettings: 'Gestiona les notificacions',
+    scheduledReminders: 'Actes amb recordatori',
     clearCache: 'Esborrar caché',
     clearCacheConfirm: "Esborraràs les dades guardades localment. L'app les tornarà a descarregar.",
     clearCacheSuccess: 'Caché esborrada correctament',
     privacyPolicy: 'Política de privacitat',
     links: 'Enllaços',
+    data: 'Dades',
   },
 };

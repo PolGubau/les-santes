@@ -1,11 +1,11 @@
 import { useAnnouncements } from '@/entities/announcement';
 import { useEvents } from '@/entities/event';
-import { HeroCard, LiveClock, NowCard, UpcomingRow, useNowEvents } from '@/features/now';
+import { HeroCard, LiveClock, NowCard, NowSkeleton, UpcomingRow, useNowEvents } from '@/features/now';
 import { useFavoritesStore } from '@/features/favorites';
-import { Colors } from '@/shared/constants';
+import { Colors, FESTIVAL_END, FESTIVAL_START } from '@/shared/constants';
 import { useNavPush, useNow } from '@/shared/hooks';
 import { t } from '@/shared/i18n';
-import { AnnouncementBanner, ErrorState, LoadingState, OfflineBanner, Screen, SectionHeader } from '@/shared/ui';
+import { AnnouncementBanner, ErrorState, OfflineBanner, Screen, SectionHeader } from '@/shared/ui';
 
 import { Clock, Heart, Moon } from 'lucide-react-native';
 import React, { useCallback, useMemo } from 'react';
@@ -83,7 +83,7 @@ export default function AraScreen() {
 
       <AnnouncementBanner announcements={announcements} />
 
-      {loading && events.length === 0 && <LoadingState />}
+      {loading && events.length === 0 && <NowSkeleton />}
 
       <ScrollView
         style={[styles.scroll, loading && events.length === 0 && { display: 'none' }]}
@@ -118,7 +118,7 @@ export default function AraScreen() {
           <View style={styles.liveBar}>
             <View style={styles.liveDotSmall} />
             <Text style={styles.liveBarText}>
-              {now.length} acte{now.length !== 1 ? 's' : ''} en curs ara
+              {t('now.liveCount', { count: now.length, plural: now.length !== 1 ? 's' : '' })}
             </Text>
           </View>
         )}
@@ -164,11 +164,26 @@ export default function AraScreen() {
                 </Text>
                 <Text style={styles.emptySubtitle} numberOfLines={2}>{nextEvent.title}</Text>
               </>
+            ) : clock > FESTIVAL_END ? (
+              <>
+                <Text style={styles.emptyEmoji}>🎉</Text>
+                <Text style={styles.emptyTitle}>{t('now.festivalEnded')}</Text>
+                <Text style={styles.emptySubtitle}>{t('now.festivalEndedSubtext')}</Text>
+              </>
+            ) : clock < FESTIVAL_START ? (
+              <>
+                <Clock size={48} color={Colors.primary} />
+                <Text style={styles.emptyTitle}>El festival comença en</Text>
+                <Text style={styles.countdownValue}>
+                  {formatCountdown(FESTIVAL_START.getTime() - clock.getTime())}
+                </Text>
+                <Text style={styles.emptySubtitle}>24 – 29 de juliol de 2026 · Mataró</Text>
+              </>
             ) : (
               <>
                 <Moon size={48} color={Colors.textDim} />
-                <Text style={styles.emptyTitle}>Sense actes ara</Text>
-                <Text style={styles.emptySubtitle}>Consulta l'agenda per als propers actes</Text>
+                <Text style={styles.emptyTitle}>{t('now.emptyNow')}</Text>
+                <Text style={styles.emptySubtitle}>{t('now.emptyNowSubtext')}</Text>
               </>
             )}
           </View>
@@ -206,6 +221,7 @@ const styles = StyleSheet.create({
   emptyTitle: { color: Colors.text, fontSize: 18, fontWeight: '700' },
   emptySubtitle: { color: Colors.textMuted, fontSize: 14, textAlign: 'center', maxWidth: 240 },
   countdownValue: { color: Colors.primary, fontSize: 40, fontWeight: '800', letterSpacing: -1 },
+  emptyEmoji: { fontSize: 52, lineHeight: 60 },
   // Favorites live band
   favBand: {
     marginHorizontal: 16,

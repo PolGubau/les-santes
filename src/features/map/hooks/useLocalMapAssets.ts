@@ -1,62 +1,56 @@
 /**
- * Copies map library assets (MapLibre, Supercluster) from the app bundle
- * into the device cache directory so the WebView can load them via file:// URIs.
+ * Prepares the MapLibre + Supercluster JS/CSS in the device cache directory
+ * so the WebView can load them via file:// URIs (fully offline after first use).
  *
- * Returns the URI of the generated index.html once ready.
+ * Strategy:
+ *  1. On first launch (or after cache eviction), download from CDN and persist.
+ *  2. On subsequent launches, use the cached copies — no network needed.
+ *  3. Writes the HTML alongside the assets so relative paths resolve correctly.
+ *
+ * Why not expo-asset? Asset.fromModule() requires Metro to register binary files
+ * (via assetExts), which is fragile with New Architecture and large files (~745 KB).
+ * FileSystem.downloadAsync is simpler, more portable, and survives cache clears.
  */
-import { Asset } from "expo-asset";
 import * as FileSystem from "expo-file-system/legacy";
 import { useEffect, useState } from "react";
 
-// Metro requires static require() — no dynamic paths.
-// .js files are treated as source modules by Metro, so we use the .pack
-// extension (registered in metro.config.js assetExts) for the JS bundles.
-const MAP_ASSETS = {
-	js: require("../../../../assets/web/maplibre-gl.pack"),
-	css: require("../../../../assets/web/maplibre-gl.css"),
-	supercluster: require("../../../../assets/web/supercluster.pack"),
-} as const;
+const CDN_BASE = "https://cdn.jsdelivr.net/npm";
+
+const REMOTE_ASSETS = [
+	{
+		name: "maplibre-gl.js",
+		url: `${CDN_BASE}/maplibre-gl@3.6.2/dist/maplibre-gl.js`,
+	},
+	{
+		name: "maplibre-gl.css",
+		url: `${CDN_BASE}/maplibre-gl@3.6.2/dist/maplibre-gl.css`,
+	},
+	{
+		name: "supercluster.min.js",
+		url: `${CDN_BASE}/supercluster@8.0.1/dist/supercluster.min.js`,
+	},
+] as const;
 
 async function prepareMapAssets(htmlContent: string): Promise<string> {
-	// Defer cacheDirectory access to runtime (inside async fn) to avoid
-	// triggering TurboModule initialization at module evaluation time.
 	const mapDir = `${FileSystem.cacheDirectory}map/`;
 
-	// Ensure the cache directory exists
 	const dirInfo = await FileSystem.getInfoAsync(mapDir);
 	if (!dirInfo.exists) {
 		await FileSystem.makeDirectoryAsync(mapDir, { intermediates: true });
 	}
 
-	// Download each asset from the bundle and copy to the cache dir
-	const [jsAsset, cssAsset, scAsset] = await Promise.all([
-		Asset.fromModule(MAP_ASSETS.js).downloadAsync(),
-		Asset.fromModule(MAP_ASSETS.css).downloadAsync(),
-		Asset.fromModule(MAP_ASSETS.supercluster).downloadAsync(),
-	]);
-
-	if (!jsAsset.localUri || !cssAsset.localUri || !scAsset.localUri) {
-		throw new Error(
-			"[useLocalMapAssets] Asset localUri is null after downloadAsync",
-		);
-	}
-
-	await Promise.all([
-		FileSystem.copyAsync({
-			from: jsAsset.localUri,
-			to: `${mapDir}maplibre-gl.js`,
+	// Download each asset only if not already cached
+	await Promise.all(
+		REMOTE_ASSETS.map(async ({ name, url }) => {
+			const dest = `${mapDir}${name}`;
+			const info = await FileSystem.getInfoAsync(dest);
+			if (!info.exists) {
+				await FileSystem.downloadAsync(url, dest);
+			}
 		}),
-		FileSystem.copyAsync({
-			from: cssAsset.localUri,
-			to: `${mapDir}maplibre-gl.css`,
-		}),
-		FileSystem.copyAsync({
-			from: scAsset.localUri,
-			to: `${mapDir}supercluster.min.js`,
-		}),
-	]);
+	);
 
-	// Write the HTML file alongside the assets so relative paths resolve
+	// Write the HTML file alongside the assets so relative <script>/<link> paths work
 	const htmlUri = `${mapDir}index.html`;
 	await FileSystem.writeAsStringAsync(htmlUri, htmlContent, {
 		encoding: FileSystem.EncodingType.UTF8,
@@ -72,7 +66,7 @@ export function useLocalMapAssets(htmlContent: string): string | null {
 		prepareMapAssets(htmlContent)
 			.then(setHtmlUri)
 			.catch((err) => console.error("[useLocalMapAssets]", err));
-		// htmlContent is a module-level constant — safe to omit from deps
+		// htmlContent is a stable module-level constant — safe to omit from deps
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 

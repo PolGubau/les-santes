@@ -1,4 +1,4 @@
-import { type Event, STATE_COLOR, STATE_LABEL_SHORT } from '@/entities/event';
+import { type Event, STATE_COLOR, getStateLabel } from '@/entities/event';
 import { Colors } from '@/shared/constants';
 import { formatDayShort, formatTime } from '@/shared/lib';
 import { BottomSheet, EventIcon } from '@/shared/ui';
@@ -33,7 +33,7 @@ function EventRow({ event, onPress }: { event: Event; onPress: () => void }) {
         <Text style={styles.rowMeta}>
           {formatTime(event.start)} – {formatTime(event.end)}
           {'  ·  '}
-          <Text style={{ color: STATE_COLOR[event.state] }}>{STATE_LABEL_SHORT[event.state]}</Text>
+          <Text style={{ color: STATE_COLOR[event.state] }}>{getStateLabel(event.state)}</Text>
         </Text>
       </View>
       <ChevronRight size={14} color={Colors.textDim} />

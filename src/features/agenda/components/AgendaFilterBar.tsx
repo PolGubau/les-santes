@@ -23,11 +23,11 @@ const TYPE_FILTERS: Array<{ label: string; value: EventType; Icon?: LucideIcon }
   { label: t('filters.jocs'), value: 'jocs', Icon: Smile },
 ];
 
-const CATEGORY_FILTERS: Array<{ label: string; value: EventCategory; emoji: string; Icon: LucideIcon }> = [
-  { label: 'Nocturn', value: 'nocturn', emoji: '🌙', Icon: Moon },
-  { label: 'Familiar', value: 'familiar', emoji: '👨‍👩‍👧', Icon: Sparkles },
-  { label: 'Tradicional', value: 'tradicional', emoji: '🎭', Icon: Flag },
-  { label: 'Cultural', value: 'cultural', emoji: '🎨', Icon: BookOpen },
+const CATEGORY_FILTERS: Array<{ value: EventCategory; emoji: string; Icon: LucideIcon; labelFn: () => string }> = [
+  { value: 'nocturn', emoji: '🌙', Icon: Moon, labelFn: () => t('filters.categoryNocturn') },
+  { value: 'familiar', emoji: '👨‍👩‍👧', Icon: Sparkles, labelFn: () => t('filters.categoryFamiliar') },
+  { value: 'tradicional', emoji: '🎭', Icon: Flag, labelFn: () => t('filters.categoryTradicional') },
+  { value: 'cultural', emoji: '🎨', Icon: BookOpen, labelFn: () => t('filters.categoryCultural') },
 ];
 
 interface Props {
@@ -119,11 +119,11 @@ export function AgendaFilterBar({
               style={[styles.chip, active && styles.chipCategoryActive]}
               onPress={() => { Haptics.selectionAsync(); onSetCategory(active ? undefined : f.value); }}
               accessibilityRole="tab"
-              accessibilityLabel={`Categoria: ${f.label}`}
+              accessibilityLabel={`Categoria: ${f.labelFn()}`}
               accessibilityState={{ selected: active }}
             >
               <Text style={styles.chipEmoji}>{f.emoji}</Text>
-              <Text style={[styles.chipText, active && styles.chipTextActive]}>{f.label}</Text>
+              <Text style={[styles.chipText, active && styles.chipTextActive]}>{f.labelFn()}</Text>
             </Pressable>
           );
         })}
