@@ -221,7 +221,7 @@ El script crea el registre de festival automàticament si no existeix.
 
 Raons:
 - Next.js ja configurat amb Tailwind + shadcn
-- Supabase SSR funciona perfectament amb Next.js (middleware d'auth)
+- Supabase SSR funciona perfectament amb Next.js (proxy d'auth)
 - Un sol projecte, un sol deploy
 - Autenticació: Supabase Auth amb email/password (un usuari admin)
 
