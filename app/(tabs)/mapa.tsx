@@ -162,6 +162,11 @@ export default function MapaScreen() {
   selectedDayRef.current = selectedDay;
   const handleDayChange = useCallback((nextDay: string) => {
     if (nextDay === selectedDayRef.current) return;
+    setDay(nextDay);
+    // In production the map always uses Date.now() (no scrubber), so switching
+    // days must NOT inject a simulated time — that would make events at the same
+    // clock-hour on a different day appear as "live" when they are not.
+    if (!__DEV__) return;
     const prev = new Date(simTimeRef.current);
     const hh = prev.getHours();
     const mm = prev.getMinutes();
@@ -170,7 +175,6 @@ export default function MapaScreen() {
     const calendarDate = hh < 6 ? new Date(y, m - 1, d + 1) : new Date(y, m - 1, d);
     const next = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), calendarDate.getDate(), hh, mm, 0, 0);
     const ms = Math.max(FESTIVAL_START.getTime(), Math.min(FESTIVAL_END.getTime(), next.getTime()));
-    setDay(nextDay);
     if (ms !== simTimeRef.current) {
       setSimTime(ms);
       mapRef.current?.setSimTime(ms);
