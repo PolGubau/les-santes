@@ -16,8 +16,7 @@ export interface Translations {
   };
   filters: {
     favorites: string; nearMe: string; correfoc: string; concert: string;
-    sardanes: string; gegants: string; castellera: string; cercavila: string;
-    havaneres: string; espectacle: string; jocs: string;
+    sardanes: string; gegants: string; castellera: string; cercavila: string; espectacle: string; jocs: string;
     categoryNocturn: string; categoryFamiliar: string;
     categoryTradicional: string; categoryCultural: string;
   };
@@ -101,7 +100,6 @@ export const ca: Translations = {
     gegants: 'Gegants',
     castellera: 'Castellers',
     cercavila: 'Cercavila',
-    havaneres: 'Havaneres',
     espectacle: 'Espectacle',
     jocs: 'Familiar',
     categoryNocturn: 'Nocturn',

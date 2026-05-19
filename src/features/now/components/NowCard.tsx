@@ -35,7 +35,7 @@ export function NowCard({ event, onPress }: Props) {
         pointerEvents="none"
       >
         <View style={styles.iconBox}>
-          <EventIcon icon={event.icon} size={16} color="#fff" />
+          <EventIcon type={event.type} size={16} color="#fff" />
         </View>
         <Text style={styles.title} numberOfLines={2}>{event.title}</Text>
         <Text style={styles.time}>fins {formatTime(event.end)}</Text>

@@ -68,7 +68,7 @@ export function NowEventItem({ event, onPress }: Props) {
       >
         <PulseDot />
         <View style={styles.iconBox}>
-          <EventIcon icon={event.icon} size={22} color={Colors.stateNow} />
+          <EventIcon type={event.type} size={22} color={Colors.stateNow} />
         </View>
         <View style={styles.content}>
           <Text style={styles.title} numberOfLines={1}>{event.title}</Text>

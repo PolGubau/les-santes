@@ -26,7 +26,7 @@ function EventRow({ event, onPress }: { event: Event; onPress: () => void }) {
     >
       <View style={[styles.stateDot, { backgroundColor: STATE_COLOR[event.state] }]} />
       <View style={styles.iconBox}>
-        <EventIcon icon={event.icon} size={18} color={Colors.text} />
+        <EventIcon type={event.type} size={18} color={Colors.text} />
       </View>
       <View style={styles.rowContent}>
         <Text style={styles.rowTitle} numberOfLines={1}>{event.title}</Text>

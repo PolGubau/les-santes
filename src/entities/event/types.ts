@@ -5,7 +5,6 @@ export type EventType =
 	| "sardanes" // sardana dancing
 	| "castellera" // human towers
 	| "gegants" // giants parade
-	| "havaneres" // sea shanties
 	| "exposicio" // exhibition
 	| "espectacle" // circus / theatre / dance show
 	| "missa" // religious service
@@ -13,7 +12,6 @@ export type EventType =
 	| "cursa" // running race
 	| "jocs" // family games / children activities
 	| "contes" // story time
-	| "barram" // bell ringing
 	| "altres"; // anything else
 
 export type EventCategory = "familiar" | "nocturn" | "tradicional" | "cultural";
@@ -30,16 +28,12 @@ export interface RoutePoint {
 	lng: number;
 }
 
-/** Lucide icon name — see lucide-react-native icon list */
-export type EventIconDef = { name: string };
-
 /** Fields shared by every event regardless of kind */
 interface EventBase {
 	id: string;
 	title: string;
 	type: EventType;
 	category: EventCategory;
-	icon: EventIconDef;
 	shortDescription: string;
 	/** Full description — optional, not all events have one. */
 	description?: string;

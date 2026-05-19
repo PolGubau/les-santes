@@ -15,9 +15,11 @@ import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } fr
 function formatCountdown(ms: number): string {
   if (ms <= 0) return '0s';
   const totalSec = Math.floor(ms / 1000);
-  const h = Math.floor(totalSec / 3600);
+  const d = Math.floor(totalSec / 86400);
+  const h = Math.floor((totalSec % 86400) / 3600);
   const m = Math.floor((totalSec % 3600) / 60);
   const s = totalSec % 60;
+  if (d > 0) return `${d}d ${h.toString().padStart(2, '0')}h ${m.toString().padStart(2, '0')}m`;
   if (h > 0) return `${h}h ${m.toString().padStart(2, '0')}m`;
   if (m > 0) return `${m}m ${s.toString().padStart(2, '0')}s`;
   return `${s}s`;
@@ -173,11 +175,13 @@ export default function AraScreen() {
             ) : clock < FESTIVAL_START ? (
               <>
                 <Clock size={48} color={Colors.primary} />
-                <Text style={styles.emptyTitle}>El festival comença en</Text>
+                <Text style={styles.emptyTitle}>Les Santes comença en</Text>
                 <Text style={styles.countdownValue}>
                   {formatCountdown(FESTIVAL_START.getTime() - clock.getTime())}
                 </Text>
-                <Text style={styles.emptySubtitle}>24 – 29 de juliol de 2026 · Mataró</Text>
+                <Text style={styles.emptySubtitle}>
+                  {`${FESTIVAL_START.getDate()} – ${FESTIVAL_END.getDate()} de juliol de ${FESTIVAL_START.getFullYear()} · Mataró`}
+                </Text>
               </>
             ) : (
               <>

@@ -76,17 +76,15 @@ function routeColor(eventId) {
   for (let i = 0; i < eventId.length; i++) h = (Math.imul(31, h) + eventId.charCodeAt(i)) | 0;
   return ROUTE_PALETTE[Math.abs(h) % ROUTE_PALETTE.length];
 }
-// Lucide icon name → emoji (zero external deps)
-const ICON_EMOJI = {
-  Image:'📸', Mic:'🎤', Users:'👥', Music:'🎵', Megaphone:'📢',
-  Flag:'🚩', Flame:'🔥', Crown:'👑', Sailboat:'⛵', Bell:'🔔',
-  Church:'⛪', Smile:'😊', BookOpen:'📖', Wand2:'✨', Sparkles:'✨',
-  Star:'⭐', MapPin:'📍',
+// EventType → emoji (zero external deps, webview-safe)
+const TYPE_EMOJI = {
+  cercavila:'🚩', correfoc:'🔥', concert:'🎵', sardanes:'🎵',
+  castellera:'👥', gegants:'👑', exposicio:'📸', espectacle:'🎭',
+  missa:'⛪', focsartificials:'✨', cursa:'🏃', jocs:'🎮',
+  contes:'📖', altres:'📍',
 };
-function resolveIcon(icon) {
-  if (!icon) return '📍';
-  const n = typeof icon === 'string' ? icon : (icon.name || '');
-  return ICON_EMOJI[n] || '📍';
+function resolveIcon(type) {
+  return TYPE_EMOJI[type] || '📍';
 }
 function post(msg) {
   if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(JSON.stringify(msg));
@@ -128,14 +126,14 @@ function makeMarkerEl(event, overrideColor) {
       img.remove();
       const fb = document.createElement('span');
       fb.className = 'pin-icon';
-      fb.textContent = resolveIcon(event.icon);
+      fb.textContent = resolveIcon(event.type);
       pin.appendChild(fb);
     };
     pin.appendChild(img);
   } else {
     const ic = document.createElement('span');
     ic.className = 'pin-icon';
-    ic.textContent = resolveIcon(event.icon);
+    ic.textContent = resolveIcon(event.type);
     pin.appendChild(ic);
   }
   const lbl = document.createElement('div');

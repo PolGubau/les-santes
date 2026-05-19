@@ -47,12 +47,11 @@ create table if not exists public.events (
   title             text not null,
   type              text not null check (type in (
                       'cercavila','correfoc','concert','sardanes','castellera',
-                      'gegants','havaneres','exposicio','espectacle','missa',
+                      'gegants','exposicio','espectacle','missa',
                       'focsartificials','cursa','jocs','contes','barram','altres'
                     )),
   category          text not null check (category in ('familiar','nocturn','tradicional','cultural')),
   kind              text not null default 'static' check (kind in ('static','mobile')),
-  icon_name         text not null,
   short_description text not null,
 
   -- timing (UTC stored)

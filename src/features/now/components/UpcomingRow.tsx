@@ -41,13 +41,13 @@ export function UpcomingRow({ event, onPress }: Props) {
             />
           ) : (
             <View style={styles.iconFallback}>
-              <EventIcon icon={event.icon} size={22} color={Colors.stateUpcoming} />
+              <EventIcon type={event.type} size={22} color={Colors.stateUpcoming} />
             </View>
           )}
           {/* Icon badge overlay when image is present */}
           {event.imageUrl && (
             <View style={styles.iconBadge}>
-              <EventIcon icon={event.icon} size={11} color="#fff" />
+              <EventIcon type={event.type} size={11} color="#fff" />
             </View>
           )}
         </View>

@@ -44,7 +44,6 @@ export const en: Translations = {
     gegants: 'Giants',
     castellera: 'Castellers',
     cercavila: 'Procession',
-    havaneres: 'Havaneres',
     espectacle: 'Show',
     jocs: 'Family',
     categoryNocturn: 'Night',

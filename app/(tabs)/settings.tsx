@@ -7,11 +7,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import * as Haptics from 'expo-haptics';
 import { Bell, BellOff } from 'lucide-react-native';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Linking, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const EVENTS_CACHE_KEY = '@les-santes/events-v1';
 const PRIVACY_POLICY_URL = 'https://lessantes.polgubau.com/privacy';
+const ADMIN_URL = 'https://lessantes.polgubau.com/admin';
+const ADMIN_UNLOCKED_KEY = '@les-santes/admin-unlocked';
+const ADMIN_TAP_TARGET = 7;
 
 // ─── Build info ──────────────────────────────────────────────────────────────
 const cfg = Constants.expoConfig;
@@ -69,10 +72,26 @@ function LocaleOption({ label, flag, active, onPress }: {
 export default function SettingsScreen() {
   const { locale, setLocale } = useLocaleStore();
   const [scheduledNotifs, setScheduledNotifs] = useState<ScheduledEventNotification[]>([]);
+  const [adminUnlocked, setAdminUnlocked] = useState(false);
+  const tapCount = useRef(0);
 
-  // Load scheduled notifications when screen mounts
+  // Load scheduled notifications + admin unlock flag when screen mounts
   useEffect(() => {
     getScheduledEventNotifications().then(setScheduledNotifs).catch(() => { });
+    AsyncStorage.getItem(ADMIN_UNLOCKED_KEY).then((v) => {
+      if (v === 'true') setAdminUnlocked(true);
+    }).catch(() => { });
+  }, []);
+
+  const handleVersionTap = useCallback(() => {
+    tapCount.current += 1;
+    if (tapCount.current === ADMIN_TAP_TARGET - 2) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    } else if (tapCount.current === ADMIN_TAP_TARGET) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setAdminUnlocked(true);
+      AsyncStorage.setItem(ADMIN_UNLOCKED_KEY, 'true').catch(() => { });
+    }
   }, []);
 
   const handleCancelNotif = useCallback((eventId: string) => {
@@ -171,11 +190,19 @@ export default function SettingsScreen() {
         {/* ── App info ────────────────────────────────────────────────────── */}
         <SectionTitle label={t('settings.appInfo')} />
         <View style={styles.card}>
-          <InfoRow label={t('settings.version')} value={cfg?.version ?? '—'} />
+          <TouchableOpacity onPress={handleVersionTap} activeOpacity={1}>
+            <InfoRow label={t('settings.version')} value={cfg?.version ?? '—'} />
+          </TouchableOpacity>
           <View style={styles.divider} />
           <InfoRow label={t('settings.environment')} value={envLabel(Constants.executionEnvironment)} />
           <View style={styles.divider} />
           <InfoRow label={t('settings.bundleId')} value={bundleId ?? '—'} />
+          {adminUnlocked && (
+            <>
+              <View style={styles.divider} />
+              <ActionRow label="🔧 Admin" onPress={() => Linking.openURL(ADMIN_URL)} />
+            </>
+          )}
         </View>
 
       </ScrollView>

@@ -1,10 +1,16 @@
 /**
- * Seed script — migrates MOCK_EVENTS to Supabase (multi-tenant).
+ * Seed script — migrates MOCK_EVENTS (arxiu Les Santes 2025) to Supabase.
+ *
+ * MOCK_EVENTS conté el programa de Les Santes 2025 (dates juliol 2025, IDs
+ * `ls25-XXX`). Per defecte aquest script els sembra amb `festival_id =
+ * 'les-santes-2025'`. Per a edicions futures (2026, 2027, …) NO es reutilitza
+ * aquest mock: els nous events s'insereixen directament a la taula `events`
+ * (via dashboard d'admin) amb el seu propi `festival_id`.
  *
  * Usage:
  *   SUPABASE_URL=https://xxx.supabase.co \
  *   SUPABASE_SERVICE_KEY=eyJ... \
- *   FESTIVAL_ID=les-santes-2026 \
+ *   FESTIVAL_ID=les-santes-2025 \
  *   npx tsx scripts/seed-events.ts
  *
  * Use the SERVICE ROLE key (bypasses RLS) — never expose it in the app.
@@ -15,12 +21,12 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
-import { MOCK_EVENTS } from '../src/entities/event/mock';
+import { MOCK_EVENTS_2026, MOCK_FESTIVAL_ID_2026 } from '../src/entities/event/mock-2026';
 import type { RawEvent, RoutePoint } from '../src/entities/event/types';
 
 const url        = process.env.SUPABASE_URL ?? '';
 const key        = process.env.SUPABASE_SERVICE_KEY ?? '';
-const FESTIVAL_ID = process.env.FESTIVAL_ID ?? 'les-santes-2026';
+const FESTIVAL_ID = process.env.FESTIVAL_ID ?? MOCK_FESTIVAL_ID_2026;
 
 if (!url || !key) {
   console.error('❌  Set SUPABASE_URL and SUPABASE_SERVICE_KEY environment variables.');
@@ -38,7 +44,6 @@ interface EventInsertRow {
   type: string;
   category: string;
   kind: string;
-  icon_name: string;
   short_description: string;
   start_time: string;
   end_time: string;
@@ -59,7 +64,6 @@ function toRow(event: RawEvent): EventInsertRow {
     type: event.type,
     category: event.category,
     kind: event.kind,
-    icon_name: event.icon.name,
     short_description: event.shortDescription,
     start_time: event.start,
     end_time: event.end,
@@ -91,7 +95,7 @@ async function seed() {
       name:      process.env.FESTIVAL_NAME      ?? 'Les Santes 2026',
       city:      process.env.FESTIVAL_CITY      ?? 'Mataró',
       year:      parseInt(process.env.FESTIVAL_YEAR ?? '2026', 10),
-      starts_on: process.env.FESTIVAL_START     ?? '2026-07-24',
+      starts_on: process.env.FESTIVAL_START     ?? '2026-07-18',
       ends_on:   process.env.FESTIVAL_END       ?? '2026-07-29',
     }, { onConflict: 'id' });
 
@@ -102,7 +106,7 @@ async function seed() {
   console.log(`   ✓  Festival record ready`);
 
   // 2. Seed events with festival_id
-  const rows = MOCK_EVENTS.map(toRow);
+  const rows = MOCK_EVENTS_2026.map(toRow);
   console.log(`⏳  Seeding ${rows.length} events...`);
 
   const BATCH = 50;

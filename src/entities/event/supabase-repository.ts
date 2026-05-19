@@ -8,11 +8,12 @@
  *   start_time        → start
  *   end_time          → end
  *   short_description → shortDescription
- *   icon_name         → icon.name
  *   image_url         → imageUrl
  *   location_lat/lng  → location.lat/lng
  *   location_name     → locationName
  *   route             → route (jsonb → RoutePoint[])
+ *
+ * icon is derived from `type` — no longer stored in the DB.
  */
 
 import { FESTIVAL_ID } from '@/shared/constants/festival';
@@ -21,6 +22,7 @@ import { withState } from './state';
 import type { Event, EventCategory, EventType, RawEvent, RoutePoint } from './types';
 import type { EventRepository } from './repository';
 
+
 /** Shape of a row returned by Supabase (snake_case, all nullable optional fields). */
 interface EventRow {
   id: string;
@@ -28,7 +30,6 @@ interface EventRow {
   type: string;
   category: string;
   kind: string;
-  icon_name: string;
   short_description: string;
   description: string | null;
   start_time: string;
@@ -48,7 +49,6 @@ function rowToRawEvent(row: EventRow): RawEvent {
     title: row.title,
     type: row.type as EventType,
     category: row.category as EventCategory,
-    icon: { name: row.icon_name },
     shortDescription: row.short_description,
     description: row.description ?? undefined,
     start: row.start_time,

@@ -110,11 +110,11 @@ export function EventCard({ event, onPress, distanceMeters }: Props) {
                   placeholder={{ blurhash: event.blurhash ?? DEFAULT_BLURHASH }}
                 />
                 <View style={styles.thumbBadge}>
-                  <EventIcon icon={event.icon} size={10} color="#fff" />
+                  <EventIcon type={event.type} size={10} color="#fff" />
                 </View>
               </>
             ) : (
-              <EventIcon icon={event.icon} size={20} color={isFinished ? Colors.textDim : Colors.text} />
+              <EventIcon type={event.type} size={20} color={isFinished ? Colors.textDim : Colors.text} />
             )}
           </View>
           <View style={styles.content}>

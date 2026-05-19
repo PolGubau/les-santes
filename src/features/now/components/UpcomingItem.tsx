@@ -19,7 +19,7 @@ export function UpcomingItem({ event, onPress }: Props) {
       accessibilityLabel={event.title}
     >
       <View style={styles.icon}>
-        <EventIcon icon={event.icon} size={16} color={Colors.stateUpcoming} />
+        <EventIcon type={event.type} size={16} color={Colors.stateUpcoming} />
       </View>
       <View style={styles.content}>
         <Text style={styles.title} numberOfLines={1}>{event.title}</Text>

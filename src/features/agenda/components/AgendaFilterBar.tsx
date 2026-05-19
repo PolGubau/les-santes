@@ -18,7 +18,6 @@ const TYPE_FILTERS: Array<{ label: string; value: EventType; Icon?: LucideIcon }
   { label: t('filters.gegants'), value: 'gegants', Icon: Crown },
   { label: t('filters.castellera'), value: 'castellera', Icon: Users },
   { label: t('filters.cercavila'), value: 'cercavila', Icon: Flag },
-  { label: t('filters.havaneres'), value: 'havaneres', Icon: Sailboat },
   { label: t('filters.espectacle'), value: 'espectacle', Icon: Ticket },
   { label: t('filters.jocs'), value: 'jocs', Icon: Smile },
 ];

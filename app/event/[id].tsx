@@ -163,7 +163,7 @@ export default function EventDetailScreen() {
             />
           ) : (
             <View style={styles.imagePlaceholder}>
-              <EventIcon icon={event.icon} size={48} color={Colors.textDim} />
+              <EventIcon type={event.type} size={48} color={Colors.textDim} />
             </View>
           )}
           <LinearGradient
