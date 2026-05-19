@@ -234,7 +234,7 @@ export default function EventDetailScreen() {
             >
               <Heart size={18} color={favorite ? Colors.primary : Colors.textDim} fill={favorite ? Colors.primary : 'none'} />
               <Text style={[styles.secondaryBtnText, favorite && styles.secondaryBtnTextActive]}>
-                {favorite ? 'Afegit a favorits' : 'Afegir a favorits'}
+                {favorite ? 'Afegit' : 'Favorit'}
               </Text>
             </Pressable>
             <Pressable

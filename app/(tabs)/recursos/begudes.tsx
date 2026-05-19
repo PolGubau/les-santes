@@ -1,9 +1,10 @@
 import { Colors } from '@/shared/constants';
-import { Screen } from '@/shared/ui';
+import { BackButton, Screen } from '@/shared/ui';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const JULIANA_IMG = require('../../../assets/media/juliana.avif');
 
@@ -39,9 +40,10 @@ function Ingredient({ text }: { text: string }) {
 }
 
 export default function BegudesScreen() {
+  const insets = useSafeAreaInsets();
   return (
-    <Screen>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
+    <Screen safe={false}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[s.scroll, { paddingBottom: insets.bottom + 32 }]}>
 
         {/* ── Hero ── */}
         <View style={s.heroWrap}>
@@ -51,6 +53,10 @@ export default function BegudesScreen() {
             locations={[0.25, 0.6, 1]}
             style={StyleSheet.absoluteFill}
             pointerEvents="none"
+          />
+          <BackButton
+            variant="overlay"
+            style={{ position: 'absolute', top: insets.top + 12, left: 16 }}
           />
           <View style={s.heroText} pointerEvents="none">
             <Text style={s.heroEyebrow}>La beguda de la Festa Major</Text>
