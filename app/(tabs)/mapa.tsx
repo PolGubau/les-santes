@@ -15,6 +15,7 @@ import type { EventMapHandle } from '@/features/map/components/EventMap';
 import { FirstTimeTooltip, useNudge, useTrackMapVisitOnMount } from '@/features/nudges';
 import { FESTIVAL_END, FESTIVAL_START } from '@/shared/constants';
 import { getAppNow } from '@/shared/hooks';
+import { t } from '@/shared/i18n';
 import { toFestivalDayKey } from '@/shared/lib';
 import { OfflineBanner, Screen } from '@/shared/ui';
 import { useFocusEffect } from 'expo-router';
@@ -83,7 +84,7 @@ function SimScrubber({
       <TouchableOpacity
         onPress={() => onChangeRef.current(getAppNow().getTime())}
         hitSlop={10}
-        accessibilityLabel="Restablir hora"
+        accessibilityLabel={t('map.resetTime')}
       >
         <RotateCcw size={13} color="#9CA3AF" />
       </TouchableOpacity>
@@ -278,7 +279,7 @@ export default function MapaScreen() {
         <MapEventsDrawer
           events={selection.clusterEvents}
           selectedDay={selectedDay}
-          clusterTitle={`${selection.clusterEvents.length} actes al mateix lloc`}
+          clusterTitle={t('map.clusterSameLocation', { count: selection.clusterEvents.length })}
           onClose={selection.handleClusterDrawerClose}
           onEventPress={selection.handleEventPress}
         />
@@ -293,8 +294,8 @@ export default function MapaScreen() {
 
       {firstVisitNudge.visible && !selection.showDrawer && !selection.selectedEvent && (
         <FirstTimeTooltip
-          title="Explora el mapa"
-          description="Mou‑te i fes zoom per veure tots els actes del festival."
+          title={t('map.firstVisitTitle')}
+          description={t('map.firstVisitDesc')}
           onDismiss={firstVisitNudge.dismiss}
         />
       )}

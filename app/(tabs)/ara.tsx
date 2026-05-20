@@ -100,9 +100,9 @@ export default function AraScreen() {
 
       {suggestAgenda.visible && (
         <ContextualHint
-          title="Encara no tens favorits"
-          description="Explora l'agenda i guarda els actes que no et vols perdre."
-          ctaLabel="Veure agenda"
+          title={t('now.suggestAgendaTitle')}
+          description={t('now.suggestAgendaDesc')}
+          ctaLabel={t('now.suggestAgendaCta')}
           onCta={handleSuggestAgendaCta}
           onDismiss={suggestAgenda.dismiss}
         />
@@ -120,7 +120,7 @@ export default function AraScreen() {
           <View style={styles.favBand}>
             <View style={styles.favBandHeader}>
               <Heart size={16} color="#fff" fill="#fff" />
-              <Text style={styles.favBandTitle}>Els teus favorits en curs</Text>
+              <Text style={styles.favBandTitle}>{t('now.favoritesLive')}</Text>
             </View>
             {liveAndFavorite.map((e) => (
               <Pressable
@@ -154,7 +154,7 @@ export default function AraScreen() {
         {/* Ara Mateix strip — skips hero (now[0]) to avoid duplication */}
         {nowStrip.length > 0 && (
           <View style={styles.section}>
-            <SectionHeader title="Ara Mateix" count={now.length} />
+            <SectionHeader title={t('now.nowStripTitle')} count={now.length} />
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -170,7 +170,7 @@ export default function AraScreen() {
         {/* A continuació */}
         {upcoming.length > 0 && (
           <View style={styles.section}>
-            <SectionHeader title="A continuació" count={upcoming.length} />
+            <SectionHeader title={t('now.upNextTitle')} count={upcoming.length} />
             {upcoming.map((e) => (
               <UpcomingRow key={e.id} event={e} onPress={() => handlePress(e.id)} />
             ))}
@@ -183,7 +183,7 @@ export default function AraScreen() {
             {nextEvent ? (
               <>
                 <Clock size={48} color={Colors.primary} />
-                <Text style={styles.emptyTitle}>Pròxim acte en</Text>
+                <Text style={styles.emptyTitle}>{t('now.nextEventIn')}</Text>
                 <Text style={styles.countdownValue}>
                   {formatCountdown(new Date(nextEvent.start).getTime() - clock.getTime())}
                 </Text>
@@ -198,12 +198,16 @@ export default function AraScreen() {
             ) : clock < FESTIVAL_START ? (
               <>
                 <Clock size={48} color={Colors.primary} />
-                <Text style={styles.emptyTitle}>Les Santes comença en</Text>
+                <Text style={styles.emptyTitle}>{t('now.festivalStartsIn')}</Text>
                 <Text style={styles.countdownValue}>
                   {formatCountdown(FESTIVAL_START.getTime() - clock.getTime())}
                 </Text>
                 <Text style={styles.emptySubtitle}>
-                  {`${FESTIVAL_START.getDate()} – ${FESTIVAL_END.getDate()} de juliol de ${FESTIVAL_START.getFullYear()} · Mataró`}
+                  {t('now.festivalDates', {
+                    start: FESTIVAL_START.getDate(),
+                    end: FESTIVAL_END.getDate(),
+                    year: FESTIVAL_START.getFullYear(),
+                  })}
                 </Text>
               </>
             ) : (

@@ -166,14 +166,14 @@ export default function AgendaScreen() {
             style={styles.searchInput}
             value={searchText}
             onChangeText={handleSearchChange}
-            placeholder="Cerca un acte…"
+            placeholder={t('agenda.searchPlaceholder')}
             placeholderTextColor={Colors.textDim}
             returnKeyType="search"
             autoCorrect={false}
             clearButtonMode="never"
           />
           {searchText.length > 0 && (
-            <Pressable onPress={handleClearSearch} hitSlop={10} accessibilityLabel="Esborrar cerca">
+            <Pressable onPress={handleClearSearch} hitSlop={10} accessibilityLabel={t('agenda.searchClear')}>
               <X size={18} color={Colors.textDim} />
             </Pressable>
           )}
@@ -244,7 +244,7 @@ export default function AgendaScreen() {
                 filters.onlyFavorites ? (
                   <EmptyStateCTA
                     title={t('agenda.emptyFavorites')}
-                    description="Encara no tens cap favorit. Mira els actes i guarda els que t'interessin."
+                    description={t('agenda.emptyFavoritesCtaDesc')}
                     ctaLabel={t('agenda.exploreSchedule')}
                     onCta={handleExploreAgenda}
                   />
@@ -258,11 +258,11 @@ export default function AgendaScreen() {
                 ) : emptyFilteredNudge.visible ? (
                   <EmptyStateCTA
                     icon={Clock}
-                    title="Cap acte amb aquests filtres"
-                    description="Vols veure què està passant ara mateix al festival?"
-                    ctaLabel="Veure ara"
+                    title={t('agenda.emptyFilteredNudgeTitle')}
+                    description={t('agenda.emptyFilteredNudgeDesc')}
+                    ctaLabel={t('agenda.emptyFilteredNudgeCta')}
                     onCta={handleGoToNow}
-                    secondaryLabel="Tancar"
+                    secondaryLabel={t('agenda.close')}
                     onSecondary={emptyFilteredNudge.dismiss}
                   />
                 ) : null
