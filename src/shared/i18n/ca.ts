@@ -15,8 +15,15 @@ export interface Translations {
     exploreSchedule: string;
     emptyFavorites: string;
     emptyFavoritesSubtext: string;
+    emptyFavoritesCtaDesc: string;
     emptyFiltered: string;
     emptyFilteredSubtext: string;
+    searchPlaceholder: string;
+    searchClear: string;
+    emptyFilteredNudgeTitle: string;
+    emptyFilteredNudgeDesc: string;
+    emptyFilteredNudgeCta: string;
+    close: string;
   };
   filters: {
     favorites: string; nearMe: string; correfoc: string; concert: string;
@@ -30,6 +37,71 @@ export interface Translations {
     goToSchedule: string;
     festivalEnded: string; festivalEndedSubtext: string;
     liveCount: string;
+    favoritesLive: string;
+    nowStripTitle: string;
+    upNextTitle: string;
+    nextEventIn: string;
+    festivalStartsIn: string;
+    festivalDates: string;
+    suggestAgendaTitle: string;
+    suggestAgendaDesc: string;
+    suggestAgendaCta: string;
+  };
+  map: {
+    resetTime: string;
+    clusterSameLocation: string;
+    firstVisitTitle: string;
+    firstVisitDesc: string;
+  };
+  event: {
+    notFound: string;
+    mobileRoute: string;
+    getDirectionsLabel: string;
+    suggestMapTitle: string;
+    suggestMapDesc: string;
+    suggestMapCta: string;
+    suggestFavoriteTitle: string;
+    suggestFavoriteDesc: string;
+    suggestFavoriteCta: string;
+    addCalendar: string;
+    addedFavoriteLabel: string;
+    favoriteLabel: string;
+    removeFavoriteA11y: string;
+    addFavoriteA11y: string;
+    viewInAgendaA11y: string;
+    agendaShort: string;
+    shareEventA11y: string;
+    share: string;
+  };
+  recursos: {
+    title: string;
+    subtitle: string;
+    explore: string;
+    postersTitle: string;
+    postersSubtitle: string;
+    postersLabel: string;
+    historyTitle: string;
+    historySubtitle: string;
+    historyLabel: string;
+    postalsTitle: string;
+    postalsSubtitle: string;
+    postalsLabel: string;
+    comparsesTitle: string;
+    comparsesLabel: string;
+    begudesTitle: string;
+    begudesLabel: string;
+  };
+  onboarding: {
+    welcomeTitle: string;
+    welcomeDesc: string;
+    welcomeCta: string;
+    locationTitle: string;
+    locationDesc: string;
+    locationCta: string;
+    notNow: string;
+    notificationsTitle: string;
+    notificationsDesc: string;
+    notificationsCta: string;
   };
   offline: {
     label: string; cacheAge: string; refresh: string; checking: string;

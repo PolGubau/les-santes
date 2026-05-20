@@ -1,11 +1,11 @@
-import { isExpoGo, requestPermissionAndRegisterToken } from '@/shared/lib/notifications';
+import { isExpoGo, requestNotificationPermission } from '@/shared/lib/notifications';
 import type { EventSubscription } from 'expo-notifications';
 import { router } from 'expo-router';
 import { useEffect, useRef } from 'react';
 
 /**
- * Initialize push notifications in the root layout:
- * - Request permission & register Expo push token
+ * Initialize notifications in the root layout:
+ * - Request permission for local notifications
  * - Handle taps on incoming notifications (navigate to agenda)
  *
  * expo-notifications is dynamically imported to avoid the module-level side
@@ -19,8 +19,8 @@ export function usePushNotifications() {
 
     let cancelled = false;
 
-    // Request permission + register token (fire-and-forget, non-fatal)
-    requestPermissionAndRegisterToken().catch(() => {});
+    // Request permission (fire-and-forget, non-fatal)
+    requestNotificationPermission().catch(() => {});
 
     // Dynamic import so the module-level side effect never runs in Expo Go
     import('expo-notifications').then((Notifications) => {

@@ -1,4 +1,4 @@
-import { requestPermissionAndRegisterToken } from "@/shared/lib/notifications";
+import { requestNotificationPermission as requestLibPermission } from "@/shared/lib/notifications";
 import * as Location from "expo-location";
 
 /**
@@ -15,13 +15,13 @@ export async function requestLocationPermission(): Promise<"granted" | "denied">
 }
 
 /**
- * Notification permission request that also registers the Expo push token.
+ * Notification permission request for local notifications.
  * Re‑exported here so onboarding doesn't depend directly on shared/lib.
  */
 export async function requestNotificationPermission(): Promise<"granted" | "denied"> {
 	try {
-		const token = await requestPermissionAndRegisterToken();
-		return token ? "granted" : "denied";
+		const granted = await requestLibPermission();
+		return granted ? "granted" : "denied";
 	} catch {
 		return "denied";
 	}

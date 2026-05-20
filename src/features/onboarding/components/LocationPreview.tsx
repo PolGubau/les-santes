@@ -25,7 +25,7 @@ function PulseRing({ delay, size }: { delay: number; size: number }) {
       withRepeat(
         withSequence(
           withTiming(0.35, { duration: 0 }),
-          withTiming(1.6, { duration: 1900, easing: Easing.out(Easing.cubic) }),
+          withTiming(1.4, { duration: 2800, easing: Easing.out(Easing.cubic) }),
         ),
         -1,
         false,
@@ -36,7 +36,7 @@ function PulseRing({ delay, size }: { delay: number; size: number }) {
       withRepeat(
         withSequence(
           withTiming(0.55, { duration: 0 }),
-          withTiming(0, { duration: 1900, easing: Easing.out(Easing.cubic) }),
+          withTiming(0, { duration: 2800, easing: Easing.out(Easing.cubic) }),
         ),
         -1,
         false,
@@ -78,7 +78,7 @@ export function LocationPreview() {
       {/* center pin with pulse rings */}
       <View style={styles.pinAnchor} pointerEvents="none">
         <PulseRing delay={0} size={120} />
-        <PulseRing delay={950} size={120} />
+        <PulseRing delay={1400} size={120} />
         <View style={styles.pin}>
           <View style={styles.pinInner} />
         </View>

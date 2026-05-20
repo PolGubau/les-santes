@@ -40,10 +40,10 @@ async function getNotifications() {
   return _notifications;
 }
 
-/** Request permission + get Expo push token + save it to Supabase. */
-export async function requestPermissionAndRegisterToken(): Promise<string | null> {
+/** Request notification permissions and setup local channels. Returns true if granted. */
+export async function requestNotificationPermission(): Promise<boolean> {
   const N = await getNotifications(); // returns null in Expo Go
-  if (!N || !Device.isDevice) return null;
+  if (!N || !Device.isDevice) return false;
 
   const { status: existing } = await N.getPermissionsAsync();
   let finalStatus = existing;
@@ -53,7 +53,7 @@ export async function requestPermissionAndRegisterToken(): Promise<string | null
     finalStatus = status;
   }
 
-  if (finalStatus !== 'granted') return null;
+  if (finalStatus !== 'granted') return false;
 
   if (Platform.OS === 'android') {
     await N.setNotificationChannelAsync('default', {
@@ -63,25 +63,7 @@ export async function requestPermissionAndRegisterToken(): Promise<string | null
     });
   }
 
-  const tokenData = await N.getExpoPushTokenAsync({ projectId: PROJECT_ID });
-  const token = tokenData.data;
-
-  // Save token to Supabase (best-effort, non-fatal)
-  try {
-    const { getSupabaseClient } = await import('./supabase');
-    const supabase = getSupabaseClient();
-    await supabase
-      .from('push_tokens')
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .upsert(
-        { token, platform: Platform.OS, last_seen_at: new Date().toISOString() } as any,
-        { onConflict: 'token' },
-      );
-  } catch {
-    // Non-fatal
-  }
-
-  return token;
+  return true;
 }
 
 /** Schedule a local notification 30 min before a favourite event starts. */

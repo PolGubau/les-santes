@@ -35,7 +35,7 @@ export function NotificationPreview() {
     <View style={styles.root}>
       {/* back card — faint, peeks above the front one */}
       <Animated.View
-        entering={FadeInUp.duration(520).delay(180).springify().damping(16)}
+        entering={FadeInUp.duration(520).delay(180).springify().damping(24)}
         style={[styles.stack, styles.backWrap]}
       >
         <Card title="LES SANTES" time="ara" body="🥁 Tabalada comença en 30 min" />
@@ -43,7 +43,7 @@ export function NotificationPreview() {
 
       {/* front card */}
       <Animated.View
-        entering={FadeInDown.duration(520).delay(320).springify().damping(14)}
+        entering={FadeInDown.duration(520).delay(320).springify().damping(22)}
         style={styles.stack}
       >
         <Card
