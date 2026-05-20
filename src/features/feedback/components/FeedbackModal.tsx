@@ -169,6 +169,9 @@ export function FeedbackModal() {
 								multiline
 								maxLength={FEEDBACK_MESSAGE_MAX}
 							/>
+							<Text style={styles.disclaimer}>
+								{t("feedback.messageDisclaimer")}
+							</Text>
 
 							{error ? <Text style={styles.errorText}>{error}</Text> : null}
 
@@ -250,6 +253,13 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		color: Colors.text,
 		textAlignVertical: "top",
+		...Typography.regular,
+	},
+	disclaimer: {
+		marginTop: 6,
+		fontSize: 11,
+		lineHeight: 15,
+		color: Colors.textDim,
 		...Typography.regular,
 	},
 	errorText: {

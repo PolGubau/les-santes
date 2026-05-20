@@ -1,9 +1,9 @@
 import { Colors, Typography } from '@/shared/constants';
 import { t } from '@/shared/i18n';
 import { Screen, ScreenHeader } from '@/shared/ui';
-import { Linking } from 'react-native';
+import { BarChart2, Bell, HardDrive, MapPin, MessageSquare } from 'lucide-react-native';
 import React from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const CONTACT_EMAIL = 'gubaupol+lessantes-support@gmail.com';
 const PRIVACY_POLICY_URL = 'https://lessantes.polgubau.com/privacy';
@@ -12,10 +12,10 @@ function SectionTitle({ label }: { label: string }) {
   return <Text style={styles.sectionTitle}>{label}</Text>;
 }
 
-function DataRow({ icon, label, desc }: { icon: string; label: string; desc: string }) {
+function DataRow({ icon, label, desc }: { icon: React.ReactNode; label: string; desc: string }) {
   return (
     <View style={styles.dataRow}>
-      <Text style={styles.dataIcon}>{icon}</Text>
+      <View style={styles.dataIcon}>{icon}</View>
       <View style={styles.dataText}>
         <Text style={styles.dataLabel}>{label}</Text>
         <Text style={styles.dataDesc}>{desc}</Text>
@@ -41,31 +41,31 @@ export default function PrivacyScreen() {
         <SectionTitle label={t('privacy.sectionData')} />
         <View style={styles.card}>
           <DataRow
-            icon="📊"
+            icon={<BarChart2 size={18} color={Colors.primary} />}
             label={t('privacy.analyticsLabel')}
             desc={t('privacy.analyticsDesc')}
           />
           <View style={styles.divider} />
           <DataRow
-            icon="💬"
+            icon={<MessageSquare size={18} color={Colors.primary} />}
             label={t('privacy.feedbackLabel')}
             desc={t('privacy.feedbackDesc')}
           />
           <View style={styles.divider} />
           <DataRow
-            icon="📍"
+            icon={<MapPin size={18} color={Colors.primary} />}
             label={t('privacy.locationLabel')}
             desc={t('privacy.locationDesc')}
           />
           <View style={styles.divider} />
           <DataRow
-            icon="🔔"
+            icon={<Bell size={18} color={Colors.primary} />}
             label={t('privacy.notificationsLabel')}
             desc={t('privacy.notificationsDesc')}
           />
           <View style={styles.divider} />
           <DataRow
-            icon="💾"
+            icon={<HardDrive size={18} color={Colors.primary} />}
             label={t('privacy.cacheLabel')}
             desc={t('privacy.cacheDesc')}
           />
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
     ...Typography.regular,
   },
   dataRow: { flexDirection: 'row', gap: 12, alignItems: 'flex-start' },
-  dataIcon: { fontSize: 20, marginTop: 1 },
+  dataIcon: { marginTop: 1 },
   dataText: { flex: 1, gap: 2 },
   dataLabel: { fontSize: 14, color: Colors.text, ...Typography.semiBold },
   dataDesc: { fontSize: 13, color: Colors.textMuted, lineHeight: 19, ...Typography.regular },

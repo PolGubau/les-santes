@@ -9,7 +9,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
-import { Bell, BellOff } from 'lucide-react-native';
+import { Bell, BellOff, ExternalLink, RotateCcw, Wrench } from 'lucide-react-native';
+import { useOnboardingStore } from '@/features/onboarding/store/useOnboardingStore';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Linking, Platform, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 
@@ -45,10 +46,17 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function ActionRow({ label, onPress, destructive }: { label: string; onPress: () => void; destructive?: boolean }) {
+function ActionRow({
+  label, onPress, destructive, leftIcon, rightIcon,
+}: {
+  label: string; onPress: () => void; destructive?: boolean;
+  leftIcon?: React.ReactNode; rightIcon?: React.ReactNode;
+}) {
   return (
     <TouchableOpacity style={styles.row} onPress={onPress} activeOpacity={0.7}>
-      <Text style={[styles.rowLabel, destructive && { color: '#E53E3E' }]}>{label}</Text>
+      {leftIcon ? <View style={styles.rowLeftIcon}>{leftIcon}</View> : null}
+      <Text style={[styles.rowLabel, { flex: 1 }, destructive && { color: '#E53E3E' }]}>{label}</Text>
+      {rightIcon ? <View>{rightIcon}</View> : null}
     </TouchableOpacity>
   );
 }
@@ -95,6 +103,7 @@ export default function SettingsScreen() {
   const { locale, setLocale } = useLocaleStore();
   const { isEnabled, setEnabled } = useAnalyticsStore();
   const { open: openFeedback } = useFeedback();
+  const resetOnboarding = useOnboardingStore((s) => s.reset);
   const [scheduledNotifs, setScheduledNotifs] = useState<ScheduledEventNotification[]>([]);
   const [adminUnlocked, setAdminUnlocked] = useState(false);
   const tapCount = useRef(0);
@@ -244,10 +253,32 @@ export default function SettingsScreen() {
           {adminUnlocked && (
             <>
               <View style={styles.divider} />
-              <ActionRow label="🔧 Admin" onPress={() => Linking.openURL(ADMIN_URL)} />
+              <ActionRow
+                label="Admin"
+                leftIcon={<Wrench size={15} color={Colors.textDim} />}
+                rightIcon={<ExternalLink size={14} color={Colors.textDim} />}
+                onPress={() => Linking.openURL(ADMIN_URL)}
+              />
             </>
           )}
         </View>
+
+        {/* ── Dev tools (admin mode only) ─────────────────────────────────── */}
+        {adminUnlocked && (
+          <>
+            <SectionTitle label="Dev tools" />
+            <View style={styles.card}>
+              <ActionRow
+                label="Veure onboarding"
+                leftIcon={<RotateCcw size={15} color={Colors.textDim} />}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
+                  resetOnboarding();
+                }}
+              />
+            </View>
+          </>
+        )}
 
       </ScrollView>
     </Screen>
@@ -317,6 +348,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 13,
   },
+  rowLeftIcon: { marginRight: 4 },
   rowLabel: { fontSize: 14, color: Colors.text, ...Typography.regular },
   rowSublabel: { fontSize: 12, color: Colors.textDim, marginTop: 2, ...Typography.regular },
   rowValue: { fontSize: 13, color: Colors.textMuted, ...Typography.regular },
