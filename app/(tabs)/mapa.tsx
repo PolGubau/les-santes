@@ -6,6 +6,7 @@ import {
   MapEventsDrawer,
   MapHeader,
   useMapEvents,
+  useMapFocusStore,
   useMapFocusSync,
   useMapSearch,
   useMapSelection,
@@ -15,11 +16,14 @@ import { FESTIVAL_END, FESTIVAL_START } from '@/shared/constants';
 import { getAppNow } from '@/shared/hooks';
 import { toFestivalDayKey } from '@/shared/lib';
 import { Screen } from '@/shared/ui';
+import { useFocusEffect } from 'expo-router';
 import { MoveHorizontal, RotateCcw } from 'lucide-react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { PanResponder, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-// ── Time scrubber (dev-only) ──────────────────────────────────────────────────
+// ── Time scrubber (local preview) ─────────────────────────────────────────────
+// Local-only: state lives in MapaScreen and is reset on focus so other screens
+// (and re-entries to the map) always see the real current time.
 /** Minutes of festival time advanced per pixel dragged. */
 const PX_PER_MIN = 1.5;
 const WEEKDAY_CA = ['Dg', 'Dl', 'Dm', 'Dc', 'Dj', 'Dv', 'Ds'];
@@ -141,6 +145,8 @@ export default function MapaScreen() {
   const { events } = useEvents();
   const { mapEvents, drawerEvents, selectedDay, availableDays, todayKey, setDay, liveCount } =
     useMapEvents(events);
+  // Read focus intent so the simTime→day sync can yield to useMapFocusSync.
+  const focusedEventId = useMapFocusStore((s) => s.focusedEventId);
 
   const mapRef = useRef<EventMapHandle | null>(null);
   const selection = useMapSelection(mapRef);
@@ -152,8 +158,25 @@ export default function MapaScreen() {
 
   const handleSimTimeChange = useCallback((ms: number) => {
     setSimTime(ms);
-    mapRef.current?.setSimTime(ms);
+    // If the new time is essentially "real now" (e.g. reset button in prod),
+    // clear the WebView freeze so the map resumes live ticking. In DEV the
+    // fake frozen `getAppNow()` is far from `Date.now()`, so this is a no-op
+    // and the existing DEV scrub-and-freeze behaviour is preserved.
+    const isLive = Math.abs(ms - Date.now()) < 2_000;
+    mapRef.current?.setSimTime(isLive ? null : ms);
   }, []);
+
+  // Reset the preview to current "now" each time the map screen gains focus.
+  // Keeps the scrubber strictly local: leaving the tab discards the previewed
+  // time, so other screens and subsequent visits always start from the real
+  // clock (or the DEV frozen date).
+  useFocusEffect(
+    useCallback(() => {
+      const now = getAppNow().getTime();
+      setSimTime(now);
+      mapRef.current?.setSimTime(null);
+    }, []),
+  );
 
   // Single source of truth for day-chip taps: update sim time AND day chip together
   // in the same tick. Doing this via separate effects caused a race where each
@@ -163,10 +186,6 @@ export default function MapaScreen() {
   const handleDayChange = useCallback((nextDay: string) => {
     if (nextDay === selectedDayRef.current) return;
     setDay(nextDay);
-    // In production the map always uses Date.now() (no scrubber), so switching
-    // days must NOT inject a simulated time — that would make events at the same
-    // clock-hour on a different day appear as "live" when they are not.
-    if (!__DEV__) return;
     const prev = new Date(simTimeRef.current);
     const hh = prev.getHours();
     const mm = prev.getMinutes();
@@ -185,10 +204,13 @@ export default function MapaScreen() {
   // jumps to a different day), update the chip so visible events match the
   // simulated time. Depending only on simTime avoids the day-chip-tap race
   // condition — chip taps already update both states via handleDayChange.
+  // Guard: if there is a pending focus intent (coming from event detail),
+  // let useMapFocusSync own the day — don't override it with "today".
   useEffect(() => {
+    if (focusedEventId) return;
     const newDay = toFestivalDayKey(new Date(simTime));
     if (newDay !== selectedDayRef.current) setDay(newDay);
-  }, [simTime, setDay]);
+  }, [simTime, setDay, focusedEventId]);
 
   // Stable deps: setSelectedEvent and setShowDrawer are React state setters (never change)
   const { setSelectedEvent, setShowDrawer } = selection;
@@ -222,7 +244,7 @@ export default function MapaScreen() {
         onListPress={selection.handleListPress}
         onSearchChange={search.handleSearchChange}
         onSearchFocus={search.handleSearchFocus}
-        simSlot={__DEV__ ? <SimScrubber simTime={simTime} onChange={handleSimTimeChange} /> : undefined}
+        simSlot={<SimScrubber simTime={simTime} onChange={handleSimTimeChange} />}
       />
 
       {selection.showDrawer && (

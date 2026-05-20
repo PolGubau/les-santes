@@ -12,9 +12,9 @@ import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, router } from 'expo-router';
 import * as Sharing from 'expo-sharing';
-import { CalendarDays, CalendarPlus, Clock, Heart, MapPin, PersonStanding, Share2 } from 'lucide-react-native';
+import { CalendarDays, CalendarPlus, Clock, Heart, MapPin, Navigation, PersonStanding, Share2 } from 'lucide-react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Platform, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import { Linking, Platform, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { captureRef } from 'react-native-view-shot';
 
@@ -116,6 +116,23 @@ export default function EventDetailScreen() {
     router.push('/(tabs)/mapa');
   }, [event, focusEvent]);
 
+  const handleGetDirections = useCallback(() => {
+    if (!event) return;
+    const lat = event.kind === 'static' ? event.location.lat : event.route[0].lat;
+    const lng = event.kind === 'static' ? event.location.lng : event.route[0].lng;
+    const name = encodeURIComponent(event.locationName ?? event.title);
+
+    const url = Platform.select({
+      ios: `maps://0,0?q=${name}@${lat},${lng}`,
+      android: `geo:0,0?q=${lat},${lng}(${name})`,
+      default: `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`,
+    }) ?? `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+
+    Linking.openURL(url).catch(() => {
+      Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`);
+    });
+  }, [event]);
+
   const handleViewInAgenda = useCallback(() => {
     if (!event) return;
     requestAgendaDay(event.start.substring(0, 10));
@@ -205,10 +222,16 @@ export default function EventDetailScreen() {
               </View>
             )}
             {event.kind === 'static' && event.locationName && (
-              <View style={styles.detailRow}>
-                <MapPin size={15} color={Colors.textDim} />
-                <Text style={styles.detailText}>{event.locationName}</Text>
-              </View>
+              <Pressable
+                style={({ pressed }) => [styles.detailRow, pressed && { opacity: 0.6 }]}
+                onPress={handleGetDirections}
+                accessibilityLabel={`Com arribar a ${event.locationName}`}
+                accessibilityRole="link"
+              >
+                <MapPin size={15} color={Colors.primary} />
+                <Text style={styles.detailTextLink}>{event.locationName}</Text>
+                <Navigation size={13} color={Colors.primary} />
+              </Pressable>
             )}
           </View>
 
@@ -352,6 +375,11 @@ const styles = StyleSheet.create({
   },
   detailText: {
     color: Colors.textMuted,
+    fontSize: 14,
+    flex: 1,
+  },
+  detailTextLink: {
+    color: Colors.primary,
     fontSize: 14,
     flex: 1,
   },
