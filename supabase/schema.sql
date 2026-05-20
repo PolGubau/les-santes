@@ -195,3 +195,37 @@ create policy "anon_insert_analytics"
 create policy "admin_read_analytics"
   on public.analytics_events for select
   using (auth.role() = 'authenticated');
+
+-- ─── ANALYTICS RETENTION ────────────────────────────────────
+-- Behavioural data is only useful while it is recent. Anything older than
+-- 90 days is dropped to keep the table small and respect free-tier limits.
+-- The function is SECURITY DEFINER so the scheduled job can run without
+-- needing extra grants on public.analytics_events.
+create or replace function public.prune_old_analytics()
+returns void
+language sql
+security definer
+set search_path = public
+as $$
+  delete from public.analytics_events
+  where created_at < now() - interval '90 days';
+$$;
+
+-- Schedule a daily prune at 03:30 UTC. pg_cron lives in the `cron` schema
+-- and is a no-op when the extension is not available (e.g. local dev).
+do $$
+begin
+  if exists (select 1 from pg_available_extensions where name = 'pg_cron') then
+    create extension if not exists pg_cron;
+    perform cron.unschedule('prune-analytics-events-daily')
+      where exists (
+        select 1 from cron.job where jobname = 'prune-analytics-events-daily'
+      );
+    perform cron.schedule(
+      'prune-analytics-events-daily',
+      '30 3 * * *',
+      $cron$select public.prune_old_analytics();$cron$
+    );
+  end if;
+end
+$$;

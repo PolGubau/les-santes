@@ -2,6 +2,7 @@ import { POSTERS } from '@/features/recursos';
 import { COMPARSES } from '@/features/recursos/data/comparses';
 import { Colors } from '@/shared/constants';
 import POSTALS from '@/shared/data/postals.json';
+import { t } from '@/shared/i18n';
 import { Screen } from '@/shared/ui';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -40,7 +41,7 @@ function ResourceCard({
         <Text style={s.cardTitle}>{title}</Text>
         {subtitle && <Text style={s.cardSubtitle}>{subtitle}</Text>}
         <View style={s.cardCta}>
-          <Text style={s.cardCtaText}>Explorar</Text>
+          <Text style={s.cardCtaText}>{t('recursos.explore')}</Text>
           <ArrowRight size={13} color="#fff" />
         </View>
       </LinearGradient>
@@ -62,47 +63,47 @@ export default function RecursosScreen() {
     <Screen>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
         <View style={s.header}>
-          <Text style={s.title}>Recursos</Text>
-          <Text style={s.subtitle}>Arxiu de les Santes</Text>
+          <Text style={s.title}>{t('recursos.title')}</Text>
+          <Text style={s.subtitle}>{t('recursos.subtitle')}</Text>
         </View>
         <View style={s.cards}>
           <ResourceCard
             imageSource={BANNER}
-            label={`${POSTERS.length} peces`}
-            title="Cartells Oficials"
-            subtitle="Pòsters des de 1892"
+            label={t('recursos.postersLabel', { count: POSTERS.length })}
+            title={t('recursos.postersTitle')}
+            subtitle={t('recursos.postersSubtitle')}
             href="/(tabs)/recursos/cartells"
             height={220}
           />
           <ResourceCard
             imageSource={ALIGA}
-            label="Guia cultural"
-            title="Història de la Festa"
-            subtitle="Patrones, comparses, tradicions i el Bequetero"
+            label={t('recursos.historyLabel')}
+            title={t('recursos.historyTitle')}
+            subtitle={t('recursos.historySubtitle')}
             href="/(tabs)/recursos/historia"
             height={160}
           />
           <ResourceCard
             imageSource={POSTAL}
-            label={`${POSTALS.length} postals`}
-            title="Postals de Gegants"
-            subtitle="Escaneacions de geganters convidats"
+            label={t('recursos.postalsLabel', { count: POSTALS.length })}
+            title={t('recursos.postalsTitle')}
+            subtitle={t('recursos.postalsSubtitle')}
             href="/(tabs)/recursos/postals"
             height={160}
           />
           <View style={s.row}>
             <ResourceCard
               imageSource={ROBAFAVES}
-              label={`${COMPARSES.length} colles`}
-              title="Comparses"
+              label={t('recursos.comparsesLabel', { count: COMPARSES.length })}
+              title={t('recursos.comparsesTitle')}
               href="/(tabs)/recursos/comparses"
               height={180}
               flex={1}
             />
             <ResourceCard
               imageSource={JULIANA}
-              label="La Juliana i més"
-              title="Begudes"
+              label={t('recursos.begudesLabel')}
+              title={t('recursos.begudesTitle')}
               href="/(tabs)/recursos/begudes"
               height={180}
               flex={1}

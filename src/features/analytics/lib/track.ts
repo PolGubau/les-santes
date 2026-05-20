@@ -17,8 +17,6 @@ export type AnalyticsEventName =
 	| "nudge_dismissed"
 	| "nudge_completed"
 	| "onboarding_started"
-	| "onboarding_step_viewed"
-	| "onboarding_step_action"
 	| "onboarding_step_skipped"
 	| "onboarding_completed"
 	| "onboarding_skipped";

@@ -28,7 +28,6 @@ import { PanResponder, StyleSheet, Text, TouchableOpacity, View } from 'react-na
 // (and re-entries to the map) always see the real current time.
 /** Minutes of festival time advanced per pixel dragged. */
 const PX_PER_MIN = 1.5;
-const WEEKDAY_CA = ['Dg', 'Dl', 'Dm', 'Dc', 'Dj', 'Dv', 'Ds'];
 function pad(n: number) { return String(n).padStart(2, '0'); }
 
 function SimScrubber({

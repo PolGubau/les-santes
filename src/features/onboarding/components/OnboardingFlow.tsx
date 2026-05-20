@@ -1,5 +1,6 @@
 import { track } from "@/features/analytics";
 import { Colors } from "@/shared/constants";
+import { t } from "@/shared/i18n";
 import * as Haptics from "expo-haptics";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
@@ -68,13 +69,6 @@ export function OnboardingFlow({ visible, onFinish }: OnboardingFlowProps) {
 		}
 	}, [visible]);
 
-	// Fire one `step_viewed` per slide entry.
-	useEffect(() => {
-		if (!visible) return;
-		const slideId = SLIDE_ORDER[index];
-		track("onboarding_step_viewed", { step: slideId, index });
-	}, [visible, index]);
-
 	const advance = useCallback(() => {
 		setIndex((i) => {
 			if (i >= SLIDE_ORDER.length - 1) {
@@ -87,17 +81,13 @@ export function OnboardingFlow({ visible, onFinish }: OnboardingFlowProps) {
 	}, [onFinish]);
 
 	const handlePrimary = useCallback(
-		async (action?: () => Promise<unknown> | void, slideId?: SlideId) => {
+		async (action?: () => Promise<unknown> | void) => {
 			if (busy) return;
 			Haptics.selectionAsync().catch(() => { });
 			if (action) {
 				setBusy(true);
 				try {
-					const result = await action();
-					track("onboarding_step_action", {
-						step: slideId,
-						result: typeof result === "string" ? result : "ok",
-					});
+					await action();
 				} finally {
 					setBusy(false);
 				}
@@ -120,29 +110,26 @@ export function OnboardingFlow({ visible, onFinish }: OnboardingFlowProps) {
 		{
 			id: "welcome",
 			visual: <WelcomeHero />,
-			title: "Benvinguts a Les Santes",
-			description:
-				"L'agenda oficial del festival. Mira què passa ara, què ve després i guarda els teus actes preferits.",
-			primaryLabel: "Comencem",
+			title: t("onboarding.welcomeTitle"),
+			description: t("onboarding.welcomeDesc"),
+			primaryLabel: t("onboarding.welcomeCta"),
 		},
 		{
 			id: "location",
 			visual: <LocationPreview />,
-			title: "Localització (opcional)",
-			description:
-				"Et permet veure els actes més propers i ordenar‑los per distància. Pots desactivar‑ho quan vulguis.",
-			primaryLabel: "Activar localització",
-			skipLabel: "Ara no",
+			title: t("onboarding.locationTitle"),
+			description: t("onboarding.locationDesc"),
+			primaryLabel: t("onboarding.locationCta"),
+			skipLabel: t("onboarding.notNow"),
 			onPrimary: requestLocationPermission,
 		},
 		{
 			id: "notifications",
 			visual: <NotificationPreview />,
-			title: "Recordatoris (opcional)",
-			description:
-				"Et avisem 30 minuts abans dels actes que afegeixis a favorits. Sense spam.",
-			primaryLabel: "Activar avisos",
-			skipLabel: "Ara no",
+			title: t("onboarding.notificationsTitle"),
+			description: t("onboarding.notificationsDesc"),
+			primaryLabel: t("onboarding.notificationsCta"),
+			skipLabel: t("onboarding.notNow"),
 			onPrimary: requestNotificationPermission,
 		},
 	];
@@ -180,7 +167,7 @@ export function OnboardingFlow({ visible, onFinish }: OnboardingFlowProps) {
 
 					<Pressable
 						style={({ pressed }) => [styles.primary, (pressed || busy) && { opacity: 0.85 }]}
-						onPress={() => handlePrimary(slide.onPrimary, slide.id)}
+						onPress={() => handlePrimary(slide.onPrimary)}
 						accessibilityRole="button"
 						accessibilityLabel={slide.primaryLabel}
 						disabled={busy}

@@ -5,6 +5,7 @@ import { useFavoritesStore } from '@/features/favorites';
 import { useMapFocusStore } from '@/features/map';
 import { ContextualHint, useNudge, useNudgeStore, useTrackEventViewOnMount } from '@/features/nudges';
 import { Colors, FESTIVAL_START } from '@/shared/constants';
+import { t } from '@/shared/i18n';
 import { addEventToCalendar, cancelEventNotification, formatDayShort, formatTime, scheduleEventNotification } from '@/shared/lib';
 import { EventMiniMap } from '@/features/map/components/EventMiniMap';
 import { BackButton, EventIcon, Screen, SkeletonBox, useShimmer } from '@/shared/ui';
@@ -52,7 +53,7 @@ export default function EventDetailScreen() {
   const requestAgendaDay = useAgendaFocusStore((s) => s.requestDay);
   const { favorites, isFavorite, toggleFavorite } = useFavoritesStore();
 
-  useTrackEventViewOnMount();
+  useTrackEventViewOnMount(id);
   const eventViews = useNudgeStore((s) => s.behavior.eventViews);
   const favoritesCount = Object.keys(favorites).length;
   const suggestMap = useNudge('event.suggestMap', { when: eventViews >= 1 });
@@ -190,7 +191,7 @@ export default function EventDetailScreen() {
       <Screen>
         <View style={styles.notFound}>
           <BackButton style={styles.backStandalone} />
-          <Text style={styles.notFoundText}>Acte no trobat.</Text>
+          <Text style={styles.notFoundText}>{t('event.notFound')}</Text>
         </View>
       </Screen>
     );
@@ -255,14 +256,14 @@ export default function EventDetailScreen() {
             {event.kind === 'mobile' && (
               <View style={styles.detailRow}>
                 <PersonStanding size={15} color={Colors.textDim} />
-                <Text style={styles.detailText}>Recorregut pels carrers</Text>
+                <Text style={styles.detailText}>{t('event.mobileRoute')}</Text>
               </View>
             )}
             {event.kind === 'static' && event.locationName && (
               <Pressable
                 style={({ pressed }) => [styles.detailRow, pressed && { opacity: 0.6 }]}
                 onPress={handleGetDirections}
-                accessibilityLabel={`Com arribar a ${event.locationName}`}
+                accessibilityLabel={t('event.getDirectionsLabel', { name: event.locationName })}
                 accessibilityRole="link"
               >
                 <MapPin size={15} color={Colors.primary} />
@@ -277,9 +278,9 @@ export default function EventDetailScreen() {
 
           {suggestMap.visible && (
             <ContextualHint
-              title="Segueix‑lo en temps real"
-              description="Obre el mapa per veure on és aquest acte i moure‑t'hi."
-              ctaLabel="Veure al mapa"
+              title={t('event.suggestMapTitle')}
+              description={t('event.suggestMapDesc')}
+              ctaLabel={t('event.suggestMapCta')}
               onCta={handleViewInMap}
               onDismiss={suggestMap.dismiss}
             />
@@ -287,9 +288,9 @@ export default function EventDetailScreen() {
 
           {suggestFavorite.visible && !favorite && (
             <ContextualHint
-              title="Guarda els teus preferits"
-              description="Afegeix actes a favorits per veure'ls ràpid i rebre recordatoris."
-              ctaLabel="Afegir a favorits"
+              title={t('event.suggestFavoriteTitle')}
+              description={t('event.suggestFavoriteDesc')}
+              ctaLabel={t('event.suggestFavoriteCta')}
               onCta={handleFavoriteFromNudge}
               onDismiss={suggestFavorite.dismiss}
             />
@@ -302,7 +303,7 @@ export default function EventDetailScreen() {
               onPress={handleCalendar}
             >
               <CalendarPlus size={18} color="#fff" />
-              <Text style={styles.calendarBtnText}>Afegir al calendari</Text>
+              <Text style={styles.calendarBtnText}>{t('event.addCalendar')}</Text>
             </Pressable>
           </View>
           {/* Secondary actions */}
@@ -310,28 +311,28 @@ export default function EventDetailScreen() {
             <Pressable
               style={({ pressed }) => [styles.secondaryBtn, pressed && styles.btnPressed]}
               onPress={handleFavorite}
-              accessibilityLabel={favorite ? 'Treure de favorits' : 'Afegir a favorits'}
+              accessibilityLabel={favorite ? t('event.removeFavoriteA11y') : t('event.addFavoriteA11y')}
             >
               <Heart size={18} color={favorite ? Colors.primary : Colors.textDim} fill={favorite ? Colors.primary : 'none'} />
               <Text style={[styles.secondaryBtnText, favorite && styles.secondaryBtnTextActive]}>
-                {favorite ? 'Afegit' : 'Favorit'}
+                {favorite ? t('event.addedFavoriteLabel') : t('event.favoriteLabel')}
               </Text>
             </Pressable>
             <Pressable
               style={({ pressed }) => [styles.secondaryBtn, pressed && styles.btnPressed]}
               onPress={handleViewInAgenda}
-              accessibilityLabel="Veure a l'agenda"
+              accessibilityLabel={t('event.viewInAgendaA11y')}
             >
               <CalendarDays size={18} color={Colors.textDim} />
-              <Text style={styles.secondaryBtnText}>Agenda</Text>
+              <Text style={styles.secondaryBtnText}>{t('event.agendaShort')}</Text>
             </Pressable>
             <Pressable
               style={({ pressed }) => [styles.secondaryBtn, pressed && styles.btnPressed]}
               onPress={handleShare}
-              accessibilityLabel="Compartir acte"
+              accessibilityLabel={t('event.shareEventA11y')}
             >
               <Share2 size={18} color={Colors.textDim} />
-              <Text style={styles.secondaryBtnText}>Compartir</Text>
+              <Text style={styles.secondaryBtnText}>{t('event.share')}</Text>
             </Pressable>
           </View>
         </View>

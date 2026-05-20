@@ -41,23 +41,31 @@ export function useTrackAppOpenOnMount() {
 	);
 }
 
-export function useTrackEventViewOnMount() {
-	useBumpOnMount(
-		(s) => s.bumpEventView,
-		() => track("event_view"),
-	);
+/**
+ * Record a view of a specific event. Dedupes per session per `eventId`, so
+ * revisiting the same detail screen multiple times in one cold start produces
+ * a single analytics row while still bumping the local behaviour counter for
+ * nudge gating.
+ */
+export function useTrackEventViewOnMount(eventId: string | undefined) {
+	useEffect(() => {
+		if (!eventId) return;
+		useNudgeStore.getState().bumpEventView();
+		track("event_view", { event_id: eventId }, { once: eventId });
+	}, [eventId]);
 }
 
 export function useTrackMapVisitOnMount() {
 	useBumpOnMount(
 		(s) => s.bumpMapVisit,
-		() => track("screen_view", { screen: "map" }),
+		// Dedupe per session: switching tabs back and forth must not spam.
+		() => track("screen_view", { screen: "map" }, { once: "map" }),
 	);
 }
 
 export function useTrackAgendaVisitOnMount() {
 	useBumpOnMount(
 		(s) => s.bumpAgendaVisit,
-		() => track("screen_view", { screen: "agenda" }),
+		() => track("screen_view", { screen: "agenda" }, { once: "agenda" }),
 	);
 }
