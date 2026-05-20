@@ -3,10 +3,11 @@ import { eventRepository } from '@/entities/event/repository';
 import { useAgendaFocusStore } from '@/features/agenda';
 import { useFavoritesStore } from '@/features/favorites';
 import { useMapFocusStore } from '@/features/map';
+import { ContextualHint, useNudge, useNudgeStore, useTrackEventViewOnMount } from '@/features/nudges';
 import { Colors, FESTIVAL_START } from '@/shared/constants';
 import { addEventToCalendar, cancelEventNotification, formatDayShort, formatTime, scheduleEventNotification } from '@/shared/lib';
 import { EventMiniMap } from '@/features/map/components/EventMiniMap';
-import { BackButton, EventIcon, LoadingState, Screen } from '@/shared/ui';
+import { BackButton, EventIcon, Screen, SkeletonBox, useShimmer } from '@/shared/ui';
 import { Image } from 'expo-image';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -14,6 +15,7 @@ import { useLocalSearchParams, router } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import { CalendarDays, CalendarPlus, Clock, Heart, MapPin, Navigation, PersonStanding, Share2 } from 'lucide-react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import Animated from 'react-native-reanimated';
 import { Linking, Platform, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { captureRef } from 'react-native-view-shot';
@@ -21,13 +23,42 @@ import { captureRef } from 'react-native-view-shot';
 const DEFAULT_BLURHASH = 'L6Pj0^jE.AyE_3t7t7R**0o#DgR4';
 const IMAGE_H = 260;
 
+// ─── Loading skeleton ─────────────────────────────────────────────────────────
+function EventDetailSkeleton() {
+  const anim = useShimmer();
+  return (
+    <Animated.View style={[{ flex: 1 }, anim]}>
+      <SkeletonBox style={styles.skelImg} />
+      <View style={styles.skelContent}>
+        <SkeletonBox style={styles.skelBadge} />
+        <SkeletonBox style={styles.skelTitle} />
+        <SkeletonBox style={styles.skelTitleShort} />
+        <SkeletonBox style={styles.skelMeta} />
+        <SkeletonBox style={styles.skelMeta} />
+        <View style={styles.skelDivider} />
+        <SkeletonBox style={styles.skelDesc} />
+        <SkeletonBox style={styles.skelDesc} />
+        <SkeletonBox style={styles.skelDescShort} />
+      </View>
+    </Animated.View>
+  );
+}
+
 export default function EventDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { events, loading: cacheLoading } = useEvents();
   const insets = useSafeAreaInsets();
   const focusEvent = useMapFocusStore((s) => s.focusEvent);
   const requestAgendaDay = useAgendaFocusStore((s) => s.requestDay);
-  const { isFavorite, toggleFavorite } = useFavoritesStore();
+  const { favorites, isFavorite, toggleFavorite } = useFavoritesStore();
+
+  useTrackEventViewOnMount();
+  const eventViews = useNudgeStore((s) => s.behavior.eventViews);
+  const favoritesCount = Object.keys(favorites).length;
+  const suggestMap = useNudge('event.suggestMap', { when: eventViews >= 1 });
+  const suggestFavorite = useNudge('event.suggestFavorite', {
+    when: eventViews >= 3 && favoritesCount === 0,
+  });
 
   // Try cache first; fall back to individual fetch if cache is still loading or misses
   const cached = events.find((e) => e.id === id) as Event | undefined;
@@ -112,9 +143,15 @@ export default function EventDetailScreen() {
 
   const handleViewInMap = useCallback(() => {
     if (!event) return;
+    suggestMap.complete();
     focusEvent(event.id, event.start); // pass start so map can resolve the day without MOCK_EVENTS
     router.push('/(tabs)/mapa');
-  }, [event, focusEvent]);
+  }, [event, focusEvent, suggestMap]);
+
+  const handleFavoriteFromNudge = useCallback(() => {
+    suggestFavorite.complete();
+    handleFavorite();
+  }, [suggestFavorite, handleFavorite]);
 
   const handleGetDirections = useCallback(() => {
     if (!event) return;
@@ -143,7 +180,7 @@ export default function EventDetailScreen() {
     return (
       <Screen>
         <BackButton style={styles.backStandalone} />
-        <LoadingState label="Carregant acte…" />
+        <EventDetailSkeleton />
       </Screen>
     );
   }
@@ -237,6 +274,26 @@ export default function EventDetailScreen() {
 
           {/* Mini map */}
           <EventMiniMap event={event} onPress={handleViewInMap} zoom={14} />
+
+          {suggestMap.visible && (
+            <ContextualHint
+              title="Segueix‑lo en temps real"
+              description="Obre el mapa per veure on és aquest acte i moure‑t'hi."
+              ctaLabel="Veure al mapa"
+              onCta={handleViewInMap}
+              onDismiss={suggestMap.dismiss}
+            />
+          )}
+
+          {suggestFavorite.visible && !favorite && (
+            <ContextualHint
+              title="Guarda els teus preferits"
+              description="Afegeix actes a favorits per veure'ls ràpid i rebre recordatoris."
+              ctaLabel="Afegir a favorits"
+              onCta={handleFavoriteFromNudge}
+              onDismiss={suggestFavorite.dismiss}
+            />
+          )}
 
           {/* Actions */}
           <View style={styles.actions}>
@@ -433,6 +490,16 @@ const styles = StyleSheet.create({
   notFound: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
   notFoundText: { color: Colors.textMuted, fontSize: 15 },
   backStandalone: { marginBottom: 8 },
+  // ── EventDetailSkeleton ───────────────────────────────────────────────────
+  skelImg: { height: IMAGE_H, marginBottom: 16, borderRadius: 0 },
+  skelContent: { paddingHorizontal: 16, gap: 12 },
+  skelBadge: { width: 72, height: 22, borderRadius: 10 },
+  skelTitle: { height: 24, width: '85%', borderRadius: 6 },
+  skelTitleShort: { height: 24, width: '55%', borderRadius: 6 },
+  skelMeta: { height: 14, width: '60%', borderRadius: 4 },
+  skelDivider: { height: StyleSheet.hairlineWidth, backgroundColor: Colors.border, marginVertical: 4 },
+  skelDesc: { height: 13, width: '100%', borderRadius: 4 },
+  skelDescShort: { height: 13, width: '70%', borderRadius: 4 },
   // Share card: opacity:0 keeps it off-screen safely on any device height
   shareCard: { position: 'absolute', opacity: 0, left: 0, width: 400 },
   shareCardBg: {

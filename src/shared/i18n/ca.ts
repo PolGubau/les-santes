@@ -9,6 +9,10 @@ export interface Translations {
   agenda: {
     title: string;
     eventsCount: string;
+    emptyDay: string;
+    emptyDaySubtext: string;
+    goToNextDay: string;
+    exploreSchedule: string;
     emptyFavorites: string;
     emptyFavoritesSubtext: string;
     emptyFiltered: string;
@@ -23,6 +27,7 @@ export interface Translations {
   now: {
     appTitle: string; subtitle: string;
     emptyNow: string; emptyNowSubtext: string;
+    goToSchedule: string;
     festivalEnded: string; festivalEndedSubtext: string;
     liveCount: string;
   };
@@ -51,8 +56,58 @@ export interface Translations {
     clearCacheConfirm: string;
     clearCacheSuccess: string;
     privacyPolicy: string;
+    privacyAndData: string;
     links: string;
     data: string;
+    feedback: string;
+    feedbackHint: string;
+    analytics: string;
+    analyticsDesc: string;
+  };
+  feedback: {
+    title: string;
+    subtitle: string;
+    close: string;
+    ratingLabel: string;
+    typeLabel: string;
+    tagsLabel: string;
+    messageLabel: string;
+    messagePlaceholder: string;
+    submit: string;
+    thanks: string;
+    error: string;
+    type: { bug: string; suggestion: string; general: string };
+    messageDisclaimer: string;
+    tag: {
+      map: string;
+      events: string;
+      agenda: string;
+      navigation: string;
+      language: string;
+      design: string;
+      performance: string;
+      data: string;
+      other: string;
+    };
+  };
+  privacy: {
+    title: string;
+    sectionPrivacy: string;
+    privacyText: string;
+    sectionData: string;
+    locationLabel: string;
+    locationDesc: string;
+    notificationsLabel: string;
+    notificationsDesc: string;
+    cacheLabel: string;
+    cacheDesc: string;
+    analyticsLabel: string;
+    analyticsDesc: string;
+    feedbackLabel: string;
+    feedbackDesc: string;
+    sectionContact: string;
+    contactText: string;
+    privacyPolicyLink: string;
   };
 }
 
@@ -84,6 +139,10 @@ export const ca: Translations = {
   agenda: {
     title: 'Agenda',
     eventsCount: '%{count} actes',
+    emptyDay: 'No hi ha actes aquest dia',
+    emptyDaySubtext: 'Aquest dia no té actes programats',
+    goToNextDay: 'Veure dia següent',
+    exploreSchedule: "Explorar l'agenda",
     emptyFavorites: 'Cap favorit aquest dia',
     emptyFavoritesSubtext: "Afegeix actes als favorits des de l'agenda",
     emptyFiltered: 'Cap acte trobat',
@@ -114,6 +173,7 @@ export const ca: Translations = {
     subtitle: 'Mataró · Festa Major',
     emptyNow: 'Sense actes ara',
     emptyNowSubtext: "Consulta l'agenda per als propers actes",
+    goToSchedule: "Veure l'agenda",
     festivalEnded: 'La festa major ha acabat',
     festivalEndedSubtext: 'Fins a les Santes de l\'any que ve! 🎉',
     liveCount: '%{count} acte%{plural} en curs ara',
@@ -169,7 +229,61 @@ export const ca: Translations = {
     clearCacheConfirm: "Esborraràs les dades guardades localment. L'app les tornarà a descarregar.",
     clearCacheSuccess: 'Caché esborrada correctament',
     privacyPolicy: 'Política de privacitat',
+    privacyAndData: 'Privacitat i dades',
     links: 'Enllaços',
     data: 'Dades',
+    feedback: 'Enviar feedback',
+    feedbackHint: 'Ajuda’ns a millorar l’app',
+    analytics: 'Estadístiques d’ús',
+    analyticsDesc: 'Recopila dades anònimes d’ús per millorar l’app.',
+  },
+  feedback: {
+    title: 'Com va l’app?',
+    subtitle: 'Tarda 20 segons. Ens ajuda molt.',
+    close: 'Tancar',
+    ratingLabel: 'Valora l’experiència',
+    typeLabel: 'Tipus',
+    tagsLabel: 'Sobre què? (opcional)',
+    messageLabel: 'Comentari (opcional)',
+    messagePlaceholder: 'Explica’ns què milloraries…',
+    submit: 'Enviar',
+    thanks: 'Gràcies! 🙌',
+    error: 'No s’ha pogut enviar. Torna-ho a provar.',
+    type: {
+      bug: 'Error',
+      suggestion: 'Suggeriment',
+      general: 'Comentari',
+    },
+    messageDisclaimer: 'No incloguis dades personals (nom, telèfon, email). El comentari s’envia de forma anònima.',
+    tag: {
+      map: 'Mapa',
+      events: 'Actes',
+      agenda: 'Agenda',
+      navigation: 'Navegació',
+      language: 'Idioma',
+      design: 'Disseny',
+      performance: 'Rendiment',
+      data: 'Dades',
+      other: 'Altres',
+    },
+  },
+  privacy: {
+    title: 'Privacitat i dades',
+    sectionPrivacy: 'Privacitat',
+    privacyText: 'Les Santes no demana registre ni recull dades personals. Només s\'envien esdeveniments d\'ús anònims (no identificables) i, si tu ho fas, el feedback que ens enviïs. Pots desactivar les estadístiques als Ajustos.',
+    sectionData: 'Dades que utilitzem',
+    locationLabel: 'Ubicació',
+    locationDesc: 'Opcional. Només per al filtre "Prop meu" al mapa. Mai s\'envia a cap servidor.',
+    notificationsLabel: 'Notificacions',
+    notificationsDesc: 'Opcional. Es processen localment al dispositiu per recordar-te actes pròxims. No registrem el token al servidor.',
+    cacheLabel: 'Caché local',
+    cacheDesc: 'Dades del programa guardades al dispositiu per funcionar sense connexió. Es poden esborrar des d\'Ajustos.',
+    analyticsLabel: 'Estadístiques anònimes',
+    analyticsDesc: 'Esdeveniments d\'ús (pantalles vistes, accions) amb un identificador d\'instal·lació aleatori. Sense informació personal. Pots desactivar-les als Ajustos.',
+    feedbackLabel: 'Feedback (opcional)',
+    feedbackDesc: 'Si ens envies un comentari, guardem la valoració, el text i el context tècnic (versió, plataforma). No demanem ni guardem identitat.',
+    sectionContact: 'Contacte',
+    contactText: 'Dubtes o consultes sobre privacitat? Escriu-nos:',
+    privacyPolicyLink: 'Consulta la política de privacitat completa →',
   },
 };

@@ -10,4 +10,5 @@ export * from "./RichText";
 export * from "./Screen";
 export * from "./ScreenHeader";
 export * from "./SectionHeader";
+export * from "./Skeleton";
 export * from "./StateBadge";

@@ -2,11 +2,13 @@ import { useAnnouncements } from '@/entities/announcement';
 import { useEvents } from '@/entities/event';
 import { HeroCard, LiveClock, NowCard, NowSkeleton, UpcomingRow, useNowEvents } from '@/features/now';
 import { useFavoritesStore } from '@/features/favorites';
+import { ContextualHint, useNudge, useNudgeStore } from '@/features/nudges';
 import { Colors, FESTIVAL_END, FESTIVAL_START } from '@/shared/constants';
 import { useNavPush, useNow } from '@/shared/hooks';
 import { t } from '@/shared/i18n';
 import { AnnouncementBanner, ErrorState, OfflineBanner, Screen, SectionHeader } from '@/shared/ui';
 
+import { router } from 'expo-router';
 import { Clock, Heart, Moon } from 'lucide-react-native';
 import React, { useCallback, useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
@@ -33,10 +35,21 @@ export default function AraScreen() {
   const { now, upcoming } = useNowEvents(events);
   const clock = useNow(1_000); // 1-second tick for countdown
   const { favorites } = useFavoritesStore();
+  const appOpens = useNudgeStore((s) => s.behavior.appOpens);
+  const favoritesCount = Object.keys(favorites).length;
+  const suggestAgenda = useNudge('ara.suggestAgenda', {
+    when: appOpens >= 2 && favoritesCount === 0,
+  });
+
   const push = useNavPush();
   const handlePress = useCallback((id: string) => {
     push(`/event/${id}`);
   }, [push]);
+
+  const handleSuggestAgendaCta = useCallback(() => {
+    suggestAgenda.complete();
+    router.push('/(tabs)/agenda');
+  }, [suggestAgenda]);
 
   // Favorites currently live — shown in a highlighted band
   const liveAndFavorite = useMemo(
@@ -84,6 +97,16 @@ export default function AraScreen() {
       )}
 
       <AnnouncementBanner announcements={announcements} />
+
+      {suggestAgenda.visible && (
+        <ContextualHint
+          title="Encara no tens favorits"
+          description="Explora l'agenda i guarda els actes que no et vols perdre."
+          ctaLabel="Veure agenda"
+          onCta={handleSuggestAgendaCta}
+          onDismiss={suggestAgenda.dismiss}
+        />
+      )}
 
       {loading && events.length === 0 && <NowSkeleton />}
 
@@ -188,6 +211,14 @@ export default function AraScreen() {
                 <Moon size={48} color={Colors.textDim} />
                 <Text style={styles.emptyTitle}>{t('now.emptyNow')}</Text>
                 <Text style={styles.emptySubtitle}>{t('now.emptyNowSubtext')}</Text>
+                <Pressable
+                  style={({ pressed }) => [styles.scheduleBtn, pressed && { opacity: 0.8 }]}
+                  onPress={() => router.push('/(tabs)/agenda')}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('now.goToSchedule')}
+                >
+                  <Text style={styles.scheduleBtnText}>{t('now.goToSchedule')}</Text>
+                </Pressable>
               </>
             )}
           </View>
@@ -226,6 +257,14 @@ const styles = StyleSheet.create({
   emptySubtitle: { color: Colors.textMuted, fontSize: 14, textAlign: 'center', maxWidth: 240 },
   countdownValue: { color: Colors.primary, fontSize: 40, fontWeight: '800', letterSpacing: -1 },
   emptyEmoji: { fontSize: 52, lineHeight: 60 },
+  scheduleBtn: {
+    marginTop: 16,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 999,
+    backgroundColor: Colors.primary,
+  },
+  scheduleBtnText: { color: '#fff', fontSize: 14, fontWeight: '700' },
   // Favorites live band
   favBand: {
     marginHorizontal: 16,

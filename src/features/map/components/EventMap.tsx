@@ -687,10 +687,12 @@ interface Props {
   events: Event[];
   onEventPress?: (event: Event) => void;
   onClusterPress?: (events: Event[]) => void;
+  /** Called once when both tile sources fail and the map cannot be displayed. */
+  onOffline?: () => void;
 }
 
 export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap(
-  { events, onEventPress, onClusterPress },
+  { events, onEventPress, onClusterPress, onOffline },
   ref,
 ) {
   const webviewRef = useRef<WebView>(null);
@@ -746,6 +748,13 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
       return () => { deactivateKeepAwake(); };
     }, []),
   );
+
+  // Notify parent the first time the map goes offline.
+  const onOfflineRef = useRef(onOffline);
+  onOfflineRef.current = onOffline;
+  useEffect(() => {
+    if (mapOffline) onOfflineRef.current?.();
+  }, [mapOffline]);
 
   // Fallback: if MAP_READY hasn't arrived in 30 s the JS-side safety-net should
   // have already posted MAP_OFFLINE. This is a last-resort for bridge failures.
@@ -877,21 +886,28 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
           <WifiOff size={40} color={Colors.textMuted} />
           <Text style={styles.offlineTitle}>Mapa no disponible</Text>
           <Text style={styles.offlineBody}>
-            El mapa necessita connexió a internet per carregar les tessel·les.
-            La resta de l'app segueix funcionant amb les dades desades.
+            No s&apos;ha pogut carregar el mapa.{'\n'}
+            Pots consultar els actes a l&apos;agenda.
           </Text>
-          <Pressable
-            style={styles.offlineBtn}
-            onPress={() => {
-              // Reset all state so the loader reappears correctly
-              setMapOffline(false);
-              setMapReady(false);
-              loaderOpacity.setValue(1);
-              webviewRef.current?.reload();
-            }}
-          >
-            <Text style={styles.offlineBtnText}>Torna-ho a intentar</Text>
-          </Pressable>
+          <View style={styles.offlineBtnRow}>
+            <Pressable
+              style={styles.offlineBtnSecondary}
+              onPress={() => {
+                setMapOffline(false);
+                setMapReady(false);
+                loaderOpacity.setValue(1);
+                webviewRef.current?.reload();
+              }}
+            >
+              <Text style={styles.offlineBtnSecondaryText}>Torna-ho a intentar</Text>
+            </Pressable>
+            <Pressable
+              style={styles.offlineBtn}
+              onPress={() => onOfflineRef.current?.()}
+            >
+              <Text style={styles.offlineBtnText}>Veure l&apos;agenda →</Text>
+            </Pressable>
+          </View>
         </View>
       )}
     </View>
@@ -931,10 +947,28 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
   },
-  offlineBtn: {
+  offlineBtnRow: {
     marginTop: 8,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
+    flexDirection: 'row',
+    gap: 10,
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+  },
+  offlineBtnSecondary: {
+    paddingHorizontal: 20,
+    paddingVertical: 11,
+    borderRadius: 24,
+    borderWidth: 1.5,
+    borderColor: Colors.primary,
+  },
+  offlineBtnSecondaryText: {
+    color: Colors.primary,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  offlineBtn: {
+    paddingHorizontal: 20,
+    paddingVertical: 11,
     borderRadius: 24,
     backgroundColor: Colors.primary,
   },

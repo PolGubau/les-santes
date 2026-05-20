@@ -19,6 +19,8 @@ interface Props {
   loading?: boolean;
   emptyText?: string;
   emptySubtext?: string;
+  /** Optional slot rendered below the default empty state (e.g. nudge CTA). */
+  emptyExtra?: React.ReactNode;
 }
 
 const SectionCard = memo(function SectionCard({
@@ -91,6 +93,7 @@ export function AgendaList({
   loading = false,
   emptyText = 'Cap acte trobat',
   emptySubtext,
+  emptyExtra,
 }: Props) {
   const sections = buildSections(events);
 
@@ -104,6 +107,7 @@ export function AgendaList({
         <CalendarOff size={44} color={Colors.textDim} />
         <Text style={styles.emptyText}>{emptyText}</Text>
         {emptySubtext && <Text style={styles.emptySubtext}>{emptySubtext}</Text>}
+        {emptyExtra}
       </View>
     );
   }

@@ -1,3 +1,4 @@
+import { track } from "@/features/analytics";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as StoreReview from "expo-store-review";
 import { create } from "zustand";
@@ -48,6 +49,8 @@ export const useFavoritesStore = create<FavoritesState>()(
 					} else {
 						delete next[eventId];
 					}
+
+					track(isAdding ? "favorite_added" : "favorite_removed", { event_id: eventId });
 
 					const totalAdded = isAdding ? s.totalAdded + 1 : s.totalAdded;
 					const lastReviewTs = s.lastReviewTs;

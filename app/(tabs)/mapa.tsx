@@ -12,10 +12,11 @@ import {
   useMapSelection,
 } from '@/features/map';
 import type { EventMapHandle } from '@/features/map/components/EventMap';
+import { FirstTimeTooltip, useNudge, useTrackMapVisitOnMount } from '@/features/nudges';
 import { FESTIVAL_END, FESTIVAL_START } from '@/shared/constants';
 import { getAppNow } from '@/shared/hooks';
 import { toFestivalDayKey } from '@/shared/lib';
-import { Screen } from '@/shared/ui';
+import { OfflineBanner, Screen } from '@/shared/ui';
 import { useFocusEffect } from 'expo-router';
 import { MoveHorizontal, RotateCcw } from 'lucide-react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -142,7 +143,10 @@ const simStyles = StyleSheet.create({
 
 // ── Screen ────────────────────────────────────────────────────────────────────
 export default function MapaScreen() {
-  const { events } = useEvents();
+  useTrackMapVisitOnMount();
+  const firstVisitNudge = useNudge('map.firstVisit.movement');
+
+  const { events, isOffline, cacheTimestamp, refresh, isRefreshing } = useEvents();
   const { mapEvents, drawerEvents, selectedDay, availableDays, todayKey, setDay, liveCount } =
     useMapEvents(events);
   // Read focus intent so the simTime→day sync can yield to useMapFocusSync.
@@ -239,7 +243,12 @@ export default function MapaScreen() {
         events={search.filteredEvents}
         onEventPress={selection.handleEventPress}
         onClusterPress={selection.handleClusterPress}
+        onOffline={selection.handleListPress}
       />
+
+      {isOffline && (
+        <OfflineBanner cacheTimestamp={cacheTimestamp} onRefresh={refresh} isRefreshing={isRefreshing} />
+      )}
 
       <MapHeader
         selectedDay={selectedDay}
@@ -279,6 +288,14 @@ export default function MapaScreen() {
         <EventSnapSheet
           event={selection.selectedEvent}
           onClose={selection.handleSnapClose}
+        />
+      )}
+
+      {firstVisitNudge.visible && !selection.showDrawer && !selection.selectedEvent && (
+        <FirstTimeTooltip
+          title="Explora el mapa"
+          description="Mou‑te i fes zoom per veure tots els actes del festival."
+          onDismiss={firstVisitNudge.dismiss}
         />
       )}
 

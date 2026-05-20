@@ -1,18 +1,8 @@
 import { Colors } from '@/shared/constants';
-import React, { useEffect } from 'react';
+import { SkeletonBox as Box, useShimmer } from '@/shared/ui/Skeleton';
+import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import Animated, {
-  Easing,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withTiming,
-} from 'react-native-reanimated';
-
-// ─── Primitive ────────────────────────────────────────────────────────────────
-function Box({ style }: { style: object }) {
-  return <View style={[styles.box, style]} />;
-}
+import Animated from 'react-native-reanimated';
 
 // ─── HeroCard skeleton ────────────────────────────────────────────────────────
 function HeroSkeleton() {
@@ -66,17 +56,7 @@ function NowCardSkeleton() {
 
 // ─── Main export ──────────────────────────────────────────────────────────────
 export function NowSkeleton() {
-  const opacity = useSharedValue(0.45);
-
-  useEffect(() => {
-    opacity.value = withRepeat(
-      withTiming(1, { duration: 850, easing: Easing.inOut(Easing.ease) }),
-      -1,
-      true,
-    );
-  }, [opacity]);
-
-  const anim = useAnimatedStyle(() => ({ opacity: opacity.value }));
+  const anim = useShimmer();
 
   return (
     <ScrollView
@@ -114,7 +94,6 @@ export function NowSkeleton() {
 
 const styles = StyleSheet.create({
   scroll: { flex: 1 },
-  box: { backgroundColor: Colors.surfaceHigh, borderRadius: 6 },
 
   // ── Hero ──────────────────────────────────────────────────────────────────
   hero: {

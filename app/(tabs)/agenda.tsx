@@ -1,21 +1,25 @@
 import { useAnnouncements } from "@/entities/announcement";
 import type { Event } from "@/entities/event";
 import { useEvents } from "@/entities/event";
-import { AgendaFilterBar, AgendaList, DayPicker, useAgenda, useAgendaFocusStore } from "@/features/agenda";
+import { AgendaFilterBar, AgendaList, AgendaSkeletonList, DayPicker, useAgenda, useAgendaFocusStore } from "@/features/agenda";
 import { useFavoritesStore } from "@/features/favorites";
+import { EmptyStateCTA, useNudge, useTrackAgendaVisitOnMount } from "@/features/nudges";
 import { Colors } from "@/shared/constants";
 import { t } from "@/shared/i18n";
 import { useNavPush, useUserLocation } from "@/shared/hooks";
-import { AnnouncementBanner, ErrorState, LoadingState, OfflineBanner, Screen } from "@/shared/ui";
+import { AnnouncementBanner, ErrorState, OfflineBanner, Screen } from "@/shared/ui";
 import * as Haptics from "expo-haptics";
+import { router } from "expo-router";
 
-import { Search, X } from "lucide-react-native";
+import { Clock, Search, X } from "lucide-react-native";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { NativeScrollEvent, NativeSyntheticEvent } from "react-native";
 import { FlatList, Pressable, StyleSheet, Text, TextInput, View, useWindowDimensions } from "react-native";
 
 export default function AgendaScreen() {
   const { width: SCREEN_WIDTH } = useWindowDimensions();
+
+  useTrackAgendaVisitOnMount();
 
   const announcements = useAnnouncements();
   const userCoords = useUserLocation();
@@ -96,6 +100,39 @@ export default function AgendaScreen() {
     push(`/event/${event.id}`);
   }, [push]);
 
+  // Compute next available day after selectedDay
+  const nextAvailableDay = useMemo(() => {
+    const idx = availableDays.indexOf(selectedDay);
+    return idx >= 0 && idx < availableDays.length - 1 ? availableDays[idx + 1] : null;
+  }, [availableDays, selectedDay]);
+
+  const hasActiveFilters = !!(
+    filters.type || filters.category || filters.nearMe || filters.search?.trim()
+  );
+
+  // Nudges shown only when the current day's list is empty.
+  const dayHasNoEvents = dayCount === 0 && !loading;
+  const emptyFavoritesNudge = useNudge("agenda.emptyFavorites.explore", {
+    when: dayHasNoEvents && filters.onlyFavorites,
+  });
+  const emptyFilteredNudge = useNudge("agenda.emptyFiltered.now", {
+    when: dayHasNoEvents && !filters.onlyFavorites && hasActiveFilters,
+  });
+
+  const handleExploreAgenda = useCallback(() => {
+    emptyFavoritesNudge.complete();
+    toggleFavorites();
+  }, [emptyFavoritesNudge, toggleFavorites]);
+
+  const handleGoToNextDay = useCallback(() => {
+    if (nextAvailableDay) setDay(nextAvailableDay);
+  }, [nextAvailableDay, setDay]);
+
+  const handleGoToNow = useCallback(() => {
+    emptyFilteredNudge.complete();
+    router.push("/(tabs)/ara");
+  }, [emptyFilteredNudge]);
+
   if (error && events.length === 0) {
     return (
       <Screen>
@@ -159,7 +196,7 @@ export default function AgendaScreen() {
 
       <AnnouncementBanner announcements={announcements} />
 
-      {loading && events.length === 0 && <LoadingState />}
+      {loading && events.length === 0 && <AgendaSkeletonList />}
 
       {(!loading || events.length > 0) && <FlatList
         ref={flatRef}
@@ -189,13 +226,46 @@ export default function AgendaScreen() {
               onRefresh={refresh}
               refreshing={isRefreshing}
               loading={loading}
-              emptyText={filters.onlyFavorites ? t('agenda.emptyFavorites') : t('agenda.emptyFiltered')}
+              emptyText={
+                filters.onlyFavorites
+                  ? t('agenda.emptyFavorites')
+                  : hasActiveFilters
+                    ? t('agenda.emptyFiltered')
+                    : t('agenda.emptyDay')
+              }
               emptySubtext={
                 filters.onlyFavorites
                   ? t('agenda.emptyFavoritesSubtext')
-                  : filters.type || filters.nearMe
+                  : hasActiveFilters
                     ? t('agenda.emptyFilteredSubtext')
-                    : undefined
+                    : t('agenda.emptyDaySubtext')
+              }
+              emptyExtra={
+                filters.onlyFavorites ? (
+                  <EmptyStateCTA
+                    title={t('agenda.emptyFavorites')}
+                    description="Encara no tens cap favorit. Mira els actes i guarda els que t'interessin."
+                    ctaLabel={t('agenda.exploreSchedule')}
+                    onCta={handleExploreAgenda}
+                  />
+                ) : !hasActiveFilters && nextAvailableDay ? (
+                  <EmptyStateCTA
+                    title={t('agenda.emptyDay')}
+                    description={t('agenda.emptyDaySubtext')}
+                    ctaLabel={t('agenda.goToNextDay')}
+                    onCta={handleGoToNextDay}
+                  />
+                ) : emptyFilteredNudge.visible ? (
+                  <EmptyStateCTA
+                    icon={Clock}
+                    title="Cap acte amb aquests filtres"
+                    description="Vols veure què està passant ara mateix al festival?"
+                    ctaLabel="Veure ara"
+                    onCta={handleGoToNow}
+                    secondaryLabel="Tancar"
+                    onSecondary={emptyFilteredNudge.dismiss}
+                  />
+                ) : null
               }
             />
           </View>

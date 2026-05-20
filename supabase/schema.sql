@@ -128,3 +128,70 @@ create policy "admin_all_announcements"
   on public.announcements for all
   using     (auth.role() = 'authenticated')
   with check (auth.role() = 'authenticated');
+
+-- ─── FEEDBACK ───────────────────────────────────────────────
+-- In-app, context-aware user feedback. Anon clients may INSERT only;
+-- reads are reserved for authenticated admins. festival_id is nullable
+-- (set client-side from EXPO_PUBLIC_FESTIVAL_ID) so anon inserts never
+-- require a join against festivals to pass RLS.
+create table if not exists public.feedback (
+  id           uuid primary key default gen_random_uuid(),
+  festival_id  text references public.festivals(id) on delete set null,
+  rating       int  not null check (rating between 1 and 5),
+  type         text not null check (type in ('bug','suggestion','general')),
+  message      text,
+  tags         text[] not null default '{}',
+  context      jsonb  not null default '{}'::jsonb,
+  app_version  text,
+  platform     text check (platform in ('ios','android','web')),
+  locale       text,
+  created_at   timestamptz not null default now()
+);
+
+create index if not exists idx_feedback_festival   on public.feedback (festival_id);
+create index if not exists idx_feedback_created_at on public.feedback (created_at desc);
+create index if not exists idx_feedback_type       on public.feedback (type);
+
+alter table public.feedback enable row level security;
+
+create policy "anon_insert_feedback"
+  on public.feedback for insert
+  with check (true);
+
+create policy "admin_read_feedback"
+  on public.feedback for select
+  using (auth.role() = 'authenticated');
+
+create policy "admin_all_feedback"
+  on public.feedback for all
+  using     (auth.role() = 'authenticated')
+  with check (auth.role() = 'authenticated');
+
+-- ─── ANALYTICS EVENTS ───────────────────────────────────────
+-- Anonymous, install-scoped behavioural events. The app fires
+-- inserts only; the admin panel reads aggregates.
+create table if not exists public.analytics_events (
+  id           bigserial primary key,
+  festival_id  text not null references public.festivals(id) on delete cascade,
+  event_name   text not null,
+  properties   jsonb not null default '{}'::jsonb,
+  install_id   text not null,
+  session_id   text,
+  platform     text,
+  app_version  text,
+  created_at   timestamptz not null default now()
+);
+
+create index if not exists idx_analytics_event_name on public.analytics_events (event_name, created_at desc);
+create index if not exists idx_analytics_festival   on public.analytics_events (festival_id, created_at desc);
+create index if not exists idx_analytics_install    on public.analytics_events (install_id);
+create index if not exists idx_analytics_created    on public.analytics_events (created_at desc);
+
+alter table public.analytics_events enable row level security;
+
+create policy "anon_insert_analytics"
+  on public.analytics_events for insert with check (true);
+
+create policy "admin_read_analytics"
+  on public.analytics_events for select
+  using (auth.role() = 'authenticated');

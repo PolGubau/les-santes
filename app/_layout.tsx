@@ -1,3 +1,6 @@
+import { FeedbackModal, useSmartFeedbackNudge } from '@/features/feedback';
+import { useTrackAppOpenOnMount } from '@/features/nudges';
+import { OnboardingFlow, useOnboardingStore } from '@/features/onboarding';
 import { Colors } from '@/shared/constants';
 import { useLocaleStore, usePushNotifications } from '@/shared/hooks';
 import { i18n } from '@/shared/i18n';
@@ -51,11 +54,21 @@ export default function RootLayout() {
   // Initialize push notifications (permission request + token registration)
   usePushNotifications();
 
+  // Count this session for behaviour-driven nudges
+  useTrackAppOpenOnMount();
+
   // Apply persisted locale before first render
   const locale = useLocaleStore((s) => s.locale);
   useEffect(() => {
     i18n.locale = locale;
   }, [locale]);
+
+  // First-run onboarding (3 slides)
+  const hasSeenOnboarding = useOnboardingStore((s) => s.hasSeenOnboarding);
+  const markOnboardingSeen = useOnboardingStore((s) => s.markSeen);
+
+  // Soft trigger: engaged users get the feedback modal once it's earned.
+  useSmartFeedbackNudge({ enabled: hasSeenOnboarding });
 
   useEffect(() => {
     if (fontsLoaded || fontError) {
@@ -77,6 +90,8 @@ export default function RootLayout() {
             gestureEnabled: true,
           }}
         />
+        <OnboardingFlow visible={!hasSeenOnboarding} onFinish={markOnboardingSeen} />
+        <FeedbackModal />
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

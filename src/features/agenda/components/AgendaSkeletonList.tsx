@@ -1,17 +1,11 @@
 import { Colors } from '@/shared/constants';
-import React, { useEffect } from 'react';
+import { SkeletonBox, useShimmer } from '@/shared/ui/Skeleton';
+import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, {
-  useSharedValue, useAnimatedStyle,
-  withRepeat, withTiming, Easing,
-} from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 
 const THUMB = 52;
 const N_ROWS = 6;
-
-function SkeletonBox({ style }: { style: object }) {
-  return <View style={[styles.box, style]} />;
-}
 
 function SkeletonRow() {
   return (
@@ -26,17 +20,7 @@ function SkeletonRow() {
 }
 
 export function AgendaSkeletonList() {
-  const opacity = useSharedValue(0.4);
-
-  useEffect(() => {
-    opacity.value = withRepeat(
-      withTiming(1, { duration: 900, easing: Easing.inOut(Easing.ease) }),
-      -1,
-      true,
-    );
-  }, [opacity]);
-
-  const anim = useAnimatedStyle(() => ({ opacity: opacity.value }));
+  const anim = useShimmer();
 
   return (
     <View style={styles.container}>
@@ -60,7 +44,6 @@ export function AgendaSkeletonList() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16, gap: 12 },
-  box: { backgroundColor: Colors.surfaceHigh, borderRadius: 6 },
   sectionCard: {
     backgroundColor: Colors.surface,
     borderRadius: 16,

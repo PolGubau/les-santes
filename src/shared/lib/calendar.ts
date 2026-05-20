@@ -51,6 +51,32 @@ function buildCalendarLocation(event: Event): string | undefined {
 }
 
 export async function addEventToCalendar(event: Event): Promise<void> {
+  const { status: existing } = await Calendar.getCalendarPermissionsAsync();
+
+  if (existing === 'denied') {
+    Alert.alert(
+      'Accés al calendari denegat',
+      'Per afegir actes al calendari, activa el permís a Configuració > Les Santes.',
+      [{ text: 'D\'acord' }],
+    );
+    return;
+  }
+
+  if (existing !== 'granted') {
+    // Show contextual explanation before the OS permission prompt
+    const confirmed = await new Promise<boolean>((resolve) => {
+      Alert.alert(
+        'Afegir al calendari',
+        'Volem accedir al teu calendari per guardar aquest acte. Només hi escrivim l\'acte que tu selecciones; mai llegim ni modifiquem res més.',
+        [
+          { text: 'Ara no', style: 'cancel', onPress: () => resolve(false) },
+          { text: 'Continua', onPress: () => resolve(true) },
+        ],
+      );
+    });
+    if (!confirmed) return;
+  }
+
   const { status } = await Calendar.requestCalendarPermissionsAsync();
   if (status !== 'granted') {
     Alert.alert('Sense permisos', 'Activa l\'accés al calendari a la configuració.');

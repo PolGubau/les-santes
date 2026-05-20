@@ -1,3 +1,5 @@
+import { useAnalyticsStore } from '@/features/analytics/store/useAnalyticsStore';
+import { useFeedback } from '@/features/feedback';
 import { Colors, Typography } from '@/shared/constants';
 import { t } from '@/shared/i18n';
 import { LOCALES, useLocaleStore, type AppLocale } from '@/shared/hooks/useLocale';
@@ -6,9 +8,10 @@ import { Screen } from '@/shared/ui';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import * as Haptics from 'expo-haptics';
+import { router } from 'expo-router';
 import { Bell, BellOff } from 'lucide-react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, Linking, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Linking, Platform, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 
 const EVENTS_CACHE_KEY = '@les-santes/events-v1';
 const PRIVACY_POLICY_URL = 'https://lessantes.polgubau.com/privacy';
@@ -50,6 +53,25 @@ function ActionRow({ label, onPress, destructive }: { label: string; onPress: ()
   );
 }
 
+function SwitchRow({ label, description, value, onValueChange }: {
+  label: string; description?: string; value: boolean; onValueChange: (v: boolean) => void;
+}) {
+  return (
+    <View style={styles.row}>
+      <View style={{ flex: 1, paddingRight: 12 }}>
+        <Text style={styles.rowLabel}>{label}</Text>
+        {description ? <Text style={styles.rowSublabel}>{description}</Text> : null}
+      </View>
+      <Switch
+        value={value}
+        onValueChange={onValueChange}
+        trackColor={{ true: Colors.primary, false: Colors.border }}
+        thumbColor={Platform.OS === 'android' ? '#fff' : undefined}
+      />
+    </View>
+  );
+}
+
 function LocaleOption({ label, flag, active, onPress }: {
   code: AppLocale; label: string; flag: string; active: boolean; onPress: () => void;
 }) {
@@ -71,6 +93,8 @@ function LocaleOption({ label, flag, active, onPress }: {
 // ─── Screen ──────────────────────────────────────────────────────────────────
 export default function SettingsScreen() {
   const { locale, setLocale } = useLocaleStore();
+  const { isEnabled, setEnabled } = useAnalyticsStore();
+  const { open: openFeedback } = useFeedback();
   const [scheduledNotifs, setScheduledNotifs] = useState<ScheduledEventNotification[]>([]);
   const [adminUnlocked, setAdminUnlocked] = useState(false);
   const tapCount = useRef(0);
@@ -122,6 +146,11 @@ export default function SettingsScreen() {
   };
 
   const handlePrivacyPolicy = () => Linking.openURL(PRIVACY_POLICY_URL);
+  const handlePrivacyScreen = () => router.push('/privacy');
+  const handleFeedback = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
+    openFeedback();
+  }, [openFeedback]);
 
   return (
     <Screen edges={['top']}>
@@ -175,15 +204,30 @@ export default function SettingsScreen() {
           </>
         )}
 
+        {/* ── Feedback ────────────────────────────────────────────────────── */}
+        <SectionTitle label={t('settings.feedback')} />
+        <View style={styles.card}>
+          <ActionRow label={t('settings.feedbackHint')} onPress={handleFeedback} />
+        </View>
+
         {/* ── Cache ───────────────────────────────────────────────────────── */}
         <SectionTitle label={t('settings.data')} />
         <View style={styles.card}>
+          <SwitchRow
+            label={t('settings.analytics')}
+            description={t('settings.analyticsDesc')}
+            value={isEnabled}
+            onValueChange={setEnabled}
+          />
+          <View style={styles.divider} />
           <ActionRow label={t('settings.clearCache')} onPress={handleClearCache} destructive />
         </View>
 
         {/* ── Links ───────────────────────────────────────────────────────── */}
         <SectionTitle label={t('settings.links')} />
         <View style={styles.card}>
+          <ActionRow label={t('settings.privacyAndData')} onPress={handlePrivacyScreen} />
+          <View style={styles.divider} />
           <ActionRow label={t('settings.privacyPolicy')} onPress={handlePrivacyPolicy} />
         </View>
 
@@ -274,6 +318,7 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
   },
   rowLabel: { fontSize: 14, color: Colors.text, ...Typography.regular },
+  rowSublabel: { fontSize: 12, color: Colors.textDim, marginTop: 2, ...Typography.regular },
   rowValue: { fontSize: 13, color: Colors.textMuted, ...Typography.regular },
   divider: { height: StyleSheet.hairlineWidth, backgroundColor: Colors.border, marginLeft: 16 },
   notifRow: {
