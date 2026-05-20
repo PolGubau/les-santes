@@ -27,7 +27,6 @@ export default function AgendaScreen() {
 
   const { favorites } = useFavoritesStore();
   const favoriteIds = useMemo(() => new Set(Object.keys(favorites)), [favorites]);
-  const totalFavorites = favoriteIds.size;
 
   const [searchText, setSearchText] = useState('');
 
@@ -42,6 +41,7 @@ export default function AgendaScreen() {
     selectedDay,
     availableDays,
     todayKey,
+    dayFavoriteCount,
     setDay,
   } = useAgenda(events, userCoords, favoriteIds);
 
@@ -144,7 +144,7 @@ export default function AgendaScreen() {
 
         <AgendaFilterBar
           filters={filters}
-          totalFavorites={totalFavorites}
+          totalFavorites={dayFavoriteCount}
           userCoords={userCoords}
           onToggleFavorites={toggleFavorites}
           onToggleNearMe={toggleNearMe}

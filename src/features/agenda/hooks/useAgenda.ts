@@ -131,6 +131,16 @@ export function useAgenda(
 		return map;
 	}, [withStates, availableDays, filters, userCoords, favoriteIds]);
 
+	/** Count of favorites in the currently selected day (ignores the onlyFavorites filter). */
+	const dayFavoriteCount = useMemo(() => {
+		if (!favoriteIds || favoriteIds.size === 0) return 0;
+		return withStates.filter(
+			(e) =>
+				toFestivalDayKey(new Date(e.start)) === effectiveDay &&
+				favoriteIds.has(e.id),
+		).length;
+	}, [withStates, effectiveDay, favoriteIds]);
+
 	const setSearch = (search: string) => setFilters((f) => ({ ...f, search: search || undefined }));
 	const setType = (type: EventType | undefined) => setFilters((f) => ({ ...f, type }));
 	const setCategory = (category: EventCategory | undefined) => setFilters((f) => ({ ...f, category }));
@@ -145,6 +155,7 @@ export function useAgenda(
 		selectedDay: effectiveDay,
 		availableDays,
 		todayKey: nowKey,
+		dayFavoriteCount,
 		setDay,
 		setSearch,
 		setType,

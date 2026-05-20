@@ -45,7 +45,7 @@ export function HeroCard({ event, onPress }: Props) {
         placeholder={{ blurhash: event.blurhash ?? DEFAULT_BLURHASH }}
       />
       <LinearGradient
-        colors={['transparent', 'rgba(0,0,0,0.75)']}
+        colors={['rgba(0,0,0,0.75)', 'transparent']}
         style={styles.heroGradient}
         pointerEvents="none"
       >

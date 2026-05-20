@@ -4,7 +4,7 @@ import { Colors } from '@/shared/constants';
 import type { UserCoords } from '@/shared/hooks';
 import { haversineDistance } from '@/shared/lib';
 import { AgendaSkeletonList } from './AgendaSkeletonList';
-import { CalendarOff } from 'lucide-react-native';
+import { CalendarOff, Moon } from 'lucide-react-native';
 import React, { memo } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { buildSections } from '../lib/sections';
@@ -61,7 +61,8 @@ const SectionCard = memo(function SectionCard({
               {idx === nitIndex && (
                 <View style={styles.nitSeparator}>
                   <View style={styles.nitLine} />
-                  <Text style={styles.nitLabel}>🌙 Nit</Text>
+                  <Moon size={12} color={Colors.textMuted} />
+                  <Text style={styles.nitLabel}>Nit</Text>
                   <View style={styles.nitLine} />
                 </View>
               )}
