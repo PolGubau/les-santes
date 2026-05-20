@@ -63,9 +63,16 @@ export function OnboardingFlow({ visible, onFinish }: OnboardingFlowProps) {
 
 	const startedRef = useRef(false);
 	useEffect(() => {
-		if (visible && !startedRef.current) {
-			startedRef.current = true;
-			track("onboarding_started");
+		if (visible) {
+			if (!startedRef.current) {
+				startedRef.current = true;
+				track("onboarding_started");
+			}
+		} else {
+			// Reset when modal closes so the next open starts from slide 0
+			startedRef.current = false;
+			setIndex(0);
+			setBusy(false);
 		}
 	}, [visible]);
 

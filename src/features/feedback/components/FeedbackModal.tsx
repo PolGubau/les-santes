@@ -123,6 +123,12 @@ export function FeedbackModal() {
 						<View style={styles.successBox}>
 							<CheckCircle2 size={48} color={Colors.stateNow} />
 							<Text style={styles.successText}>{t("feedback.thanks")}</Text>
+							<Pressable
+								style={[styles.submit, { marginTop: 24, paddingHorizontal: 40 }]}
+								onPress={handleClose}
+							>
+								<Text style={styles.submitText}>{t("feedback.close")}</Text>
+							</Pressable>
 						</View>
 					) : (
 						<ScrollView

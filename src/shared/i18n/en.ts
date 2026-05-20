@@ -70,7 +70,7 @@ export const en: Translations = {
     emptyNow: 'Nothing on right now',
     emptyNowSubtext: 'Check the schedule for upcoming events',
     goToSchedule: 'See schedule',
-    festivalEnded: 'The festival has ended',
+    festivalEnded: 'Les Santes festival has ended',
     festivalEndedSubtext: "See you next year! 🎉",
     liveCount: '%{count} event%{plural} happening now',
     favoritesLive: 'Your favourites happening now',

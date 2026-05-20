@@ -41,12 +41,27 @@ function EventRow({ event, onPress }: { event: Event; onPress: () => void }) {
   );
 }
 
+// Approximate heights for dynamic sizing (cluster mode)
+const HANDLE_H = 36;   // handle area paddingVertical*2 + bar
+const HEADER_H = 56;   // title + meta row
+const ROW_H = 61;   // paddingVertical*2 + content + separator
+const FOOTER_H = 48;   // "Veure tota l'agenda" button
+const BOTTOM_H = 32;   // approximate safe-area bottom padding
+
 export function MapEventsDrawer({ events, selectedDay, onClose, searchQuery, clusterTitle, onEventPress }: Props) {
   const { height } = useWindowDimensions();
   const nowCount = events.filter((e) => e.state === 'now').length;
 
+  // For clusters: open to content height (no peek), capped at safe max.
+  // For full-agenda/search drawers: keep the two-snap peek behaviour.
+  const maxH = height * 0.75;
+  const sheetHeight = clusterTitle
+    ? Math.min(HANDLE_H + HEADER_H + events.length * ROW_H + FOOTER_H + BOTTOM_H, maxH)
+    : maxH;
+  const peekHeight = clusterTitle ? undefined : height * 0.38;
+
   return (
-    <BottomSheet onClose={onClose} height={height * 0.75} peekHeight={height * 0.38}>
+    <BottomSheet onClose={onClose} height={sheetHeight} peekHeight={peekHeight}>
       <View style={styles.header}>
         {clusterTitle ? (
           <>
@@ -90,7 +105,7 @@ export function MapEventsDrawer({ events, selectedDay, onClose, searchQuery, clu
             onPress={() => { onEventPress ? onEventPress(item) : router.push('/(tabs)/agenda'); }}
           />
         )}
-        style={[styles.list, { maxHeight: height * 0.48 }]}
+        style={[styles.list, { maxHeight: sheetHeight - HANDLE_H - HEADER_H - FOOTER_H - BOTTOM_H }]}
         showsVerticalScrollIndicator={false}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
       />
