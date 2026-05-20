@@ -3,7 +3,7 @@ import { eventRepository } from '@/entities/event/repository';
 import { useAgendaFocusStore } from '@/features/agenda';
 import { useFavoritesStore } from '@/features/favorites';
 import { useMapFocusStore } from '@/features/map';
-import { Colors } from '@/shared/constants';
+import { Colors, FESTIVAL_START } from '@/shared/constants';
 import { addEventToCalendar, cancelEventNotification, formatDayShort, formatTime, scheduleEventNotification } from '@/shared/lib';
 import { EventMiniMap } from '@/features/map/components/EventMiniMap';
 import { BackButton, EventIcon, LoadingState, Screen } from '@/shared/ui';
@@ -74,7 +74,7 @@ export default function EventDetailScreen() {
       `🕐 ${formatDayShort(event.start.substring(0, 10))} · ${formatTime(event.start)}–${formatTime(event.end)}`,
       event.locationName ? `📍 ${event.locationName}` : null,
       '',
-      'Les Santes 2026 · Mataró',
+      `Les Santes ${FESTIVAL_START.getFullYear()} · Mataró`,
     ].filter(Boolean).join('\n');
 
     try {
@@ -298,7 +298,7 @@ export default function EventDetailScreen() {
             style={StyleSheet.absoluteFill}
           />
           <View style={styles.shareCardContent}>
-            <Text style={styles.shareCardBrand}>🎉 Les Santes 2026</Text>
+            <Text style={styles.shareCardBrand}>🎉 Les Santes {FESTIVAL_START.getFullYear()}</Text>
             <Text style={styles.shareCardTitle}>{event.title}</Text>
             <Text style={styles.shareCardMeta}>
               {formatDayShort(event.start.substring(0, 10))} · {formatTime(event.start)} – {formatTime(event.end)}

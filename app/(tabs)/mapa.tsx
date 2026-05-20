@@ -166,15 +166,23 @@ export default function MapaScreen() {
     mapRef.current?.setSimTime(isLive ? null : ms);
   }, []);
 
-  // Reset the preview to current "now" each time the map screen gains focus.
-  // Keeps the scrubber strictly local: leaving the tab discards the previewed
-  // time, so other screens and subsequent visits always start from the real
-  // clock (or the DEV frozen date).
+  // Reset the preview each time the map screen gains focus. Two cases:
+  //  - No pending focus intent → reset to live "now" (real clock or DEV frozen).
+  //  - Coming from an event mini-map → reset to the event's start time so the
+  //    scrubber lands on the right festival day. Reading the store imperatively
+  //    here (instead of via deps) avoids re-triggering this effect every time
+  //    the focus intent changes.
   useFocusEffect(
     useCallback(() => {
-      const now = getAppNow().getTime();
-      setSimTime(now);
-      mapRef.current?.setSimTime(null);
+      const intent = useMapFocusStore.getState();
+      const target = intent.focusedEventStart
+        ? new Date(intent.focusedEventStart).getTime()
+        : getAppNow().getTime();
+      setSimTime(target);
+      // Freeze the WebView at the same target so the live count and markers
+      // match what the user is about to see.
+      const isLive = Math.abs(target - Date.now()) < 2_000;
+      mapRef.current?.setSimTime(isLive ? null : target);
     }, []),
   );
 
