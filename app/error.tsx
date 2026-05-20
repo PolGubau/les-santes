@@ -1,4 +1,5 @@
 import { Colors } from '@/shared/constants';
+import { t } from '@/shared/i18n';
 import { useRouter } from 'expo-router';
 import { AlertCircle } from 'lucide-react-native';
 import React from 'react';
@@ -11,17 +12,15 @@ export default function ErrorScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <AlertCircle size={56} color={Colors.primary} />
-      <Text style={styles.title}>Quelcom ha anat malament</Text>
-      <Text style={styles.desc}>
-        S'ha produït un error inesperat. Torna a l'inici i ho tornem a intentar.
-      </Text>
+      <Text style={styles.title}>{t('error.screenTitle')}</Text>
+      <Text style={styles.desc}>{t('error.screenDescription')}</Text>
       <Pressable
         style={styles.button}
         onPress={() => router.replace('/(tabs)/ara')}
         accessibilityRole="button"
-        accessibilityLabel="Tornar a l'inici"
+        accessibilityLabel={t('notFound.backToHome')}
       >
-        <Text style={styles.buttonText}>Tornar a l'inici</Text>
+        <Text style={styles.buttonText}>{t('notFound.backToHome')}</Text>
       </Pressable>
     </SafeAreaView>
   );

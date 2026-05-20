@@ -9,7 +9,7 @@ import { t } from '@/shared/i18n';
 import { AnnouncementBanner, ErrorState, OfflineBanner, Screen, SectionHeader } from '@/shared/ui';
 
 import { router } from 'expo-router';
-import { Clock, Heart, Moon } from 'lucide-react-native';
+import { Clock, Heart, Moon, PartyPopper } from 'lucide-react-native';
 import React, { useCallback, useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
@@ -191,7 +191,7 @@ export default function AraScreen() {
               </>
             ) : clock > FESTIVAL_END ? (
               <>
-                <Text style={styles.emptyEmoji}>🎉</Text>
+                <PartyPopper size={48} color={Colors.primary} />
                 <Text style={styles.emptyTitle}>{t('now.festivalEnded')}</Text>
                 <Text style={styles.emptySubtitle}>{t('now.festivalEndedSubtext')}</Text>
               </>
@@ -260,7 +260,6 @@ const styles = StyleSheet.create({
   emptyTitle: { color: Colors.text, fontSize: 18, fontWeight: '700' },
   emptySubtitle: { color: Colors.textMuted, fontSize: 14, textAlign: 'center', maxWidth: 240 },
   countdownValue: { color: Colors.primary, fontSize: 40, fontWeight: '800', letterSpacing: -1 },
-  emptyEmoji: { fontSize: 52, lineHeight: 60 },
   scheduleBtn: {
     marginTop: 16,
     paddingHorizontal: 24,
