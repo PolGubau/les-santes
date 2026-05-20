@@ -80,7 +80,7 @@ export function FeedbackModal() {
 			setTimeout(() => {
 				reset();
 				close();
-			}, 1400);
+			}, 2400);
 		} catch (e) {
 			setError((e as Error).message || t("feedback.error"));
 			Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(

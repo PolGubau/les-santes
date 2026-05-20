@@ -157,6 +157,8 @@ export const en: Translations = {
     defaultMessage: 'Could not load data.',
     eventsMessage: 'Could not load festival events.',
     retry: 'Try again',
+    screenTitle: 'Something went wrong',
+    screenDescription: 'An unexpected error occurred. Go back home and try again.',
   },
 
   // ── Loading ───────────────────────────────────────────────────────────────

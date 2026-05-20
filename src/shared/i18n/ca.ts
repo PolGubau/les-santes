@@ -107,7 +107,14 @@ export interface Translations {
     label: string; cacheAge: string; refresh: string; checking: string;
     agoMoment: string; agoMinutes: string; agoHours: string; agoDays: string;
   };
-  error: { title: string; defaultMessage: string; eventsMessage: string; retry: string };
+  error: {
+    title: string;
+    defaultMessage: string;
+    eventsMessage: string;
+    retry: string;
+    screenTitle: string;
+    screenDescription: string;
+  };
   loading: { default: string };
   notFound: { title: string; description: string; backToHome: string };
   settings: {
@@ -340,6 +347,8 @@ export const ca: Translations = {
     defaultMessage: "No s'han pogut carregar les dades.",
     eventsMessage: "No s'han pogut carregar els actes del festival.",
     retry: 'Tornar a intentar',
+    screenTitle: 'Quelcom ha anat malament',
+    screenDescription: "S'ha produït un error inesperat. Torna a l'inici i ho tornem a intentar.",
   },
 
   // ── Loading ───────────────────────────────────────────────────────────────

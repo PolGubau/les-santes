@@ -157,6 +157,8 @@ export const es: Translations = {
     defaultMessage: 'No se han podido cargar los datos.',
     eventsMessage: 'No se han podido cargar los actos del festival.',
     retry: 'Reintentar',
+    screenTitle: 'Algo ha ido mal',
+    screenDescription: 'Se ha producido un error inesperado. Vuelve al inicio e inténtalo de nuevo.',
   },
 
   // ── Loading ───────────────────────────────────────────────────────────────
