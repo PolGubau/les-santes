@@ -20,15 +20,14 @@ const FAR = { lat: 41.58, lng: 2.5 };
 
 function ev(partial: Partial<RawEvent> & { id: string }): RawEvent {
   return {
-    id: partial.id,
-    title: partial.title ?? partial.id,
-    type: partial.type ?? 'altres',
-    category: partial.category ?? 'cultural',
+    title: partial.id,
+    type: 'altres',
+    category: 'cultural',
     kind: 'static',
-    shortDescription: partial.shortDescription ?? '',
-    start: partial.start ?? '2026-07-27T18:00:00Z',
-    end: partial.end ?? '2026-07-27T20:00:00Z',
-    location: partial.location ?? NEAR,
+    shortDescription: '',
+    start: '2026-07-27T18:00:00Z',
+    end: '2026-07-27T20:00:00Z',
+    location: NEAR,
     ...partial,
   } as RawEvent;
 }
