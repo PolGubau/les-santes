@@ -92,7 +92,14 @@ function LocaleOption({ label, flag, active, onPress }: {
       accessibilityState={{ checked: active }}
       accessibilityLabel={label}
     >
-      <Text style={[styles.localeLabel, active && styles.localeLabelActive]}>{label}</Text>
+      <Text
+        style={[styles.localeLabel, active && styles.localeLabelActive]}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.7}
+      >
+        {label}
+      </Text>
       {active && <View style={styles.localeDot} />}
     </TouchableOpacity>
   );
@@ -317,8 +324,9 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    padding: 14,
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 12,
     borderRadius: 12,
     backgroundColor: Colors.surface,
     borderWidth: 1.5,
@@ -329,7 +337,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FDF0F2',
   },
   localeFlag: { fontSize: 20 },
-  localeLabel: { flex: 1, fontSize: 15, color: Colors.textMuted, ...Typography.semiBold },
+  localeLabel: { flex: 1, fontSize: 14, color: Colors.textMuted, ...Typography.semiBold },
   localeLabelActive: { color: Colors.primary },
   localeDot: {
     width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.primary,

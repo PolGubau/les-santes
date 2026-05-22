@@ -1,5 +1,6 @@
-import type { Event } from '@/entities/event';
+import { getEventTypeLabel, type Event } from '@/entities/event';
 import { Colors } from '@/shared/constants';
+import { t } from '@/shared/i18n';
 import { formatTime } from '@/shared/lib';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -52,12 +53,12 @@ export function HeroCard({ event, onPress }: Props) {
         {isLive && (
           <View style={styles.liveBadge}>
             <Animated.View style={[styles.liveDot, { opacity: dotOpacity }]} />
-            <Text style={styles.liveBadgeText}>EN CURS</Text>
+            <Text style={styles.liveBadgeText}>{t('now.liveBadge')}</Text>
           </View>
         )}
         <View style={styles.heroContent}>
           <Text style={styles.heroType}>
-            {event.type.toUpperCase().replace('FOCSARTIFICIALS', 'FOCS')}
+            {getEventTypeLabel(event.type).toUpperCase()}
           </Text>
           <Text style={styles.heroTitle} numberOfLines={2}>{event.title}</Text>
           <View style={styles.heroMeta}>
@@ -82,7 +83,7 @@ export function HeroCard({ event, onPress }: Props) {
         onPressOut={() => { scale.value = withSpring(1, { damping: 10, stiffness: 200 }); }}
         accessibilityRole="button"
         accessibilityLabel={event.title}
-        accessibilityHint="Toca per veure els detalls de l'acte"
+        accessibilityHint={t('now.tapHintShortA11y')}
       />
     </ReAnimated.View>
   );

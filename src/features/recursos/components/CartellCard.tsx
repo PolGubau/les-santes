@@ -1,4 +1,5 @@
 import { Colors } from '@/shared/constants';
+import { t } from '@/shared/i18n';
 import { Image } from 'expo-image';
 import { StyleSheet, Text, View } from 'react-native';
 import type { Cartell } from '../types';
@@ -24,7 +25,7 @@ export function CartellCard({ cartell, width }: Props) {
       ) : (
         <View style={[styles.placeholder, { height: cardHeight }]}>
           <Text style={styles.placeholderYear}>{cartell.year}</Text>
-          <Text style={styles.placeholderText}>Pròximament</Text>
+          <Text style={styles.placeholderText}>{t('recursos.comingSoon')}</Text>
         </View>
       )}
 

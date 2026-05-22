@@ -1,5 +1,6 @@
 import type { Announcement } from '@/entities/announcement';
 import { Colors } from '@/shared/constants';
+import { t } from '@/shared/i18n';
 import { AlertCircle, AlertTriangle, Info, X } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -62,7 +63,7 @@ export function AnnouncementBanner({ announcements }: Props) {
               onPress={() => setDismissed((prev) => new Set([...prev, a.id]))}
               hitSlop={8}
               style={styles.dismiss}
-              accessibilityLabel="Tancar avís"
+              accessibilityLabel={t('common.dismissNotice')}
             >
               <X size={14} color={s.text} />
             </Pressable>

@@ -4,8 +4,41 @@
  */
 export interface Translations {
   tabs: { ara: string; mapa: string; agenda: string; recursos: string };
-  common: { today: string };
+  common: {
+    today: string;
+    close: string;
+    dismissNotice: string;
+    ok: string;
+    continue: string;
+    error: string;
+    back: string;
+  };
+  location: {
+    permissionBody: string;
+  };
+  calendar: {
+    permissionTitle: string;
+    permissionBody: string;
+    deniedTitle: string;
+    deniedBody: string;
+    noPermissionTitle: string;
+    noPermissionBody: string;
+    noCalendarBody: string;
+    addedTitle: string;
+    addedBody: string;
+    errorBody: string;
+    noteMobileRoute: string;
+    noteStartFrom: string;
+    noteAddedFromApp: string;
+    noteOpenInApp: string;
+  };
   eventState: { now: string; upcoming: string; finished: string };
+  eventTypes: {
+    cercavila: string; correfoc: string; concert: string; sardanes: string;
+    castellera: string; gegants: string; exposicio: string; espectacle: string;
+    missa: string; focsartificials: string; cursa: string; jocs: string;
+    contes: string; altres: string;
+  };
   agenda: {
     title: string;
     eventsCount: string;
@@ -24,12 +57,17 @@ export interface Translations {
     emptyFilteredNudgeDesc: string;
     emptyFilteredNudgeCta: string;
     close: string;
+    sectionNow: string;
+    sectionUpcoming: string;
+    sectionFinished: string;
+    nit: string;
   };
   filters: {
     favorites: string; nearMe: string; correfoc: string; concert: string;
     sardanes: string; gegants: string; castellera: string; cercavila: string; espectacle: string; jocs: string;
     categoryNocturn: string; categoryFamiliar: string;
     categoryTradicional: string; categoryCultural: string;
+    filterA11y: string; categoryA11y: string;
   };
   now: {
     appTitle: string; subtitle: string;
@@ -46,12 +84,32 @@ export interface Translations {
     suggestAgendaTitle: string;
     suggestAgendaDesc: string;
     suggestAgendaCta: string;
+    liveBadge: string;
+    itinerant: string;
+    fixedPlace: string;
+    untilTime: string;
+    liveUntilA11y: string;
+    tapHintShortA11y: string;
   };
   map: {
     resetTime: string;
     clusterSameLocation: string;
     firstVisitTitle: string;
     firstVisitDesc: string;
+    loadingMap: string;
+    offlineTitle: string;
+    offlineBody: string;
+    viewAgenda: string;
+    viewFullAgenda: string;
+    viewFullRoute: string;
+    openOnMap: string;
+    resultSingular: string;
+    resultPlural: string;
+    liveCountInline: string;
+    locationAlertTitle: string;
+    locationAlertBody: string;
+    locationAlertContinue: string;
+    retry: string;
   };
   event: {
     notFound: string;
@@ -72,6 +130,15 @@ export interface Translations {
     agendaShort: string;
     shareEventA11y: string;
     share: string;
+    cardA11y: string;
+    viewDetailA11y: string;
+    tapHintA11y: string;
+  };
+  notification: {
+    appName: string;
+    timeNow: string;
+    previewDrums: string;
+    previewFireworks: string;
   };
   recursos: {
     title: string;
@@ -90,6 +157,12 @@ export interface Translations {
     comparsesLabel: string;
     begudesTitle: string;
     begudesLabel: string;
+    viewFront: string;
+    viewBack: string;
+    cara: string;
+    dors: string;
+    imageUnavailable: string;
+    comingSoon: string;
   };
   onboarding: {
     welcomeTitle: string;
@@ -197,6 +270,38 @@ export const ca: Translations = {
   // ── Common ────────────────────────────────────────────────────────────────
   common: {
     today: 'Avui',
+    close: 'Tancar',
+    dismissNotice: 'Tancar avís',
+    ok: "D'acord",
+    continue: 'Continua',
+    error: 'Error',
+    back: 'Tornar',
+  },
+
+  // ── Location permission ───────────────────────────────────────────────────
+  location: {
+    permissionBody:
+      "Utilitzem la ubicació per mostrar actes prop teu i ordenar‑los per distància. Mai es comparteix ni s'emmagatzema.",
+  },
+
+  // ── Calendar permission / actions ─────────────────────────────────────────
+  calendar: {
+    permissionTitle: 'Afegir al calendari',
+    permissionBody:
+      "Volem accedir al teu calendari per guardar aquest acte. Només hi escrivim l'acte que tu selecciones; mai llegim ni modifiquem res més.",
+    deniedTitle: 'Accés al calendari denegat',
+    deniedBody:
+      'Per afegir actes al calendari, activa el permís a Configuració > Les Santes.',
+    noPermissionTitle: 'Sense permisos',
+    noPermissionBody: "Activa l'accés al calendari a la configuració.",
+    noCalendarBody: "No s'ha pogut trobar un calendari disponible.",
+    addedTitle: 'Afegit! 📅',
+    addedBody: '"%{title}" s\'ha afegit al teu calendari.',
+    errorBody: "No s'ha pogut afegir l'event al calendari.",
+    noteMobileRoute: '🚶 Recorregut pels carrers',
+    noteStartFrom: 'Sortida: %{name}',
+    noteAddedFromApp: "Afegit des de l'app Les Santes 🎉",
+    noteOpenInApp: "Obre l'acte a l'app: %{url}",
   },
 
   // ── Tabs ──────────────────────────────────────────────────────────────────
@@ -212,6 +317,24 @@ export const ca: Translations = {
     now: 'Ara',
     upcoming: 'Pròxim',
     finished: 'Finalitzat',
+  },
+
+  // ── Event types (mapped from backend identifiers) ─────────────────────────
+  eventTypes: {
+    cercavila: 'Cercavila',
+    correfoc: 'Correfoc',
+    concert: 'Concert',
+    sardanes: 'Sardanes',
+    castellera: 'Castellera',
+    gegants: 'Gegants',
+    exposicio: 'Exposició',
+    espectacle: 'Espectacle',
+    missa: 'Missa',
+    focsartificials: 'Focs artificials',
+    cursa: 'Cursa',
+    jocs: 'Jocs',
+    contes: 'Contes',
+    altres: 'Altres',
   },
 
   // ── Agenda screen ─────────────────────────────────────────────────────────
@@ -233,6 +356,10 @@ export const ca: Translations = {
     emptyFilteredNudgeDesc: 'Vols veure què està passant ara mateix al festival?',
     emptyFilteredNudgeCta: 'Veure ara',
     close: 'Tancar',
+    sectionNow: 'Ara mateix',
+    sectionUpcoming: 'Pròxims',
+    sectionFinished: 'Finalitzats',
+    nit: 'Nit',
   },
 
   // ── Filter bar ────────────────────────────────────────────────────────────
@@ -251,6 +378,8 @@ export const ca: Translations = {
     categoryFamiliar: 'Familiar',
     categoryTradicional: 'Tradicional',
     categoryCultural: 'Cultural',
+    filterA11y: 'Filtre %{label}',
+    categoryA11y: 'Categoria %{label}',
   },
 
   // ── Now screen ────────────────────────────────────────────────────────────
@@ -272,12 +401,32 @@ export const ca: Translations = {
     suggestAgendaTitle: 'Encara no tens favorits',
     suggestAgendaDesc: "Explora l'agenda i guarda els actes que no et vols perdre.",
     suggestAgendaCta: 'Veure agenda',
+    liveBadge: 'EN CURS',
+    itinerant: 'Itinerant',
+    fixedPlace: 'Lloc fix',
+    untilTime: 'fins %{time}',
+    liveUntilA11y: '%{title}. En curs fins a %{time}',
+    tapHintShortA11y: 'Prem per veure els detalls',
   },
   map: {
     resetTime: 'Restablir hora',
     clusterSameLocation: '%{count} actes al mateix lloc',
     firstVisitTitle: 'Explora el mapa',
     firstVisitDesc: 'Mou‑te i fes zoom per veure tots els actes del festival.',
+    loadingMap: 'Carregant el mapa…',
+    offlineTitle: 'Mapa no disponible',
+    offlineBody: "No s'ha pogut carregar el mapa.\nPots consultar els actes a l'agenda.",
+    viewAgenda: "Veure l'agenda →",
+    viewFullAgenda: "Veure tota l'agenda",
+    viewFullRoute: 'Veure la ruta completa',
+    openOnMap: 'Obrir al mapa',
+    resultSingular: 'resultat',
+    resultPlural: 'resultats',
+    liveCountInline: '%{count} en curs',
+    locationAlertTitle: 'Activa la ubicació',
+    locationAlertBody: "Permet l'accés a la teva ubicació per veure't al mapa i trobar actes propers.",
+    locationAlertContinue: 'Continua',
+    retry: 'Torna-ho a intentar',
   },
   event: {
     notFound: 'Acte no trobat.',
@@ -298,6 +447,15 @@ export const ca: Translations = {
     agendaShort: 'Agenda',
     shareEventA11y: 'Compartir acte',
     share: 'Compartir',
+    cardA11y: '%{title}. %{state}. %{time}',
+    viewDetailA11y: "Veure detall de l'acte",
+    tapHintA11y: "Prem per veure el detall de l'acte",
+  },
+  notification: {
+    appName: 'Les Santes',
+    timeNow: 'ara',
+    previewDrums: 'Els tabals comencen en 5 min · Plaça de Cuba',
+    previewFireworks: 'Els focs comencen en 10 min · Platja del Callao',
   },
   recursos: {
     title: 'Recursos',
@@ -316,6 +474,12 @@ export const ca: Translations = {
     comparsesLabel: '%{count} colles',
     begudesTitle: 'Begudes',
     begudesLabel: 'La Juliana i més',
+    viewFront: 'Veure cara',
+    viewBack: 'Veure dors',
+    cara: 'Cara',
+    dors: 'Dors',
+    imageUnavailable: 'Imatge no disponible',
+    comingSoon: 'Pròximament',
   },
   onboarding: {
     welcomeTitle: 'Benvinguts a Les Santes',

@@ -1,5 +1,6 @@
 ﻿import { STATE_COLOR, getStateLabel, type Event } from '@/entities/event';
 import { Colors } from '@/shared/constants';
+import { t } from '@/shared/i18n';
 import { addEventToCalendar, formatDayShort, formatTime } from '@/shared/lib';
 import BottomSheet, {
   BottomSheetBackdrop,
@@ -39,8 +40,11 @@ export function EventSnapSheet({ event, onClose, showViewInMap, onViewInMap }: P
     sheetRef.current?.snapToIndex(0);
   }, [event.id]);
 
+  // tabBarHeight already includes insets.bottom (set in _layout.tsx), so we
+  // must NOT add insets.bottom again to the peek snap — that would double-count
+  // the system navigation bar height on Android 3-button devices.
   const snapPoints = useMemo(
-    () => [PEEK_H + insets.bottom + tabBarHeight, FULL_H + insets.bottom],
+    () => [PEEK_H + tabBarHeight, FULL_H + insets.bottom],
     [insets.bottom, tabBarHeight],
   );
 
@@ -126,7 +130,7 @@ export function EventSnapSheet({ event, onClose, showViewInMap, onViewInMap }: P
             <Pressable
               onPress={handleViewDetail}
               style={({ pressed }) => [styles.detailBtn, pressed && { opacity: 0.7 }]}
-              accessibilityLabel="Veure detall de l'acte"
+              accessibilityLabel={t('event.viewDetailA11y')}
             >
               <ExternalLink size={16} color={Colors.primary} />
             </Pressable>
@@ -161,14 +165,14 @@ export function EventSnapSheet({ event, onClose, showViewInMap, onViewInMap }: P
             {event.kind === 'mobile' && (
               <View style={styles.detailRow}>
                 <PersonStanding size={15} color={Colors.textDim} />
-                <Text style={styles.detailText}>Recorregut pels carrers</Text>
+                <Text style={styles.detailText}>{t('event.mobileRoute')}</Text>
               </View>
             )}
             {event.kind === 'static' && event.locationName && (
               <Pressable
                 style={({ pressed }) => [styles.detailRow, pressed && { opacity: 0.6 }]}
                 onPress={handleGetDirections}
-                accessibilityLabel={`Com arribar a ${event.locationName}`}
+                accessibilityLabel={t('event.getDirectionsLabel', { name: event.locationName })}
                 accessibilityRole="link"
               >
                 <MapPin size={15} color={Colors.primary} />
@@ -184,7 +188,7 @@ export function EventSnapSheet({ event, onClose, showViewInMap, onViewInMap }: P
               onPress={handleCalendar}
             >
               <CalendarPlus size={18} color="#fff" />
-              <Text style={styles.calendarBtnText}>Afegir al calendari</Text>
+              <Text style={styles.calendarBtnText}>{t('event.addCalendar')}</Text>
             </Pressable>
             {showViewInMap && onViewInMap && (
               <Pressable
@@ -192,7 +196,7 @@ export function EventSnapSheet({ event, onClose, showViewInMap, onViewInMap }: P
                 onPress={handleViewInMap}
               >
                 <Map size={18} color={Colors.primary} />
-                <Text style={styles.mapBtnText}>Veure al mapa</Text>
+                <Text style={styles.mapBtnText}>{t('event.suggestMapCta')}</Text>
               </Pressable>
             )}
           </View>

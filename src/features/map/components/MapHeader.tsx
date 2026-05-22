@@ -72,7 +72,7 @@ export const MapHeader = React.memo(function MapHeader({
           <Search size={16} color={isFiltering ? Colors.primary : Colors.textMuted} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Cerca actes…"
+            placeholder={t('agenda.searchPlaceholder')}
             placeholderTextColor={Colors.textDim}
             value={searchText}
             onChangeText={onSearchChange}

@@ -1,10 +1,12 @@
 import { POSTAL_ASSETS } from '@/entities/postal';
 import { Colors } from '@/shared/constants';
+import { t } from '@/shared/i18n';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { ChevronLeft, ChevronRight, ImageOff, X } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
 import { Modal, Pressable, StatusBar, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   Easing,
@@ -31,6 +33,7 @@ export function PostalCard({ postal, width }: Props) {
   const [showDors, setShowDors] = useState(false);
   const [lightbox, setLightbox] = useState(false);
   const { width: screenW, height: screenH } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
 
   const cardHeight = width * 0.68;
   const assets = POSTAL_ASSETS[postal.id];
@@ -132,7 +135,7 @@ export function PostalCard({ postal, width }: Props) {
               style={{ width: screenW, height: screenH }}
             />
           </Pressable>
-          <Pressable style={styles.lbClose} onPress={() => setLightbox(false)} hitSlop={12}>
+          <Pressable style={[styles.lbClose, { top: insets.top + 12 }]} onPress={() => setLightbox(false)} hitSlop={12}>
             <X size={20} color="#fff" />
           </Pressable>
         </Modal>
@@ -156,8 +159,8 @@ export function PostalCard({ postal, width }: Props) {
               ) : (
                 <View style={styles.placeholder}>
                   <ImageOff size={28} color={Colors.textDim} />
-                  <Text style={styles.placeholderText}>{postal.year} — Cara</Text>
-                  <Text style={styles.placeholderSub}>Imatge no disponible</Text>
+                  <Text style={styles.placeholderText}>{postal.year} — {t('recursos.cara')}</Text>
+                  <Text style={styles.placeholderSub}>{t('recursos.imageUnavailable')}</Text>
                 </View>
               )}
             </View>
@@ -174,8 +177,8 @@ export function PostalCard({ postal, width }: Props) {
               ) : (
                 <View style={styles.placeholder}>
                   <ImageOff size={28} color={Colors.textDim} />
-                  <Text style={styles.placeholderText}>{postal.year} — Dors</Text>
-                  <Text style={styles.placeholderSub}>Imatge no disponible</Text>
+                  <Text style={styles.placeholderText}>{postal.year} — {t('recursos.dors')}</Text>
+                  <Text style={styles.placeholderSub}>{t('recursos.imageUnavailable')}</Text>
                 </View>
               )}
             </View>
@@ -183,7 +186,7 @@ export function PostalCard({ postal, width }: Props) {
 
           {/* Side badge */}
           <View style={styles.sideBadge}>
-            <Text style={styles.sideBadgeText}>{showDors ? 'Dors' : 'Cara'}</Text>
+            <Text style={styles.sideBadgeText}>{showDors ? t('recursos.dors') : t('recursos.cara')}</Text>
           </View>
 
           {/* Swipe hint dots — only when both sides exist */}
@@ -207,19 +210,19 @@ export function PostalCard({ postal, width }: Props) {
             <Pressable
               style={[styles.flipBtn, !showDors && styles.flipBtnActive]}
               onPress={() => goToPage(0)}
-              accessibilityLabel="Veure cara"
+              accessibilityLabel={t('recursos.viewFront')}
             >
               <ChevronLeft size={14} color={!showDors ? '#fff' : Colors.textDim} />
-              <Text style={[styles.flipLabel, !showDors && styles.flipLabelActive]}>Cara</Text>
+              <Text style={[styles.flipLabel, !showDors && styles.flipLabelActive]}>{t('recursos.cara')}</Text>
             </Pressable>
           )}
           {hasBack && (
             <Pressable
               style={[styles.flipBtn, showDors && styles.flipBtnActive]}
               onPress={() => goToPage(1)}
-              accessibilityLabel="Veure dors"
+              accessibilityLabel={t('recursos.viewBack')}
             >
-              <Text style={[styles.flipLabel, showDors && styles.flipLabelActive]}>Dors</Text>
+              <Text style={[styles.flipLabel, showDors && styles.flipLabelActive]}>{t('recursos.dors')}</Text>
               <ChevronRight size={14} color={showDors ? '#fff' : Colors.textDim} />
             </Pressable>
           )}
@@ -309,9 +312,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  // lbClose top is set dynamically via inline style using insets.top
   lbClose: {
     position: 'absolute',
-    top: 52,
     right: 20,
     width: 36,
     height: 36,

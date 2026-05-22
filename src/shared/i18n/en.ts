@@ -7,6 +7,38 @@ export const en: Translations = {
   // ── Common ────────────────────────────────────────────────────────────────
   common: {
     today: 'Today',
+    close: 'Close',
+    dismissNotice: 'Dismiss notice',
+    ok: 'OK',
+    continue: 'Continue',
+    error: 'Error',
+    back: 'Back',
+  },
+
+  // ── Location permission ───────────────────────────────────────────────────
+  location: {
+    permissionBody:
+      "We use your location to show events near you and sort them by distance. It is never shared or stored.",
+  },
+
+  // ── Calendar permission / actions ─────────────────────────────────────────
+  calendar: {
+    permissionTitle: 'Add to calendar',
+    permissionBody:
+      "We need access to your calendar to save this event. We only write the event you select; we never read or modify anything else.",
+    deniedTitle: 'Calendar access denied',
+    deniedBody:
+      'To add events to your calendar, enable the permission in Settings > Les Santes.',
+    noPermissionTitle: 'No permission',
+    noPermissionBody: 'Enable calendar access in settings.',
+    noCalendarBody: 'No available calendar could be found.',
+    addedTitle: 'Added! 📅',
+    addedBody: '"%{title}" has been added to your calendar.',
+    errorBody: 'Could not add the event to your calendar.',
+    noteMobileRoute: '🚶 Route through the streets',
+    noteStartFrom: 'Start: %{name}',
+    noteAddedFromApp: 'Added from the Les Santes app 🎉',
+    noteOpenInApp: 'Open the event in the app: %{url}',
   },
 
   // ── Tabs ──────────────────────────────────────────────────────────────────
@@ -22,6 +54,24 @@ export const en: Translations = {
     now: 'Now',
     upcoming: 'Upcoming',
     finished: 'Finished',
+  },
+
+  // ── Event types (mapped from backend identifiers) ─────────────────────────
+  eventTypes: {
+    cercavila: 'Procession',
+    correfoc: 'Correfoc',
+    concert: 'Concert',
+    sardanes: 'Sardanes',
+    castellera: 'Castellera',
+    gegants: 'Giants',
+    exposicio: 'Exhibition',
+    espectacle: 'Show',
+    missa: 'Mass',
+    focsartificials: 'Fireworks',
+    cursa: 'Race',
+    jocs: 'Games',
+    contes: 'Storytelling',
+    altres: 'Other',
   },
 
   // ── Agenda screen ─────────────────────────────────────────────────────────
@@ -43,6 +93,10 @@ export const en: Translations = {
     emptyFilteredNudgeDesc: 'Want to see what is happening right now at the festival?',
     emptyFilteredNudgeCta: 'See what is on',
     close: 'Close',
+    sectionNow: 'Right now',
+    sectionUpcoming: 'Upcoming',
+    sectionFinished: 'Finished',
+    nit: 'Night',
   },
 
   // ── Filter bar ────────────────────────────────────────────────────────────
@@ -61,6 +115,8 @@ export const en: Translations = {
     categoryFamiliar: 'Family',
     categoryTradicional: 'Traditional',
     categoryCultural: 'Cultural',
+    filterA11y: '%{label} filter',
+    categoryA11y: '%{label} category',
   },
 
   // ── Now screen ────────────────────────────────────────────────────────────
@@ -82,12 +138,32 @@ export const en: Translations = {
     suggestAgendaTitle: "You don't have favourites yet",
     suggestAgendaDesc: "Browse the schedule and save the events you don't want to miss.",
     suggestAgendaCta: 'Open schedule',
+    liveBadge: 'LIVE',
+    itinerant: 'Itinerant',
+    fixedPlace: 'Fixed place',
+    untilTime: 'until %{time}',
+    liveUntilA11y: '%{title}. Live until %{time}',
+    tapHintShortA11y: 'Tap to see the details',
   },
   map: {
     resetTime: 'Reset time',
     clusterSameLocation: '%{count} events at the same place',
     firstVisitTitle: 'Explore the map',
     firstVisitDesc: 'Pan and zoom to see all the festival events.',
+    loadingMap: 'Loading the map…',
+    offlineTitle: 'Map unavailable',
+    offlineBody: "Couldn't load the map.\nYou can browse events in the schedule.",
+    viewAgenda: 'Open schedule →',
+    viewFullAgenda: 'See full schedule',
+    viewFullRoute: 'See the full route',
+    openOnMap: 'Open on the map',
+    resultSingular: 'result',
+    resultPlural: 'results',
+    liveCountInline: '%{count} live',
+    locationAlertTitle: 'Enable location',
+    locationAlertBody: 'Allow access to your location to see yourself on the map and find nearby events.',
+    locationAlertContinue: 'Continue',
+    retry: 'Try again',
   },
   event: {
     notFound: 'Event not found.',
@@ -108,6 +184,15 @@ export const en: Translations = {
     agendaShort: 'Schedule',
     shareEventA11y: 'Share event',
     share: 'Share',
+    cardA11y: '%{title}. %{state}. %{time}',
+    viewDetailA11y: 'View event details',
+    tapHintA11y: 'Tap to see the event details',
+  },
+  notification: {
+    appName: 'Les Santes',
+    timeNow: 'now',
+    previewDrums: 'The drums start in 5 min · Plaça de Cuba',
+    previewFireworks: 'Fireworks start in 10 min · Platja del Callao',
   },
   recursos: {
     title: 'Resources',
@@ -126,6 +211,12 @@ export const en: Translations = {
     comparsesLabel: '%{count} groups',
     begudesTitle: 'Drinks',
     begudesLabel: 'La Juliana and more',
+    viewFront: 'View front',
+    viewBack: 'View back',
+    cara: 'Front',
+    dors: 'Back',
+    imageUnavailable: 'Image unavailable',
+    comingSoon: 'Coming soon',
   },
   onboarding: {
     welcomeTitle: 'Welcome to Les Santes',

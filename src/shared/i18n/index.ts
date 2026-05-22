@@ -12,13 +12,30 @@ import { es } from './es';
  */
 const i18n = new I18n({ ca, en, es });
 
-// Resolve locale from the device's preferred locales list
-const deviceLocale = getLocales()[0]?.languageCode ?? 'ca';
-i18n.locale = deviceLocale;
+const SUPPORTED_LOCALES = ['ca', 'es', 'en'] as const;
+type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
 
-// Fall back to Catalan for any unsupported locale
+/**
+ * Walk through the device's ordered list of preferred locales and pick the
+ * first one we actually ship translations for. Falls back to Catalan when
+ * none of the device's languages are supported (rather than blindly using
+ * the top entry, which may be e.g. Catalan on a phone whose primary OS
+ * language is Spanish).
+ */
+function resolveDeviceLocale(): SupportedLocale {
+  const locales = getLocales();
+  for (const loc of locales) {
+    const code = loc.languageCode?.toLowerCase();
+    if (code && (SUPPORTED_LOCALES as readonly string[]).includes(code)) {
+      return code as SupportedLocale;
+    }
+  }
+  return 'ca';
+}
+
 i18n.defaultLocale = 'ca';
 i18n.enableFallback = true;
+i18n.locale = resolveDeviceLocale();
 
 /**
  * Translate a key using the current device locale.

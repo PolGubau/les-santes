@@ -1,4 +1,5 @@
 import type { Event } from '@/entities/event';
+import { t } from '@/shared/i18n';
 import * as Calendar from 'expo-calendar';
 import { Alert, Platform } from 'react-native';
 
@@ -25,14 +26,14 @@ function buildCalendarNotes(event: Event): string {
   if (event.kind === 'static' && event.locationName) {
     lines.push(`📍 ${event.locationName}`);
   } else if (event.kind === 'mobile') {
-    lines.push('🚶 Recorregut pels carrers');
-    if (event.locationName) lines.push(`Sortida: ${event.locationName}`);
+    lines.push(t('calendar.noteMobileRoute'));
+    if (event.locationName) lines.push(t('calendar.noteStartFrom', { name: event.locationName }));
   }
 
   lines.push('');
   lines.push('———');
-  lines.push('Afegit des de l\'app Les Santes 🎉');
-  lines.push(`Obre l'acte a l'app: ${APP_SCHEME}://event/${event.id}`);
+  lines.push(t('calendar.noteAddedFromApp'));
+  lines.push(t('calendar.noteOpenInApp', { url: `${APP_SCHEME}://event/${event.id}` }));
 
   return lines.join('\n');
 }
@@ -55,9 +56,9 @@ export async function addEventToCalendar(event: Event): Promise<void> {
 
   if (existing === 'denied') {
     Alert.alert(
-      'Accés al calendari denegat',
-      'Per afegir actes al calendari, activa el permís a Configuració > Les Santes.',
-      [{ text: 'D\'acord' }],
+      t('calendar.deniedTitle'),
+      t('calendar.deniedBody'),
+      [{ text: t('common.ok') }],
     );
     return;
   }
@@ -66,11 +67,11 @@ export async function addEventToCalendar(event: Event): Promise<void> {
     // Show contextual explanation before the OS permission prompt
     const confirmed = await new Promise<boolean>((resolve) => {
       Alert.alert(
-        'Afegir al calendari',
-        'Volem accedir al teu calendari per guardar aquest acte. Només hi escrivim l\'acte que tu selecciones; mai llegim ni modifiquem res més.',
+        t('calendar.permissionTitle'),
+        t('calendar.permissionBody'),
         [
-          { text: 'Ara no', style: 'cancel', onPress: () => resolve(false) },
-          { text: 'Continua', onPress: () => resolve(true) },
+          { text: t('onboarding.notNow'), style: 'cancel', onPress: () => resolve(false) },
+          { text: t('common.continue'), onPress: () => resolve(true) },
         ],
       );
     });
@@ -79,13 +80,13 @@ export async function addEventToCalendar(event: Event): Promise<void> {
 
   const { status } = await Calendar.requestCalendarPermissionsAsync();
   if (status !== 'granted') {
-    Alert.alert('Sense permisos', 'Activa l\'accés al calendari a la configuració.');
+    Alert.alert(t('calendar.noPermissionTitle'), t('calendar.noPermissionBody'));
     return;
   }
 
   const calendarId = await getDefaultCalendarId();
   if (!calendarId) {
-    Alert.alert('Error', 'No s\'ha pogut trobar un calendari disponible.');
+    Alert.alert(t('common.error'), t('calendar.noCalendarBody'));
     return;
   }
 
@@ -103,8 +104,8 @@ export async function addEventToCalendar(event: Event): Promise<void> {
       timeZone: 'Europe/Madrid',
       availability: Calendar.Availability.BUSY,
     });
-    Alert.alert('Afegit! 📅', `"${event.title}" s'ha afegit al teu calendari.`);
+    Alert.alert(t('calendar.addedTitle'), t('calendar.addedBody', { title: event.title }));
   } catch {
-    Alert.alert('Error', 'No s\'ha pogut afegir l\'event al calendari.');
+    Alert.alert(t('common.error'), t('calendar.errorBody'));
   }
 }

@@ -1,4 +1,5 @@
 import { Colors } from "@/shared/constants";
+import { t } from "@/shared/i18n";
 import { Lightbulb, X } from "lucide-react-native";
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -45,7 +46,7 @@ export function ContextualHint({ title, description, ctaLabel, onCta, onDismiss 
 				onPress={onDismiss}
 				style={({ pressed }) => [styles.close, pressed && { opacity: 0.6 }]}
 				accessibilityRole="button"
-				accessibilityLabel="Tancar"
+				accessibilityLabel={t('common.close')}
 				hitSlop={8}
 			>
 				<X size={16} color={Colors.textMuted} />

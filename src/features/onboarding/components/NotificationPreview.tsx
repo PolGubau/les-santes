@@ -1,4 +1,5 @@
 import { Colors, Typography } from '@/shared/constants';
+import { t } from '@/shared/i18n';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
@@ -38,7 +39,7 @@ export function NotificationPreview() {
         entering={FadeInUp.duration(520).delay(180).springify().damping(24)}
         style={[styles.stack, styles.backWrap]}
       >
-        <Card title="LES SANTES" time="ara" body="🥁 Tabalada comença en 30 min" />
+        <Card title={t('notification.appName')} time={t('notification.timeNow')} body={t('notification.previewDrums')} />
       </Animated.View>
 
       {/* front card */}
@@ -47,9 +48,9 @@ export function NotificationPreview() {
         style={styles.stack}
       >
         <Card
-          title="LES SANTES"
-          time="ara"
-          body="🎆 Focs d'artifici comencen en 30 min"
+          title={t('notification.appName')}
+          time={t('notification.timeNow')}
+          body={t('notification.previewFireworks')}
         />
       </Animated.View>
     </View>

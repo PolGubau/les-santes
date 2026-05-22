@@ -1,6 +1,8 @@
 import type { Event } from '@/entities/event';
+import { getStateLabel } from '@/entities/event';
 import { useFavoritesStore } from '@/features/favorites';
 import { Colors } from '@/shared/constants';
+import { t } from '@/shared/i18n';
 import { formatTime } from '@/shared/lib';
 import { EventIcon } from '@/shared/ui';
 import { Image } from 'expo-image';
@@ -10,7 +12,6 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  withSpring,
   withTiming,
 } from 'react-native-reanimated';
 
@@ -26,7 +27,7 @@ interface Props {
 export function EventCard({ event, onPress, distanceMeters }: Props) {
   const scale = useSharedValue(1);
   const isFinished = event.state === 'finished';
-  const stateLabel = event.state === 'now' ? 'En curs' : event.state === 'upcoming' ? 'Proximament' : 'Acabat';
+  const stateLabel = getStateLabel(event.state);
 
   const { isFavorite } = useFavoritesStore();
   const favorite = isFavorite(event.id);
@@ -51,7 +52,11 @@ export function EventCard({ event, onPress, distanceMeters }: Props) {
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         accessibilityRole="button"
-        accessibilityLabel={`${event.title}. ${stateLabel}. De ${formatTime(event.start)} a ${formatTime(event.end)}`}
+        accessibilityLabel={t('event.cardA11y', {
+          title: event.title,
+          state: stateLabel,
+          time: `${formatTime(event.start)} – ${formatTime(event.end)}`,
+        })}
         accessibilityState={{ disabled: isFinished }}
       >
         {/* Thumbnail */}

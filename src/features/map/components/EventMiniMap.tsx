@@ -1,5 +1,6 @@
 import type { Event } from '@/entities/event';
 import { Colors } from '@/shared/constants';
+import { t } from '@/shared/i18n';
 import React, { useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import WebView from 'react-native-webview';
@@ -97,7 +98,7 @@ export function EventMiniMap({ event, onPress, zoom = 15.5 }: Props) {
 
   if (!hasLocation) return null;
 
-  const label = event.kind === 'mobile' ? 'Veure la ruta completa' : 'Obrir al mapa';
+  const label = event.kind === 'mobile' ? t('map.viewFullRoute') : t('map.openOnMap');
 
   return (
     <View style={s.wrap}>

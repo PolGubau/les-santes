@@ -2,6 +2,7 @@ import type { Event } from '@/entities/event';
 import { STATE_COLOR } from '@/entities/event';
 import { Colors } from '@/shared/constants';
 import type { UserCoords } from '@/shared/hooks';
+import { t } from '@/shared/i18n';
 import { haversineDistance } from '@/shared/lib';
 import { AgendaSkeletonList } from './AgendaSkeletonList';
 import { CalendarOff, Moon } from 'lucide-react-native';
@@ -64,7 +65,7 @@ const SectionCard = memo(function SectionCard({
                 <View style={styles.nitSeparator}>
                   <View style={styles.nitLine} />
                   <Moon size={12} color={Colors.textMuted} />
-                  <Text style={styles.nitLabel}>Nit</Text>
+                  <Text style={styles.nitLabel}>{t('agenda.nit')}</Text>
                   <View style={styles.nitLine} />
                 </View>
               )}
@@ -91,7 +92,7 @@ export function AgendaList({
   onRefresh,
   refreshing = false,
   loading = false,
-  emptyText = 'Cap acte trobat',
+  emptyText = t('agenda.emptyFiltered'),
   emptySubtext,
   emptyExtra,
 }: Props) {

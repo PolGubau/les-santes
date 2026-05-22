@@ -11,6 +11,7 @@ import { Tabs } from 'expo-router';
 import { BookOpen, CalendarDays, Map as MapIcon, Settings, Zap } from 'lucide-react-native';
 import { useEffect, useMemo } from 'react';
 import { Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const tabPress = () =>
   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -20,6 +21,7 @@ export default function TabsLayout() {
   const { events } = useEvents();
   const { now, upcoming } = useNowEvents(events);
   const { favorites } = useFavoritesStore();
+  const insets = useSafeAreaInsets();
 
   // Handle quick action navigation (both cold and warm starts)
   useQuickActionRouting();
@@ -74,8 +76,8 @@ export default function TabsLayout() {
           shadowOpacity: 0.08,
           shadowRadius: 8,
           elevation: 8,
-          height: 64,
-          paddingBottom: 8,
+          height: 64 + insets.bottom,
+          paddingBottom: 8 + insets.bottom,
           paddingTop: 6,
         },
         tabBarActiveTintColor: Colors.primary,

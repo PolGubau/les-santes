@@ -56,7 +56,7 @@ export function AgendaFilterBar({
           style={[styles.chip, filters.onlyFavorites && styles.chipFavorites]}
           onPress={() => { Haptics.selectionAsync(); onToggleFavorites(); }}
           accessibilityRole="tab"
-          accessibilityLabel="Filtre: Favorits"
+          accessibilityLabel={t('filters.filterA11y', { label: t('filters.favorites') })}
           accessibilityState={{ selected: !!filters.onlyFavorites }}
         >
           <Heart
@@ -80,7 +80,7 @@ export function AgendaFilterBar({
             style={[styles.chip, filters.nearMe && styles.chipNearMe]}
             onPress={() => { Haptics.selectionAsync(); onToggleNearMe(); }}
             accessibilityRole="tab"
-            accessibilityLabel="Filtre: Aprop meu"
+            accessibilityLabel={t('filters.filterA11y', { label: t('filters.nearMe') })}
             accessibilityState={{ selected: !!filters.nearMe }}
           >
             <MapPin size={15} color={filters.nearMe ? '#fff' : Colors.primary} />
@@ -97,7 +97,7 @@ export function AgendaFilterBar({
               style={[styles.chip, active && styles.chipActive]}
               onPress={() => { Haptics.selectionAsync(); onSetType(active ? undefined : f.value); }}
               accessibilityRole="tab"
-              accessibilityLabel={`Filtre: ${f.label}`}
+              accessibilityLabel={t('filters.filterA11y', { label: f.label })}
               accessibilityState={{ selected: active }}
             >
               {f.Icon && <f.Icon size={15} color={active ? '#fff' : Colors.textDim} />}
@@ -118,7 +118,7 @@ export function AgendaFilterBar({
               style={[styles.chip, active && styles.chipCategoryActive]}
               onPress={() => { Haptics.selectionAsync(); onSetCategory(active ? undefined : f.value); }}
               accessibilityRole="tab"
-              accessibilityLabel={`Categoria: ${f.labelFn()}`}
+              accessibilityLabel={t('filters.categoryA11y', { label: f.labelFn() })}
               accessibilityState={{ selected: active }}
             >
               <Text style={styles.chipEmoji}>{f.emoji}</Text>

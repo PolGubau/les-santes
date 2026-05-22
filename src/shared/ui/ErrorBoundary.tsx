@@ -1,4 +1,5 @@
 import { Colors } from '@/shared/constants';
+import { t } from '@/shared/i18n';
 import { TriangleAlert } from 'lucide-react-native';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -27,15 +28,15 @@ export class ErrorBoundary extends React.Component<Props, State> {
       return (
         <View style={styles.container}>
           <TriangleAlert size={48} color={Colors.primary} />
-          <Text style={styles.title}>Quelcom ha anat malament</Text>
+          <Text style={styles.title}>{t('error.screenTitle')}</Text>
           <Text style={styles.message}>{this.state.error.message}</Text>
           <Pressable
             style={styles.button}
             onPress={this.reset}
             accessibilityRole="button"
-            accessibilityLabel="Tornar a intentar-ho"
+            accessibilityLabel={t('error.retry')}
           >
-            <Text style={styles.buttonText}>Tornar a intentar</Text>
+            <Text style={styles.buttonText}>{t('error.retry')}</Text>
           </Pressable>
         </View>
       );

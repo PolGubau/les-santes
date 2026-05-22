@@ -1,11 +1,13 @@
 import { type Event, STATE_COLOR, getStateLabel } from '@/entities/event';
 import { Colors } from '@/shared/constants';
+import { t } from '@/shared/i18n';
 import { formatDayShort, formatTime } from '@/shared/lib';
 import { BottomSheet, EventIcon } from '@/shared/ui';
 import { router } from 'expo-router';
 import { ArrowRight, ChevronRight } from 'lucide-react-native';
 import React from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface Props {
   events: Event[];
@@ -46,17 +48,22 @@ const HANDLE_H = 36;   // handle area paddingVertical*2 + bar
 const HEADER_H = 56;   // title + meta row
 const ROW_H = 61;   // paddingVertical*2 + content + separator
 const FOOTER_H = 48;   // "Veure tota l'agenda" button
-const BOTTOM_H = 32;   // approximate safe-area bottom padding
 
 export function MapEventsDrawer({ events, selectedDay, onClose, searchQuery, clusterTitle, onEventPress }: Props) {
   const { height } = useWindowDimensions();
+  const { bottom: bottomInset } = useSafeAreaInsets();
   const nowCount = events.filter((e) => e.state === 'now').length;
+
+  // Use real safe-area inset instead of a hardcoded approximation so the sheet
+  // height is accurate on Android 3-button nav (inset ≈ 48px) and high-inset
+  // Samsung devices, not just iPhone/gesture-nav (≈ 34px).
+  const bottomH = bottomInset + 16;
 
   // For clusters: open to content height (no peek), capped at safe max.
   // For full-agenda/search drawers: keep the two-snap peek behaviour.
   const maxH = height * 0.75;
   const sheetHeight = clusterTitle
-    ? Math.min(HANDLE_H + HEADER_H + events.length * ROW_H + FOOTER_H + BOTTOM_H, maxH)
+    ? Math.min(HANDLE_H + HEADER_H + events.length * ROW_H + FOOTER_H + bottomH, maxH)
     : maxH;
   const peekHeight = clusterTitle ? undefined : height * 0.38;
 
@@ -69,7 +76,7 @@ export function MapEventsDrawer({ events, selectedDay, onClose, searchQuery, clu
             {nowCount > 0 && (
               <View style={styles.nowPill}>
                 <View style={styles.nowDot} />
-                <Text style={styles.nowText}>{nowCount} en curs</Text>
+                <Text style={styles.nowText}>{t('map.liveCountInline', { count: nowCount })}</Text>
               </View>
             )}
           </>
@@ -79,17 +86,17 @@ export function MapEventsDrawer({ events, selectedDay, onClose, searchQuery, clu
               «{searchQuery}»
             </Text>
             <Text style={styles.count}>
-              {events.length} {events.length === 1 ? 'resultat' : 'resultats'}
+              {events.length} {events.length === 1 ? t('map.resultSingular') : t('map.resultPlural')}
             </Text>
           </>
         ) : (
           <>
             <Text style={styles.title}>{formatDayShort(selectedDay)}</Text>
-            <Text style={styles.count}>{events.length} actes</Text>
+            <Text style={styles.count}>{t('agenda.eventsCount', { count: events.length })}</Text>
             {nowCount > 0 && (
               <View style={styles.nowPill}>
                 <View style={styles.nowDot} />
-                <Text style={styles.nowText}>{nowCount} en curs</Text>
+                <Text style={styles.nowText}>{t('map.liveCountInline', { count: nowCount })}</Text>
               </View>
             )}
           </>
@@ -105,7 +112,7 @@ export function MapEventsDrawer({ events, selectedDay, onClose, searchQuery, clu
             onPress={() => { onEventPress ? onEventPress(item) : router.push('/(tabs)/agenda'); }}
           />
         )}
-        style={[styles.list, { maxHeight: sheetHeight - HANDLE_H - HEADER_H - FOOTER_H - BOTTOM_H }]}
+        style={[styles.list, { maxHeight: sheetHeight - HANDLE_H - HEADER_H - FOOTER_H - bottomH }]}
         showsVerticalScrollIndicator={false}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
       />
@@ -114,7 +121,7 @@ export function MapEventsDrawer({ events, selectedDay, onClose, searchQuery, clu
         style={styles.agendaBtn}
         onPress={() => { onClose(); router.push('/(tabs)/agenda'); }}
       >
-        <Text style={styles.agendaBtnText}>Veure tota l&apos;agenda</Text>
+        <Text style={styles.agendaBtnText}>{t('map.viewFullAgenda')}</Text>
         <ArrowRight size={15} color={Colors.primary} />
       </Pressable>
     </BottomSheet>

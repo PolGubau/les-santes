@@ -1,5 +1,6 @@
 import type { Event } from '@/entities/event';
 import { Colors } from '@/shared/constants';
+import { t } from '@/shared/i18n';
 import { formatTime } from '@/shared/lib';
 import { EventIcon } from '@/shared/ui';
 import * as Haptics from 'expo-haptics';
@@ -63,8 +64,8 @@ export function NowEventItem({ event, onPress }: Props) {
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         accessibilityRole="button"
-        accessibilityLabel={`${event.title}. En curs fins a ${formatTime(event.end)}`}
-        accessibilityHint="Prem per veure els detalls"
+        accessibilityLabel={t('now.liveUntilA11y', { title: event.title, time: formatTime(event.end) })}
+        accessibilityHint={t('now.tapHintShortA11y')}
       >
         <PulseDot />
         <View style={styles.iconBox}>
@@ -79,8 +80,8 @@ export function NowEventItem({ event, onPress }: Props) {
               : <MapPin size={11} color={Colors.textDim} />}
             <Text style={styles.meta}>
               {event.kind === 'mobile'
-                ? 'Itinerant'
-                : (event.locationName ?? 'Lloc fix')} · fins {formatTime(event.end)}
+                ? t('now.itinerant')
+                : (event.locationName ?? t('now.fixedPlace'))} · {t('now.untilTime', { time: formatTime(event.end) })}
             </Text>
           </View>
         </View>

@@ -1,5 +1,6 @@
 import type { Event } from '@/entities/event';
 import { Colors } from '@/shared/constants';
+import { t } from '@/shared/i18n';
 import { Moon } from 'lucide-react-native';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -21,8 +22,8 @@ export function NowList({ now, upcoming, onEventPress }: Props) {
     return (
       <View style={styles.empty}>
         <Moon size={52} color={Colors.textDim} />
-        <Text style={styles.emptyTitle}>Res passant ara</Text>
-        <Text style={styles.emptyDesc}>Consulta l'agenda per veure els pròxims actes</Text>
+        <Text style={styles.emptyTitle}>{t('now.emptyNow')}</Text>
+        <Text style={styles.emptyDesc}>{t('now.emptyNowSubtext')}</Text>
       </View>
     );
   }
@@ -37,7 +38,7 @@ export function NowList({ now, upcoming, onEventPress }: Props) {
         <>
           <View style={styles.sectionHeader}>
             <View style={styles.sectionDot} />
-            <Text style={styles.sectionTitle}>A continuació</Text>
+            <Text style={styles.sectionTitle}>{t('now.upNextTitle')}</Text>
           </View>
           {upcoming.map((event) => (
             <UpcomingItem key={event.id} event={event} onPress={() => onEventPress?.(event)} />

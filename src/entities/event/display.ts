@@ -1,6 +1,6 @@
 import { Colors } from '@/shared/constants';
 import { t } from '@/shared/i18n';
-import type { EventState } from './types';
+import type { EventState, EventType } from './types';
 
 /**
  * Maps event state to its accent color.
@@ -19,4 +19,12 @@ export const STATE_COLOR: Record<EventState, string> = {
  */
 export function getStateLabel(state: EventState): string {
   return t(`eventState.${state}`);
+}
+
+/**
+ * Returns the localized label for an event type (backend identifier).
+ * Called lazily so it reflects the hydrated locale at render time.
+ */
+export function getEventTypeLabel(type: EventType): string {
+  return t(`eventTypes.${type}`);
 }

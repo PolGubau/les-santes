@@ -1,6 +1,7 @@
 import type { Event } from '@/entities/event';
 import { Colors } from '@/shared/constants';
 import { getAppNow } from '@/shared/hooks';
+import { t } from '@/shared/i18n';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import * as Haptics from 'expo-haptics';
 import * as Location from 'expo-location';
@@ -799,11 +800,11 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
         // Show an explanatory alert before the system permission dialog
         await new Promise<void>((resolve) => {
           Alert.alert(
-            'Activa la ubicació',
-            "Permet l'accés a la teva ubicació per veure't al mapa i trobar actes propers.",
+            t('map.locationAlertTitle'),
+            t('map.locationAlertBody'),
             [
-              { text: 'Ara no', style: 'cancel', onPress: () => resolve() },
-              { text: 'Continua', onPress: () => resolve() },
+              { text: t('onboarding.notNow'), style: 'cancel', onPress: () => resolve() },
+              { text: t('map.locationAlertContinue'), onPress: () => resolve() },
             ],
           );
         });
@@ -877,18 +878,15 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
         pointerEvents={mapReady ? 'none' : 'auto'}
       >
         <ActivityIndicator size="large" color={Colors.primary} />
-        <Text style={styles.loaderText}>Carregant el mapa…</Text>
+        <Text style={styles.loaderText}>{t('map.loadingMap')}</Text>
       </Animated.View>
 
       {/* Offline overlay — shown when both tile sources fail */}
       {mapOffline && (
         <View style={styles.offlineOverlay}>
           <WifiOff size={40} color={Colors.textMuted} />
-          <Text style={styles.offlineTitle}>Mapa no disponible</Text>
-          <Text style={styles.offlineBody}>
-            No s&apos;ha pogut carregar el mapa.{'\n'}
-            Pots consultar els actes a l&apos;agenda.
-          </Text>
+          <Text style={styles.offlineTitle}>{t('map.offlineTitle')}</Text>
+          <Text style={styles.offlineBody}>{t('map.offlineBody')}</Text>
           <View style={styles.offlineBtnRow}>
             <Pressable
               style={styles.offlineBtnSecondary}
@@ -899,13 +897,13 @@ export const EventMap = memo(forwardRef<EventMapHandle, Props>(function EventMap
                 webviewRef.current?.reload();
               }}
             >
-              <Text style={styles.offlineBtnSecondaryText}>Torna-ho a intentar</Text>
+              <Text style={styles.offlineBtnSecondaryText}>{t('map.retry')}</Text>
             </Pressable>
             <Pressable
               style={styles.offlineBtn}
               onPress={() => onOfflineRef.current?.()}
             >
-              <Text style={styles.offlineBtnText}>Veure l&apos;agenda →</Text>
+              <Text style={styles.offlineBtnText}>{t('map.viewAgenda')}</Text>
             </Pressable>
           </View>
         </View>

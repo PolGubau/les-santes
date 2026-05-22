@@ -7,6 +7,38 @@ export const es: Translations = {
   // ── Common ────────────────────────────────────────────────────────────────
   common: {
     today: 'Hoy',
+    close: 'Cerrar',
+    dismissNotice: 'Cerrar aviso',
+    ok: 'Aceptar',
+    continue: 'Continuar',
+    error: 'Error',
+    back: 'Volver',
+  },
+
+  // ── Location permission ───────────────────────────────────────────────────
+  location: {
+    permissionBody:
+      'Usamos tu ubicación para mostrar actos cerca de ti y ordenarlos por distancia. Nunca se comparte ni se almacena.',
+  },
+
+  // ── Calendar permission / actions ─────────────────────────────────────────
+  calendar: {
+    permissionTitle: 'Añadir al calendario',
+    permissionBody:
+      'Queremos acceder a tu calendario para guardar este acto. Solo escribimos el acto que tú seleccionas; nunca leemos ni modificamos nada más.',
+    deniedTitle: 'Acceso al calendario denegado',
+    deniedBody:
+      'Para añadir actos al calendario, activa el permiso en Ajustes > Les Santes.',
+    noPermissionTitle: 'Sin permisos',
+    noPermissionBody: 'Activa el acceso al calendario en los ajustes.',
+    noCalendarBody: 'No se ha podido encontrar un calendario disponible.',
+    addedTitle: '¡Añadido! 📅',
+    addedBody: '"%{title}" se ha añadido a tu calendario.',
+    errorBody: 'No se ha podido añadir el evento al calendario.',
+    noteMobileRoute: '🚶 Recorrido por las calles',
+    noteStartFrom: 'Salida: %{name}',
+    noteAddedFromApp: 'Añadido desde la app Les Santes 🎉',
+    noteOpenInApp: 'Abre el acto en la app: %{url}',
   },
 
   // ── Tabs ──────────────────────────────────────────────────────────────────
@@ -22,6 +54,24 @@ export const es: Translations = {
     now: 'Ahora',
     upcoming: 'Próximo',
     finished: 'Finalizado',
+  },
+
+  // ── Event types (mapped from backend identifiers) ─────────────────────────
+  eventTypes: {
+    cercavila: 'Cercavila',
+    correfoc: 'Correfoc',
+    concert: 'Concierto',
+    sardanes: 'Sardanas',
+    castellera: 'Castellera',
+    gegants: 'Gigantes',
+    exposicio: 'Exposición',
+    espectacle: 'Espectáculo',
+    missa: 'Misa',
+    focsartificials: 'Fuegos artificiales',
+    cursa: 'Carrera',
+    jocs: 'Juegos',
+    contes: 'Cuentos',
+    altres: 'Otros',
   },
 
   // ── Agenda screen ─────────────────────────────────────────────────────────
@@ -43,6 +93,10 @@ export const es: Translations = {
     emptyFilteredNudgeDesc: '¿Quieres ver qué está pasando ahora mismo en el festival?',
     emptyFilteredNudgeCta: 'Ver ahora',
     close: 'Cerrar',
+    sectionNow: 'Ahora mismo',
+    sectionUpcoming: 'Próximos',
+    sectionFinished: 'Finalizados',
+    nit: 'Noche',
   },
 
   // ── Filter bar ────────────────────────────────────────────────────────────
@@ -61,6 +115,8 @@ export const es: Translations = {
     categoryFamiliar: 'Familiar',
     categoryTradicional: 'Tradicional',
     categoryCultural: 'Cultural',
+    filterA11y: 'Filtro %{label}',
+    categoryA11y: 'Categoría %{label}',
   },
 
   // ── Now screen ────────────────────────────────────────────────────────────
@@ -82,12 +138,32 @@ export const es: Translations = {
     suggestAgendaTitle: 'Aún no tienes favoritos',
     suggestAgendaDesc: 'Explora la agenda y guarda los actos que no quieres perderte.',
     suggestAgendaCta: 'Ver agenda',
+    liveBadge: 'EN VIVO',
+    itinerant: 'Itinerante',
+    fixedPlace: 'Lugar fijo',
+    untilTime: 'hasta %{time}',
+    liveUntilA11y: '%{title}. En curso hasta %{time}',
+    tapHintShortA11y: 'Pulsa para ver los detalles',
   },
   map: {
     resetTime: 'Restablecer hora',
     clusterSameLocation: '%{count} actos en el mismo lugar',
     firstVisitTitle: 'Explora el mapa',
     firstVisitDesc: 'Muévete y haz zoom para ver todos los actos del festival.',
+    loadingMap: 'Cargando el mapa…',
+    offlineTitle: 'Mapa no disponible',
+    offlineBody: 'No se ha podido cargar el mapa.\nPuedes consultar los actos en la agenda.',
+    viewAgenda: 'Ver la agenda →',
+    viewFullAgenda: 'Ver toda la agenda',
+    viewFullRoute: 'Ver la ruta completa',
+    openOnMap: 'Abrir en el mapa',
+    resultSingular: 'resultado',
+    resultPlural: 'resultados',
+    liveCountInline: '%{count} en curso',
+    locationAlertTitle: 'Activar ubicación',
+    locationAlertBody: 'Permite el acceso a tu ubicación para verte en el mapa y encontrar actos cercanos.',
+    locationAlertContinue: 'Continuar',
+    retry: 'Volver a intentar',
   },
   event: {
     notFound: 'Acto no encontrado.',
@@ -108,6 +184,15 @@ export const es: Translations = {
     agendaShort: 'Agenda',
     shareEventA11y: 'Compartir acto',
     share: 'Compartir',
+    cardA11y: '%{title}. %{state}. %{time}',
+    viewDetailA11y: 'Ver detalle del acto',
+    tapHintA11y: 'Pulsa para ver el detalle del acto',
+  },
+  notification: {
+    appName: 'Les Santes',
+    timeNow: 'ahora',
+    previewDrums: 'Los tambores empiezan en 5 min · Plaça de Cuba',
+    previewFireworks: 'Los fuegos empiezan en 10 min · Platja del Callao',
   },
   recursos: {
     title: 'Recursos',
@@ -126,6 +211,12 @@ export const es: Translations = {
     comparsesLabel: '%{count} colles',
     begudesTitle: 'Bebidas',
     begudesLabel: 'La Juliana y más',
+    viewFront: 'Ver cara',
+    viewBack: 'Ver dorso',
+    cara: 'Cara',
+    dors: 'Dorso',
+    imageUnavailable: 'Imagen no disponible',
+    comingSoon: 'Próximamente',
   },
   onboarding: {
     welcomeTitle: 'Bienvenidos a Les Santes',

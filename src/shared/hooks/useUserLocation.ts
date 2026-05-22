@@ -1,3 +1,4 @@
+import { t } from '@/shared/i18n';
 import * as Location from 'expo-location';
 import { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
@@ -14,11 +15,11 @@ export interface UserCoords {
 async function explainAndConfirmLocation(): Promise<boolean> {
   return new Promise((resolve) => {
     Alert.alert(
-      'Ubicació (opcional)',
-      'Utilitzem la ubicació per mostrar actes prop teu i ordenar-los per distància. Mai es comparteix ni s\'emmagatzema.',
+      t('onboarding.locationTitle'),
+      t('location.permissionBody'),
       [
-        { text: 'Ara no', style: 'cancel', onPress: () => resolve(false) },
-        { text: 'Continua', onPress: () => resolve(true) },
+        { text: t('onboarding.notNow'), style: 'cancel', onPress: () => resolve(false) },
+        { text: t('common.continue'), onPress: () => resolve(true) },
       ],
     );
   });

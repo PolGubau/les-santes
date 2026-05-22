@@ -1,4 +1,5 @@
 import { Colors } from '@/shared/constants';
+import { t } from '@/shared/i18n';
 import { router } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
 import React from 'react';
@@ -22,7 +23,7 @@ export function BackButton({ variant = 'default', onPress, style }: Props) {
       onPress={handlePress}
       hitSlop={12}
       accessibilityRole="button"
-      accessibilityLabel="Tornar"
+      accessibilityLabel={t('common.back')}
       style={({ pressed }) => [
         styles.base,
         variant === 'overlay' ? styles.overlay : styles.default,
