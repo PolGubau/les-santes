@@ -1,4 +1,5 @@
 import { useAnalyticsStore } from '@/features/analytics/store/useAnalyticsStore';
+import { useDismissedAnnouncementsStore } from '@/features/announcements';
 import { useFeedback } from '@/features/feedback';
 import { Colors, Typography } from '@/shared/constants';
 import { t } from '@/shared/i18n';
@@ -111,6 +112,8 @@ export default function SettingsScreen() {
   const { isEnabled, setEnabled } = useAnalyticsStore();
   const { open: openFeedback } = useFeedback();
   const resetOnboarding = useOnboardingStore((s) => s.reset);
+  const dismissedAnnouncementIds = useDismissedAnnouncementsStore((s) => s.dismissedIds);
+  const restoreDismissedAnnouncements = useDismissedAnnouncementsStore((s) => s.restoreAll);
   const [scheduledNotifs, setScheduledNotifs] = useState<ScheduledEventNotification[]>([]);
   const [adminUnlocked, setAdminUnlocked] = useState(false);
   const tapCount = useRef(0);
@@ -216,6 +219,30 @@ export default function SettingsScreen() {
                   </View>
                 </React.Fragment>
               ))}
+            </View>
+          </>
+        )}
+
+        {/* ── Dismissed announcements ─────────────────────────────────────── */}
+        {dismissedAnnouncementIds.length > 0 && (
+          <>
+            <SectionTitle label={t('settings.announcements')} />
+            <View style={styles.card}>
+              <View style={styles.row}>
+                <View style={{ flex: 1, paddingRight: 12 }}>
+                  <Text style={styles.rowLabel}>{t('settings.dismissedAnnouncements')}</Text>
+                  <Text style={styles.rowSublabel}>{t('settings.dismissedAnnouncementsDesc')}</Text>
+                </View>
+                <Text style={styles.rowValue}>{dismissedAnnouncementIds.length}</Text>
+              </View>
+              <View style={styles.divider} />
+              <ActionRow
+                label={t('settings.restoreDismissedAnnouncements')}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
+                  restoreDismissedAnnouncements();
+                }}
+              />
             </View>
           </>
         )}

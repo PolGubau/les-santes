@@ -101,12 +101,15 @@ export default function EventDetailScreen() {
     if (!event) return;
     Haptics.selectionAsync();
 
+    const appUrl = t('event.shareAppUrl');
     const shareText = [
-      `🎉 ${event.title}`,
+      `${event.title}`,
       `🕐 ${formatDayShort(event.start.substring(0, 10))} · ${formatTime(event.start)}–${formatTime(event.end)}`,
       event.locationName ? `📍 ${event.locationName}` : null,
       '',
       `Les Santes ${FESTIVAL_START.getFullYear()} · Mataró`,
+      '',
+      `${t('event.shareFromApp')} · ${appUrl}`,
     ].filter(Boolean).join('\n');
 
     try {
@@ -364,6 +367,7 @@ export default function EventDetailScreen() {
             {event.locationName && (
               <Text style={styles.shareCardLocation}>📍 {event.locationName}</Text>
             )}
+            <Text style={styles.shareCardFooter}>{t('event.shareAppUrl')}</Text>
           </View>
         </View>
       </View>
@@ -516,5 +520,12 @@ const styles = StyleSheet.create({
   shareCardTitle: { color: '#fff', fontSize: 22, fontWeight: '800', lineHeight: 28 },
   shareCardMeta: { color: 'rgba(255,255,255,0.85)', fontSize: 14, marginTop: 4 },
   shareCardLocation: { color: 'rgba(255,255,255,0.75)', fontSize: 13 },
+  shareCardFooter: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 11,
+    fontWeight: '600',
+    marginTop: 10,
+    letterSpacing: 0.3,
+  },
 });
 

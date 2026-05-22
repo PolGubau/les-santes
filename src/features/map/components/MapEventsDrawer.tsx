@@ -1,11 +1,13 @@
 import { type Event, STATE_COLOR, getStateLabel } from '@/entities/event';
+import { useFavoritesStore } from '@/features/favorites';
 import { Colors } from '@/shared/constants';
 import { t } from '@/shared/i18n';
-import { formatDayShort, formatTime } from '@/shared/lib';
+import { cancelEventNotification, formatDayShort, formatTime, scheduleEventNotification } from '@/shared/lib';
 import { BottomSheet, EventIcon } from '@/shared/ui';
+import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
-import { ArrowRight, ChevronRight } from 'lucide-react-native';
-import React from 'react';
+import { ArrowRight, ChevronRight, Heart } from 'lucide-react-native';
+import React, { useCallback } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -21,6 +23,19 @@ interface Props {
 }
 
 function EventRow({ event, onPress }: { event: Event; onPress: () => void }) {
+  const isFavorite = useFavoritesStore((s) => s.isFavorite(event.id));
+  const toggleFavorite = useFavoritesStore((s) => s.toggleFavorite);
+
+  const handleFavorite = useCallback(() => {
+    Haptics.impactAsync(
+      isFavorite ? Haptics.ImpactFeedbackStyle.Light : Haptics.ImpactFeedbackStyle.Medium,
+    );
+    const isAdding = !isFavorite;
+    toggleFavorite(event.id);
+    if (isAdding) scheduleEventNotification(event).catch(() => { });
+    else cancelEventNotification(event.id).catch(() => { });
+  }, [event, isFavorite, toggleFavorite]);
+
   return (
     <Pressable
       style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
@@ -38,6 +53,21 @@ function EventRow({ event, onPress }: { event: Event; onPress: () => void }) {
           <Text style={{ color: STATE_COLOR[event.state] }}>{getStateLabel(event.state)}</Text>
         </Text>
       </View>
+      <Pressable
+        onPress={handleFavorite}
+        hitSlop={10}
+        style={({ pressed }) => [styles.favBtn, pressed && styles.favBtnPressed]}
+        accessibilityRole="button"
+        accessibilityLabel={
+          isFavorite ? t('event.removeFavoriteA11y') : t('event.addFavoriteA11y')
+        }
+      >
+        <Heart
+          size={18}
+          color={isFavorite ? Colors.primary : Colors.textDim}
+          fill={isFavorite ? Colors.primary : 'transparent'}
+        />
+      </Pressable>
       <ChevronRight size={14} color={Colors.textDim} />
     </Pressable>
   );
@@ -151,6 +181,11 @@ const styles = StyleSheet.create({
   rowContent: { flex: 1 },
   rowTitle: { color: Colors.text, fontSize: 14, fontWeight: '600' },
   rowMeta: { color: Colors.textMuted, fontSize: 12, marginTop: 1 },
+  favBtn: {
+    width: 32, height: 32, borderRadius: 16,
+    alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+  },
+  favBtnPressed: { opacity: 0.6 },
   agendaBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: 6, marginTop: 14, paddingVertical: 14, borderRadius: 12,

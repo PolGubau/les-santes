@@ -3,11 +3,12 @@ import { getStateLabel } from '@/entities/event';
 import { useFavoritesStore } from '@/features/favorites';
 import { Colors } from '@/shared/constants';
 import { t } from '@/shared/i18n';
-import { formatTime } from '@/shared/lib';
+import { cancelEventNotification, formatTime, scheduleEventNotification } from '@/shared/lib';
 import { EventIcon } from '@/shared/ui';
+import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
-import { Heart, HeartOff } from 'lucide-react-native';
-import React from 'react';
+import { Heart } from 'lucide-react-native';
+import React, { useCallback } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -29,8 +30,8 @@ export function EventCard({ event, onPress, distanceMeters }: Props) {
   const isFinished = event.state === 'finished';
   const stateLabel = getStateLabel(event.state);
 
-  const { isFavorite } = useFavoritesStore();
-  const favorite = isFavorite(event.id);
+  const favorite = useFavoritesStore((s) => s.isFavorite(event.id));
+  const toggleFavorite = useFavoritesStore((s) => s.toggleFavorite);
 
   const animatedCard = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -43,6 +44,16 @@ export function EventCard({ event, onPress, distanceMeters }: Props) {
   const handlePressOut = () => {
     scale.value = withTiming(1, { duration: 70 });
   };
+
+  const handleFavorite = useCallback(() => {
+    Haptics.impactAsync(
+      favorite ? Haptics.ImpactFeedbackStyle.Light : Haptics.ImpactFeedbackStyle.Medium,
+    );
+    const isAdding = !favorite;
+    toggleFavorite(event.id);
+    if (isAdding) scheduleEventNotification(event).catch(() => { });
+    else cancelEventNotification(event.id).catch(() => { });
+  }, [event, favorite, toggleFavorite]);
 
   return (
     <Animated.View style={animatedCard}>
@@ -93,11 +104,22 @@ export function EventCard({ event, onPress, distanceMeters }: Props) {
               : event.shortDescription}
           </Text>
         </View>
-        {/* Inline favorite indicator */}
-        <View style={styles.actions}>
-          {favorite && <Heart size={18} color={Colors.primary} fill={Colors.primary} />}
-          {!favorite && isFinished && <HeartOff size={18} color={Colors.textDim} />}
-        </View>
+        {/* Inline favorite toggle */}
+        <Pressable
+          onPress={handleFavorite}
+          hitSlop={10}
+          style={({ pressed }) => [styles.favBtn, pressed && styles.favBtnPressed]}
+          accessibilityRole="button"
+          accessibilityLabel={
+            favorite ? t('event.removeFavoriteA11y') : t('event.addFavoriteA11y')
+          }
+        >
+          <Heart
+            size={20}
+            color={favorite ? Colors.primary : Colors.textDim}
+            fill={favorite ? Colors.primary : 'transparent'}
+          />
+        </Pressable>
       </Pressable>
     </Animated.View>
   );
@@ -135,12 +157,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   content: { flex: 1, gap: 2 },
-  actions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingLeft: 4,
+  favBtn: {
+    width: 36, height: 36, borderRadius: 18,
+    alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+    marginLeft: 4,
   },
+  favBtnPressed: { opacity: 0.6 },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',

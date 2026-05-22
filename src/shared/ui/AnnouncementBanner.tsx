@@ -1,8 +1,8 @@
 import type { Announcement } from '@/entities/announcement';
-import { Colors } from '@/shared/constants';
+import { useDismissedAnnouncementsStore } from '@/features/announcements';
 import { t } from '@/shared/i18n';
 import { AlertCircle, AlertTriangle, Info, X } from 'lucide-react-native';
-import React, { useState } from 'react';
+import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 const SEVERITY_STYLE: Record<
@@ -34,9 +34,10 @@ interface Props {
 }
 
 export function AnnouncementBanner({ announcements }: Props) {
-  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
+  const dismissedIds = useDismissedAnnouncementsStore((s) => s.dismissedIds);
+  const dismiss = useDismissedAnnouncementsStore((s) => s.dismiss);
 
-  const visible = announcements.filter((a) => !dismissed.has(a.id));
+  const visible = announcements.filter((a) => !dismissedIds.includes(a.id));
   if (visible.length === 0) return null;
 
   return (
@@ -60,9 +61,10 @@ export function AnnouncementBanner({ announcements }: Props) {
               ) : null}
             </View>
             <Pressable
-              onPress={() => setDismissed((prev) => new Set([...prev, a.id]))}
+              onPress={() => dismiss(a.id)}
               hitSlop={8}
               style={styles.dismiss}
+              accessibilityRole="button"
               accessibilityLabel={t('common.dismissNotice')}
             >
               <X size={14} color={s.text} />

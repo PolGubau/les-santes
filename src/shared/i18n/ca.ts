@@ -130,6 +130,8 @@ export interface Translations {
     agendaShort: string;
     shareEventA11y: string;
     share: string;
+    shareFromApp: string;
+    shareAppUrl: string;
     cardA11y: string;
     viewDetailA11y: string;
     tapHintA11y: string;
@@ -223,6 +225,10 @@ export interface Translations {
     feedbackHint: string;
     analytics: string;
     analyticsDesc: string;
+    announcements: string;
+    dismissedAnnouncements: string;
+    dismissedAnnouncementsDesc: string;
+    restoreDismissedAnnouncements: string;
   };
   feedback: {
     title: string;
@@ -304,7 +310,7 @@ export const ca: Translations = {
     noPermissionBody: "Activa l'accés al calendari a la configuració.",
     noCalendarBody: "No s'ha pogut trobar un calendari disponible.",
     addedTitle: 'Afegit! 📅',
-    addedBody: '"%{title}" s\'ha afegit al teu calendari.',
+    addedBody: '"%{title}" s\'ha afegit al teu calendari. Pot trigar uns segons a aparèixer.',
     errorBody: "No s'ha pogut afegir l'event al calendari.",
     noteMobileRoute: '🚶 Recorregut pels carrers',
     noteStartFrom: 'Sortida: %{name}',
@@ -455,6 +461,8 @@ export const ca: Translations = {
     agendaShort: 'Agenda',
     shareEventA11y: 'Compartir acte',
     share: 'Compartir',
+    shareFromApp: "📱 Compartit des de l'app de Les Santes",
+    shareAppUrl: 'lessantes.polgubau.com',
     cardA11y: '%{title}. %{state}. %{time}',
     viewDetailA11y: "Veure detall de l'acte",
     tapHintA11y: "Prem per veure el detall de l'acte",
@@ -572,6 +580,10 @@ export const ca: Translations = {
     feedbackHint: 'Ajuda’ns a millorar l’app',
     analytics: 'Estadístiques d’ús',
     analyticsDesc: 'Recopila dades anònimes d’ús per millorar l’app.',
+    announcements: 'Avisos',
+    dismissedAnnouncements: 'Avisos descartats',
+    dismissedAnnouncementsDesc: 'Tornaran a aparèixer si els restaures.',
+    restoreDismissedAnnouncements: 'Restaurar avisos',
   },
   feedback: {
     title: 'Com va l’app?',

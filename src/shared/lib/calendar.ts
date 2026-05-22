@@ -2,6 +2,7 @@ import type { Event } from '@/entities/event';
 import { t } from '@/shared/i18n';
 import * as Calendar from 'expo-calendar';
 import { Alert, Platform } from 'react-native';
+import { FESTIVAL_START } from '../constants';
 
 const APP_SCHEME = 'les-santes';
 
@@ -92,7 +93,7 @@ export async function addEventToCalendar(event: Event): Promise<void> {
 
   try {
     await Calendar.createEventAsync(calendarId, {
-      title: `🎉 ${event.title}`,
+      title: `${event.title} (Les Santes ${FESTIVAL_START.getFullYear()})`,
       notes: buildCalendarNotes(event),
       location: buildCalendarLocation(event),
       startDate: new Date(event.start),
