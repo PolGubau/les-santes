@@ -4,6 +4,7 @@ import { useNowEvents } from '@/features/now';
 import { Colors } from '@/shared/constants';
 import { t } from '@/shared/i18n';
 import { useLocaleStore } from '@/shared/hooks/useLocale';
+import { ErrorFallback } from '@/shared/ui';
 import * as Haptics from 'expo-haptics';
 import * as QuickActions from 'expo-quick-actions';
 import { useQuickActionRouting } from 'expo-quick-actions/router';
@@ -15,6 +16,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const tabPress = () =>
   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+// Expo Router segment-level boundary: a crash anywhere inside (tabs) is
+// caught here instead of bubbling up to root, so the modals (Feedback,
+// Onboarding) mounted at the root layout stay alive and the user can recover.
+export function ErrorBoundary({ error, retry }: { error: Error; retry: () => void }) {
+  return <ErrorFallback error={error} retry={retry} />;
+}
 
 export default function TabsLayout() {
   const locale = useLocaleStore((s) => s.locale);

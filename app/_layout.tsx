@@ -3,6 +3,7 @@ import { useTrackAppOpenOnMount } from '@/features/nudges';
 import { OnboardingFlow, useOnboardingStore } from '@/features/onboarding';
 import { Colors } from '@/shared/constants';
 import { useLocaleStore, usePushNotifications } from '@/shared/hooks';
+import { t } from '@/shared/i18n';
 import { Inter_400Regular, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
 import { useFonts } from 'expo-font';
 import { Stack, useRouter } from 'expo-router';
@@ -16,28 +17,29 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 SplashScreen.preventAutoHideAsync();
 
-// Expo Router picks up this named export as the error boundary for the root segment
+// Expo Router picks up this named export as the error boundary for the root segment.
+// Kept local (not extracted) because it links back to the home tab via `useRouter`.
 export function ErrorBoundary({ error, retry }: { error: Error; retry: () => void }) {
   const router = useRouter();
   return (
     <SafeAreaView style={styles.container}>
       <AlertCircle size={56} color={Colors.primary} />
-      <Text style={styles.title}>Quelcom ha anat malament</Text>
+      <Text style={styles.title}>{t('error.screenTitle')}</Text>
       <Text style={styles.desc}>{error.message}</Text>
       <Pressable
         style={styles.button}
         onPress={retry}
         accessibilityRole="button"
-        accessibilityLabel="Tornar a intentar"
+        accessibilityLabel={t('error.retry')}
       >
-        <Text style={styles.buttonText}>Tornar a intentar</Text>
+        <Text style={styles.buttonText}>{t('error.retry')}</Text>
       </Pressable>
       <Pressable
         onPress={() => router.replace('/(tabs)/ara')}
         accessibilityRole="button"
-        accessibilityLabel="Tornar a l'inici"
+        accessibilityLabel={t('notFound.backToHome')}
       >
-        <Text style={styles.link}>Tornar a l'inici</Text>
+        <Text style={styles.link}>{t('notFound.backToHome')}</Text>
       </Pressable>
     </SafeAreaView>
   );

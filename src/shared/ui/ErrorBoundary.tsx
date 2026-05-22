@@ -4,6 +4,33 @@ import { TriangleAlert } from 'lucide-react-native';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+interface FallbackProps {
+  error: Error;
+  retry: () => void;
+}
+
+/**
+ * Localized error UI shared by the class `ErrorBoundary` and Expo Router
+ * segment-level `ErrorBoundary` exports. Kept presentational only.
+ */
+export function ErrorFallback({ error, retry }: FallbackProps) {
+  return (
+    <View style={styles.container}>
+      <TriangleAlert size={48} color={Colors.primary} />
+      <Text style={styles.title}>{t('error.screenTitle')}</Text>
+      <Text style={styles.message}>{error.message}</Text>
+      <Pressable
+        style={styles.button}
+        onPress={retry}
+        accessibilityRole="button"
+        accessibilityLabel={t('error.retry')}
+      >
+        <Text style={styles.buttonText}>{t('error.retry')}</Text>
+      </Pressable>
+    </View>
+  );
+}
+
 interface Props {
   children: React.ReactNode;
   fallback?: React.ReactNode;
@@ -25,21 +52,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
   render() {
     if (this.state.error) {
       if (this.props.fallback) return this.props.fallback;
-      return (
-        <View style={styles.container}>
-          <TriangleAlert size={48} color={Colors.primary} />
-          <Text style={styles.title}>{t('error.screenTitle')}</Text>
-          <Text style={styles.message}>{this.state.error.message}</Text>
-          <Pressable
-            style={styles.button}
-            onPress={this.reset}
-            accessibilityRole="button"
-            accessibilityLabel={t('error.retry')}
-          >
-            <Text style={styles.buttonText}>{t('error.retry')}</Text>
-          </Pressable>
-        </View>
-      );
+      return <ErrorFallback error={this.state.error} retry={this.reset} />;
     }
     return this.props.children;
   }
