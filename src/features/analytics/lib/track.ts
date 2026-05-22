@@ -24,14 +24,60 @@ export type AnalyticsEventName =
 const FESTIVAL_ID = process.env.EXPO_PUBLIC_FESTIVAL_ID ?? "les-santes-2026";
 const APP_VERSION = Constants.expoConfig?.version ?? "0.0.0";
 
+/** Single retry, 2s later, before dropping the event. */
+const RETRY_DELAY_MS = 2_000;
+const MAX_ATTEMPTS = 2;
+
 interface TrackOptions {
 	/** When true, the event will only fire once per cold start with this key. */
 	once?: string;
 }
 
+interface AnalyticsRow {
+	festival_id: string;
+	event_name: AnalyticsEventName;
+	properties: Record<string, unknown>;
+	install_id: string;
+	session_id: string;
+	platform: typeof Platform.OS;
+	app_version: string;
+}
+
+/**
+ * Persist a single analytics row with one retry on failure.
+ * Fully isolated from React lifecycle — safe to call from anywhere.
+ */
+function persistRow(row: AnalyticsRow, attempt = 1): void {
+	try {
+		const supabase = getSupabaseClient();
+		void supabase
+			.from("analytics_events")
+			.insert(row as never)
+			.then((res: { error?: { message?: string } | null }) => {
+				if (!res?.error) return;
+				if (attempt < MAX_ATTEMPTS) {
+					setTimeout(() => persistRow(row, attempt + 1), RETRY_DELAY_MS);
+				} else if (__DEV__) {
+					// eslint-disable-next-line no-console
+					console.warn("[analytics] dropped event after retries:", row.event_name, res.error.message);
+				}
+			});
+	} catch (e) {
+		// getSupabaseClient may throw if env is misconfigured — never crash.
+		if (__DEV__) {
+			// eslint-disable-next-line no-console
+			console.warn("[analytics] persist threw:", e);
+		}
+	}
+}
+
 /**
  * Fire‑and‑forget analytics insert. Never throws, never blocks the UI thread,
- * and silently no‑ops when Supabase is unconfigured (e.g. preview builds).
+ * and silently no‑ops when the user has opted out or Supabase is unconfigured.
+ *
+ * Reliability: failed inserts are retried once after RETRY_DELAY_MS. Beyond
+ * that the event is dropped (we don't queue across launches to keep storage
+ * footprint and complexity small).
  */
 export function track(
 	eventName: AnalyticsEventName,
@@ -45,22 +91,15 @@ export function track(
 		if (!isEnabled) return;
 		if (options.once && !markSeen(`${eventName}:${options.once}`)) return;
 
-		const supabase = getSupabaseClient();
-
-		void supabase
-			.from("analytics_events")
-			.insert({
-				festival_id: FESTIVAL_ID,
-				event_name: eventName,
-				properties,
-				install_id: installId,
-				session_id: sessionId,
-				platform: Platform.OS,
-				app_version: APP_VERSION,
-			} as never)
-			.then(() => {
-				// best‑effort; ignore errors
-			});
+		persistRow({
+			festival_id: FESTIVAL_ID,
+			event_name: eventName,
+			properties,
+			install_id: installId,
+			session_id: sessionId,
+			platform: Platform.OS,
+			app_version: APP_VERSION,
+		});
 	} catch {
 		// Analytics must never break the app.
 	}

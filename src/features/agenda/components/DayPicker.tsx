@@ -1,6 +1,5 @@
 import { Colors } from "@/shared/constants";
 import { t } from "@/shared/i18n";
-import { useLocaleStore } from "@/shared/hooks/useLocale";
 import { formatDayChipFromKey } from "@/shared/lib/time";
 import * as Haptics from "expo-haptics";
 import React, { useCallback, useEffect, useRef } from "react";

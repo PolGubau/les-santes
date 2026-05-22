@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AppState, type AppStateStatus } from "react-native";
 import { readEventCache, writeEventCache } from "../cache";
 import { eventRepository } from "../repository";
@@ -10,13 +10,17 @@ const AUTO_REFRESH_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 
 export interface UseEventsResult {
 	events: Event[];
+	/** True only during the initial fetch when no cache is available. */
 	loading: boolean;
+	/** Last fetch error, if any. Cleared on next successful fetch. */
 	error: Error | null;
-	/** True when the last network fetch failed and data comes from cache. */
+	/** True when the last fetch failed and data is being served from cache. */
 	isOffline: boolean;
-	/** True while a manual refresh fetch is in progress. */
+	/** True while a non-initial fetch (manual refresh, interval, foreground) is in flight. */
 	isRefreshing: boolean;
-	/** Timestamp (ms) of the last successful cache write, or null if no cache. */
+	/** True when cached data is older than CACHE_MAX_AGE_MS (still usable, but flagged). */
+	isStale: boolean;
+	/** Timestamp (ms) of the last successful cache write, or null if no cache yet. */
 	cacheTimestamp: number | null;
 	refresh: () => void;
 }
@@ -24,10 +28,15 @@ export interface UseEventsResult {
 /**
  * Stale-while-revalidate events hook.
  *
- * 1. Immediately restore cached events (no loading spinner if cache hits).
+ * 1. Immediately restore cached events (no loading spinner when cache hits).
  * 2. Fetch fresh data in the background; update cache on success.
  * 3. If fetch fails, keep cached data and mark `isOffline = true`.
  * 4. `refresh()` forces a new fetch (pull-to-refresh).
+ *
+ * Concurrency: a monotonically increasing `requestId` deduplicates overlapping
+ * fetches — only the most recent in-flight request is allowed to commit state.
+ * This prevents stale responses from clobbering newer ones if the user pulls
+ * to refresh while a previous fetch is still pending.
  */
 export function useEvents(): UseEventsResult {
 	const [events, setEvents] = useState<Event[]>([]);
@@ -35,31 +44,43 @@ export function useEvents(): UseEventsResult {
 	const [error, setError] = useState<Error | null>(null);
 	const [isOffline, setIsOffline] = useState(false);
 	const [isRefreshing, setIsRefreshing] = useState(false);
+	const [isStale, setIsStale] = useState(false);
 	const [cacheTimestamp, setCacheTimestamp] = useState<number | null>(null);
 	const [tick, setTick] = useState(0);
-	// Track whether we already have data so we can skip loading spinner on refresh
-	const hasCachedData = useRef(false);
 
-	// Restore cache once on mount (independent of tick)
+	// Refs are read inside async callbacks without triggering re-renders or stale closures.
+	const hasCachedData = useRef(false);
+	const latestRequestId = useRef(0);
+	const isMounted = useRef(true);
+
+	useEffect(() => {
+		isMounted.current = true;
+		return () => {
+			isMounted.current = false;
+		};
+	}, []);
+
+	// Restore cache once on mount (independent of tick).
 	useEffect(() => {
 		readEventCache().then((cached) => {
-			if (!cached || hasCachedData.current) return;
+			if (!isMounted.current || !cached || hasCachedData.current) return;
 			hasCachedData.current = true;
 			const now = new Date();
 			setEvents(cached.data.map((e) => withState(e, now)));
 			setCacheTimestamp(cached.timestamp);
+			setIsStale(cached.isStale);
 			setLoading(false);
 		});
 	}, []);
 
-	// Network fetch — re-runs on every tick (manual refresh)
-	// eslint-disable-next-line react-hooks/exhaustive-deps
+	// Network fetch — re-runs on every tick (initial mount + manual refresh + interval + foreground).
 	useEffect(() => {
-		let cancelled = false;
+		const requestId = ++latestRequestId.current;
+		const isLatest = () => isMounted.current && latestRequestId.current === requestId;
+
 		if (!hasCachedData.current) {
 			setLoading(true);
 		} else {
-			// Manual refresh with cached data: show refreshing spinner
 			setIsRefreshing(true);
 		}
 		setError(null);
@@ -67,10 +88,11 @@ export function useEvents(): UseEventsResult {
 		eventRepository
 			.getAll()
 			.then((data) => {
-				if (cancelled) return;
+				if (!isLatest()) return;
 				hasCachedData.current = true;
 				setEvents(data);
 				setIsOffline(false);
+				setIsStale(false);
 				setLoading(false);
 				setIsRefreshing(false);
 				const rawEvents: RawEvent[] = data.map(
@@ -78,26 +100,22 @@ export function useEvents(): UseEventsResult {
 					({ state: _state, ...rest }) => rest as RawEvent,
 				);
 				writeEventCache(rawEvents).then(() => {
-					setCacheTimestamp(Date.now());
+					if (isLatest()) setCacheTimestamp(Date.now());
 				});
 			})
 			.catch((err: unknown) => {
-				if (cancelled) return;
+				if (!isLatest()) return;
 				const e = err instanceof Error ? err : new Error(String(err));
 				setError(e);
 				setIsOffline(hasCachedData.current);
 				setLoading(false);
 				setIsRefreshing(false);
 			});
-
-		return () => {
-			cancelled = true;
-		};
 	}, [tick]);
 
-	const refresh = () => setTick((t) => t + 1);
+	const refresh = useCallback(() => setTick((t) => t + 1), []);
 
-	// Auto-refresh every AUTO_REFRESH_INTERVAL_MS while in foreground
+	// Auto-refresh every AUTO_REFRESH_INTERVAL_MS while in foreground + on foreground transitions.
 	useEffect(() => {
 		const intervalId = setInterval(() => {
 			if (AppState.currentState === 'active') {
@@ -105,7 +123,6 @@ export function useEvents(): UseEventsResult {
 			}
 		}, AUTO_REFRESH_INTERVAL_MS);
 
-		// Also refresh when the app comes back to foreground after being backgrounded
 		const handleAppStateChange = (nextState: AppStateStatus) => {
 			if (nextState === 'active') {
 				setTick((t) => t + 1);
@@ -119,5 +136,5 @@ export function useEvents(): UseEventsResult {
 		};
 	}, []);
 
-	return { events, loading, error, isOffline, isRefreshing, cacheTimestamp, refresh };
+	return { events, loading, error, isOffline, isRefreshing, isStale, cacheTimestamp, refresh };
 }

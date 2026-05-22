@@ -81,9 +81,10 @@ export async function scheduleEventNotification(event: Event): Promise<void> {
     identifier: `event-${event.id}`,
     content: {
       title: t('notification.eventStartingSoonTitle'),
+      // i18n-js picks `.one` vs `.other` automatically based on `count`.
       body: t('notification.eventStartingSoonBody', {
         title: event.title,
-        minutes: MINUTES_BEFORE,
+        count: MINUTES_BEFORE,
       }),
       data: { eventId: event.id },
     },

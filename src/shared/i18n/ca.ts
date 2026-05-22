@@ -140,7 +140,7 @@ export interface Translations {
     previewDrums: string;
     previewFireworks: string;
     eventStartingSoonTitle: string;
-    eventStartingSoonBody: string;
+    eventStartingSoonBody: { one: string; other: string };
   };
   quickActions: {
     upNext: string;
@@ -465,7 +465,10 @@ export const ca: Translations = {
     previewDrums: 'Els tabals comencen en 5 min · Plaça de Cuba',
     previewFireworks: 'Els focs comencen en 10 min · Platja del Callao',
     eventStartingSoonTitle: '🔔 Acte favorit molt aviat',
-    eventStartingSoonBody: '%{title} comença en %{minutes} minuts',
+    eventStartingSoonBody: {
+      one: '%{title} comença en 1 minut',
+      other: '%{title} comença en %{count} minuts',
+    },
   },
   quickActions: {
     upNext: 'Proper',

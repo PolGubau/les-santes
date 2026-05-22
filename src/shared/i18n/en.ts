@@ -194,7 +194,10 @@ export const en: Translations = {
     previewDrums: 'The drums start in 5 min · Plaça de Cuba',
     previewFireworks: 'Fireworks start in 10 min · Platja del Callao',
     eventStartingSoonTitle: '🔔 Favourite event starting soon',
-    eventStartingSoonBody: '%{title} starts in %{minutes} minutes',
+    eventStartingSoonBody: {
+      one: '%{title} starts in 1 minute',
+      other: '%{title} starts in %{count} minutes',
+    },
   },
   quickActions: {
     upNext: 'Up next',

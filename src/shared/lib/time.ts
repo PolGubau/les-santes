@@ -1,40 +1,57 @@
-const WEEKDAYS_CA_FULL = [
-	"Diumenge",
-	"Dilluns",
-	"Dimarts",
-	"Dimecres",
-	"Dijous",
-	"Divendres",
-	"Dissabte",
-];
-const MONTHS_CA = [
-	"gener",
-	"febrer",
-	"març",
-	"abril",
-	"maig",
-	"juny",
-	"juliol",
-	"agost",
-	"setembre",
-	"octubre",
-	"novembre",
-	"desembre",
-];
+import { i18n } from "@/shared/i18n";
 
-/** "Dissabte 27 de juliol" – used in MapHeader */
+/**
+ * Date / time formatters.
+ *
+ * Locale comes from the i18n singleton (kept in sync with the locale store).
+ * The navigation tree is keyed by `locale`, so a locale change triggers a
+ * remount and these helpers are re-evaluated with the new language.
+ */
+
+/** Map app locale ('ca' | 'es' | 'en') to a BCP-47 tag for Intl APIs. */
+function intlLocale(): string {
+	switch (i18n.locale) {
+		case "es":
+			return "es-ES";
+		case "en":
+			return "en-GB";
+		default:
+			return "ca-ES";
+	}
+}
+
+function capitalize(s: string): string {
+	if (!s) return s;
+	return s.charAt(0).toLocaleUpperCase(intlLocale()) + s.slice(1);
+}
+
+/** Parse a "YYYY-MM-DD" key as noon local time to avoid TZ boundary issues. */
+function dateFromKey(dateKey: string): Date {
+	return new Date(`${dateKey}T12:00:00`);
+}
+
+/** "Dissabte 27 de juliol" / "Saturday 27 July" / "Sábado 27 de julio" */
 export function formatDayFull(dateKey: string): string {
-	const d = new Date(`${dateKey}T12:00:00`);
-	return `${WEEKDAYS_CA_FULL[d.getDay()]} ${d.getDate()} de ${MONTHS_CA[d.getMonth()]}`;
+	const d = dateFromKey(dateKey);
+	const locale = intlLocale();
+	const weekday = new Intl.DateTimeFormat(locale, { weekday: "long" }).format(d);
+	const dayMonth = new Intl.DateTimeFormat(locale, {
+		day: "numeric",
+		month: "long",
+	}).format(d);
+	return `${capitalize(weekday)} ${dayMonth}`;
 }
 
-/** "Dissabte 27" – used in MapEventsDrawer header */
+/** "Dissabte 27" / "Saturday 27" / "Sábado 27" */
 export function formatDayShort(dateKey: string): string {
-	const d = new Date(`${dateKey}T12:00:00`);
-	return `${WEEKDAYS_CA_FULL[d.getDay()]} ${d.getDate()}`;
+	const d = dateFromKey(dateKey);
+	const weekday = new Intl.DateTimeFormat(intlLocale(), {
+		weekday: "long",
+	}).format(d);
+	return `${capitalize(weekday)} ${d.getDate()}`;
 }
 
-/** Returns "HH:MM" from an ISO 8601 string */
+/** Returns "HH:MM" from an ISO 8601 string (24h, locale-independent). */
 export function formatTime(isoString: string): string {
 	const date = new Date(isoString);
 	const h = date.getHours().toString().padStart(2, "0");
@@ -42,7 +59,7 @@ export function formatTime(isoString: string): string {
 	return `${h}:${m}`;
 }
 
-/** Returns "YYYY-MM-DD" - used as map/filter key */
+/** Returns "YYYY-MM-DD" - used as map/filter key. Locale-independent. */
 export function toDateKey(date: Date): string {
 	const y = date.getFullYear();
 	const mo = (date.getMonth() + 1).toString().padStart(2, "0");
@@ -59,9 +76,17 @@ export function toFestivalDayKey(date: Date): string {
 	return toDateKey(adjusted);
 }
 
-/** Returns short Catalan label: "Ds 27" */
+/** Short weekday + day-of-month chip: "Ds 27" / "Sat 27" / "Sáb 27" */
 export function formatDayChip(date: Date): string {
-	const day = date.getDate();
-	const labels = ["Dg", "Dl", "Dm", "Dc", "Dj", "Dv", "Ds"];
-	return `${labels[date.getDay()]} ${day}`;
+	const weekday = new Intl.DateTimeFormat(intlLocale(), {
+		weekday: "short",
+	}).format(date);
+	// Intl appends "." in some locales (e.g. "sáb."). Strip trailing punctuation.
+	const cleaned = weekday.replace(/\.$/, "");
+	return `${capitalize(cleaned)} ${date.getDate()}`;
+}
+
+/** Same as formatDayChip but takes a "YYYY-MM-DD" key. */
+export function formatDayChipFromKey(dateKey: string): string {
+	return formatDayChip(dateFromKey(dateKey));
 }

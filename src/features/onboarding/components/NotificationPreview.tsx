@@ -1,5 +1,6 @@
 import { Colors, Typography } from '@/shared/constants';
 import { t } from '@/shared/i18n';
+import { Bell } from 'lucide-react-native';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
@@ -16,7 +17,7 @@ function Card({ title, body, time }: CardProps) {
   return (
     <View style={styles.card}>
       <View style={styles.icon}>
-        <Text style={styles.iconText}>S</Text>
+        <Bell size={20} color="#fff" strokeWidth={2.2} />
       </View>
       <View style={styles.content}>
         <View style={styles.headerRow}>
@@ -97,11 +98,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  iconText: {
-    color: '#fff',
-    fontSize: 18,
-    ...Typography.bold,
   },
   content: {
     flex: 1,

@@ -7,16 +7,35 @@ import type { RawEvent } from './types';
 
 const CACHE_KEY = '@les-santes/events-v1';
 
+/**
+ * Cache considered stale (but still usable) past this age.
+ * 24h is comfortable for a festival app: data rarely changes mid-day, and
+ * the network fetch fires anyway on every mount / foreground / interval.
+ */
+export const CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+
 interface CachePayload {
   data: RawEvent[];
   timestamp: number;
 }
 
-export async function readEventCache(): Promise<CachePayload | null> {
+export interface CacheReadResult extends CachePayload {
+  /** True when the payload is older than CACHE_MAX_AGE_MS. */
+  isStale: boolean;
+}
+
+export async function readEventCache(): Promise<CacheReadResult | null> {
   try {
     const raw = await AsyncStorage.getItem(CACHE_KEY);
     if (!raw) return null;
-    return JSON.parse(raw) as CachePayload;
+    const parsed = JSON.parse(raw) as CachePayload;
+    if (!parsed || !Array.isArray(parsed.data) || typeof parsed.timestamp !== 'number') {
+      return null;
+    }
+    return {
+      ...parsed,
+      isStale: Date.now() - parsed.timestamp > CACHE_MAX_AGE_MS,
+    };
   } catch {
     return null;
   }
