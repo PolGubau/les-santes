@@ -7,6 +7,7 @@
  * since SDK 53. A static import triggers that error before any guard runs.
  */
 import type { Event } from '@/entities/event';
+import { t } from '@/shared/i18n';
 import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
@@ -79,8 +80,11 @@ export async function scheduleEventNotification(event: Event): Promise<void> {
   await N.scheduleNotificationAsync({
     identifier: `event-${event.id}`,
     content: {
-      title: '🔔 Acte favorit molt aviat',
-      body: `${event.title} comença en ${MINUTES_BEFORE} minuts`,
+      title: t('notification.eventStartingSoonTitle'),
+      body: t('notification.eventStartingSoonBody', {
+        title: event.title,
+        minutes: MINUTES_BEFORE,
+      }),
       data: { eventId: event.id },
     },
     trigger: {

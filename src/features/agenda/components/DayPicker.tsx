@@ -1,5 +1,7 @@
 import { Colors } from "@/shared/constants";
 import { t } from "@/shared/i18n";
+import { useLocaleStore } from "@/shared/hooks/useLocale";
+import { formatDayChipFromKey } from "@/shared/lib/time";
 import * as Haptics from "expo-haptics";
 import React, { useCallback, useEffect, useRef } from "react";
 import {
@@ -22,13 +24,14 @@ interface Props {
 	onSelect: (day: string) => void;
 }
 
-const WEEKDAY_CA = ["Dg", "Dl", "Dm", "Dc", "Dj", "Dv", "Ds"];
-
 function parseDayLabel(dateKey: string) {
-	const d = new Date(dateKey + "T12:00:00");
+	// Locale-aware: "Ds 27" / "Sat 27" / "Sáb 27". The whole tree is keyed by
+	// locale so this is re-evaluated on language change.
+	const chip = formatDayChipFromKey(dateKey);
+	const lastSpace = chip.lastIndexOf(" ");
 	return {
-		weekday: WEEKDAY_CA[d.getDay()],
-		day: d.getDate(),
+		weekday: chip.slice(0, lastSpace),
+		day: Number(chip.slice(lastSpace + 1)),
 	};
 }
 

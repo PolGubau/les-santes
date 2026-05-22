@@ -139,6 +139,14 @@ export interface Translations {
     timeNow: string;
     previewDrums: string;
     previewFireworks: string;
+    eventStartingSoonTitle: string;
+    eventStartingSoonBody: string;
+  };
+  quickActions: {
+    upNext: string;
+    eventsInProgress: string;
+    allEvents: string;
+    festivalMap: string;
   };
   recursos: {
     title: string;
@@ -456,6 +464,14 @@ export const ca: Translations = {
     timeNow: 'ara',
     previewDrums: 'Els tabals comencen en 5 min · Plaça de Cuba',
     previewFireworks: 'Els focs comencen en 10 min · Platja del Callao',
+    eventStartingSoonTitle: '🔔 Acte favorit molt aviat',
+    eventStartingSoonBody: '%{title} comença en %{minutes} minuts',
+  },
+  quickActions: {
+    upNext: 'Proper',
+    eventsInProgress: 'Actes en curs',
+    allEvents: 'Tots els actes',
+    festivalMap: 'Mapa del festival',
   },
   recursos: {
     title: 'Recursos',

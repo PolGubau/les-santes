@@ -26,41 +26,42 @@ export default function TabsLayout() {
   // Handle quick action navigation (both cold and warm starts)
   useQuickActionRouting();
 
-  // Find the most relevant live event for the shortcut subtitle
+  // Find the most relevant live event for the shortcut subtitle.
+  // `locale` is in the deps so we re-render strings when the user changes language.
   const liveSubtitle = useMemo(() => {
     const liveFav = now.find((e) => favorites[e.id]);
     if (liveFav) return `❤️ ${liveFav.title}`;
     if (now.length > 0) return `🔴 ${now[0].title}`;
-    if (upcoming.length > 0) return `⏰ Proper: ${upcoming[0].title}`;
-    return 'Actes en curs';
-  }, [now, upcoming, favorites]);
+    if (upcoming.length > 0) return `⏰ ${t('quickActions.upNext')}: ${upcoming[0].title}`;
+    return t('quickActions.eventsInProgress');
+  }, [now, upcoming, favorites, locale]);
 
   // Update shortcuts dynamically with context-aware subtitle (both iOS & Android)
   useEffect(() => {
     QuickActions.setItems([
       {
         id: 'ara',
-        title: 'Ara',
+        title: t('tabs.ara'),
         subtitle: liveSubtitle,
         icon: Platform.OS === 'android' ? 'shortcut_ara' : 'time',
         params: { href: '/(tabs)/ara' },
       },
       {
         id: 'agenda',
-        title: 'Agenda',
-        subtitle: 'Tots els actes',
+        title: t('tabs.agenda'),
+        subtitle: t('quickActions.allEvents'),
         icon: Platform.OS === 'android' ? 'shortcut_agenda' : 'date',
         params: { href: '/(tabs)/agenda' },
       },
       {
         id: 'mapa',
-        title: 'Mapa',
-        subtitle: 'Mapa del festival',
+        title: t('tabs.mapa'),
+        subtitle: t('quickActions.festivalMap'),
         icon: Platform.OS === 'android' ? 'shortcut_mapa' : 'location',
         params: { href: '/(tabs)/mapa' },
       },
     ]);
-  }, [liveSubtitle]);
+  }, [liveSubtitle, locale]);
 
   return (
     <Tabs

@@ -193,6 +193,14 @@ export const es: Translations = {
     timeNow: 'ahora',
     previewDrums: 'Los tambores empiezan en 5 min · Plaça de Cuba',
     previewFireworks: 'Los fuegos empiezan en 10 min · Platja del Callao',
+    eventStartingSoonTitle: '🔔 Acto favorito muy pronto',
+    eventStartingSoonBody: '%{title} empieza en %{minutes} minutos',
+  },
+  quickActions: {
+    upNext: 'Próximo',
+    eventsInProgress: 'Actos en curso',
+    allEvents: 'Todos los actos',
+    festivalMap: 'Mapa del festival',
   },
   recursos: {
     title: 'Recursos',

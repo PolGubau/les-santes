@@ -3,7 +3,6 @@ import { useTrackAppOpenOnMount } from '@/features/nudges';
 import { OnboardingFlow, useOnboardingStore } from '@/features/onboarding';
 import { Colors } from '@/shared/constants';
 import { useLocaleStore, usePushNotifications } from '@/shared/hooks';
-import { i18n } from '@/shared/i18n';
 import { Inter_400Regular, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
 import { useFonts } from 'expo-font';
 import { Stack, useRouter } from 'expo-router';
@@ -57,11 +56,10 @@ export default function RootLayout() {
   // Count this session for behaviour-driven nudges
   useTrackAppOpenOnMount();
 
-  // Apply persisted locale before first render
+  // Subscribe to the active locale. The store itself owns `i18n.locale`;
+  // here we just need to re-render the navigation tree so every screen
+  // picks up fresh translations when the user switches language at runtime.
   const locale = useLocaleStore((s) => s.locale);
-  useEffect(() => {
-    i18n.locale = locale;
-  }, [locale]);
 
   // First-run onboarding (3 slides)
   const hasSeenOnboarding = useOnboardingStore((s) => s.hasSeenOnboarding);
@@ -82,7 +80,11 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <StatusBar style="auto" />
+        {/* `key={locale}` remounts the whole navigation tree on language
+            change so every screen picks up the new translations, since most
+            components consume `t` directly without subscribing to the store. */}
         <Stack
+          key={locale}
           screenOptions={{
             headerShown: false,
             animation: 'fade_from_bottom',
