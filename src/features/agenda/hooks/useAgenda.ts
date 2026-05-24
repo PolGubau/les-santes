@@ -1,6 +1,5 @@
 import type {
 	Event,
-	EventCategory,
 	EventType,
 	RawEvent,
 } from "@/entities/event";
@@ -21,7 +20,6 @@ function applyFilters(
 		if (q && !e.title.toLowerCase().includes(q) && !(e.shortDescription?.toLowerCase().includes(q))) return false;
 		if (filters.onlyFavorites && !favoriteIds?.has(e.id)) return false;
 		if (filters.type && e.type !== filters.type) return false;
-		if (filters.category && e.category !== filters.category) return false;
 		if (filters.nearMe && userCoords && e.kind === "static" && e.location) {
 			if (
 				haversineDistance(
@@ -62,7 +60,6 @@ const NEAR_ME_RADIUS_M = 600;
 export interface AgendaFilters {
 	search?: string;
 	type?: EventType;
-	category?: EventCategory;
 	nearMe?: boolean;
 	onlyFavorites?: boolean;
 }
@@ -143,7 +140,6 @@ export function useAgenda(
 
 	const setSearch = (search: string) => setFilters((f) => ({ ...f, search: search || undefined }));
 	const setType = (type: EventType | undefined) => setFilters((f) => ({ ...f, type }));
-	const setCategory = (category: EventCategory | undefined) => setFilters((f) => ({ ...f, category }));
 	const toggleNearMe = () => setFilters((f) => ({ ...f, nearMe: !f.nearMe }));
 	const toggleFavorites = () => setFilters((f) => ({ ...f, onlyFavorites: !f.onlyFavorites }));
 	const clearFilters = () => setFilters({});
@@ -159,7 +155,6 @@ export function useAgenda(
 		setDay,
 		setSearch,
 		setType,
-		setCategory,
 		toggleNearMe,
 		toggleFavorites,
 		clearFilters,

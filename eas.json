@@ -9,33 +9,18 @@
 			"distribution": "internal",
 			"android": {
 				"buildType": "apk"
-			},
-			"env": {
-				"EXPO_PUBLIC_SUPABASE_URL": "https://cliswtnozdmddtmkudfp.supabase.co",
-				"EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_SboRy2TZG2eocA2kGUUXQQ_WYsq48tG",
-				"EXPO_PUBLIC_FESTIVAL_ID": "les-santes-2026"
 			}
 		},
 		"preview": {
 			"distribution": "internal",
 			"android": {
 				"buildType": "apk"
-			},
-			"env": {
-				"EXPO_PUBLIC_SUPABASE_URL": "https://cliswtnozdmddtmkudfp.supabase.co",
-				"EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_SboRy2TZG2eocA2kGUUXQQ_WYsq48tG",
-				"EXPO_PUBLIC_FESTIVAL_ID": "les-santes-2026"
 			}
 		},
 		"production": {
 			"autoIncrement": true,
 			"android": {
 				"buildType": "app-bundle"
-			},
-			"env": {
-				"EXPO_PUBLIC_SUPABASE_URL": "https://cliswtnozdmddtmkudfp.supabase.co",
-				"EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_SboRy2TZG2eocA2kGUUXQQ_WYsq48tG",
-				"EXPO_PUBLIC_FESTIVAL_ID": "les-santes-2026"
 			}
 		}
 	},

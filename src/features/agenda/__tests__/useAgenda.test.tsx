@@ -1,6 +1,6 @@
 /**
  * useAgenda orchestrates every agenda filter in the app: search, type,
- * category, favorites, near-me radius + sort, and the day fallback when
+ * favorites, near-me radius + sort, and the day fallback when
  * the picked day has no events. Each branch is exercised here so a copy/
  * paste bug or a flipped boolean doesn't ship silently.
  *
@@ -64,7 +64,7 @@ describe('useAgenda — search filter', () => {
   });
 });
 
-describe('useAgenda — type & category filters', () => {
+describe('useAgenda — type filter', () => {
   it('filters by exact type', () => {
     const events = [
       ev({ id: 'a', type: 'cercavila' }),
@@ -72,20 +72,6 @@ describe('useAgenda — type & category filters', () => {
     ];
     const { result } = renderHook(() => useAgenda(events));
     act(() => result.current.setType('concert'));
-    expect(result.current.filtered.map((e) => e.id)).toEqual(['b']);
-  });
-
-  it('filters by exact category and AND-combines with type', () => {
-    const events = [
-      ev({ id: 'a', type: 'cercavila', category: 'tradicional' }),
-      ev({ id: 'b', type: 'cercavila', category: 'cultural' }),
-      ev({ id: 'c', type: 'concert', category: 'cultural' }),
-    ];
-    const { result } = renderHook(() => useAgenda(events));
-    act(() => {
-      result.current.setType('cercavila');
-      result.current.setCategory('cultural');
-    });
     expect(result.current.filtered.map((e) => e.id)).toEqual(['b']);
   });
 

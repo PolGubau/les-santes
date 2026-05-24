@@ -1,10 +1,10 @@
-import type { EventCategory, EventType } from '@/entities/event';
+import type { EventType } from '@/entities/event';
 import { Colors } from '@/shared/constants';
 import { t } from '@/shared/i18n';
 import type { UserCoords } from '@/shared/hooks';
 import * as Haptics from 'expo-haptics';
 import {
-  Crown, Flag, Flame, Heart, MapPin, Mic, Moon, Music, Sailboat, Smile, Ticket, Users, Sparkles, BookOpen,
+  Crown, Flag, Flame, Heart, MapPin, Mic, Music, Sailboat, Smile, Ticket, Users,
 } from 'lucide-react-native';
 import type { LucideIcon } from 'lucide-react-native';
 import React from 'react';
@@ -22,13 +22,6 @@ const TYPE_FILTERS: Array<{ label: string; value: EventType; Icon?: LucideIcon }
   { label: t('filters.jocs'), value: 'jocs', Icon: Smile },
 ];
 
-const CATEGORY_FILTERS: Array<{ value: EventCategory; emoji: string; Icon: LucideIcon; labelFn: () => string }> = [
-  { value: 'nocturn', emoji: '🌙', Icon: Moon, labelFn: () => t('filters.categoryNocturn') },
-  { value: 'familiar', emoji: '👨‍👩‍👧', Icon: Sparkles, labelFn: () => t('filters.categoryFamiliar') },
-  { value: 'tradicional', emoji: '🎭', Icon: Flag, labelFn: () => t('filters.categoryTradicional') },
-  { value: 'cultural', emoji: '🎨', Icon: BookOpen, labelFn: () => t('filters.categoryCultural') },
-];
-
 interface Props {
   filters: AgendaFilters;
   totalFavorites: number;
@@ -36,12 +29,11 @@ interface Props {
   onToggleFavorites: () => void;
   onToggleNearMe: () => void;
   onSetType: (type: EventType | undefined) => void;
-  onSetCategory: (category: EventCategory | undefined) => void;
 }
 
 export function AgendaFilterBar({
   filters, totalFavorites, userCoords,
-  onToggleFavorites, onToggleNearMe, onSetType, onSetCategory,
+  onToggleFavorites, onToggleNearMe, onSetType,
 }: Props) {
   return (
     <View>
@@ -106,26 +98,7 @@ export function AgendaFilterBar({
           );
         })}
 
-        {/* Separator */}
-        <View style={styles.separator} />
 
-        {/* Category filters */}
-        {CATEGORY_FILTERS.map((f) => {
-          const active = filters.category === f.value;
-          return (
-            <Pressable
-              key={f.value}
-              style={[styles.chip, active && styles.chipCategoryActive]}
-              onPress={() => { Haptics.selectionAsync(); onSetCategory(active ? undefined : f.value); }}
-              accessibilityRole="tab"
-              accessibilityLabel={t('filters.categoryA11y', { label: f.labelFn() })}
-              accessibilityState={{ selected: active }}
-            >
-              <Text style={styles.chipEmoji}>{f.emoji}</Text>
-              <Text style={[styles.chipText, active && styles.chipTextActive]}>{f.labelFn()}</Text>
-            </Pressable>
-          );
-        })}
       </ScrollView>
     </View>
   );
@@ -151,7 +124,5 @@ const styles = StyleSheet.create({
   favBadgeActive: { backgroundColor: 'rgba(255,255,255,0.3)' },
   favBadgeText: { color: '#fff', fontSize: 10, fontWeight: '700', fontVariant: ['tabular-nums'] },
   favBadgeTextActive: { color: '#fff' },
-  chipCategoryActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  chipEmoji: { fontSize: 14, lineHeight: 17 },
-  separator: { width: 1, height: 20, backgroundColor: Colors.border, alignSelf: 'center', marginHorizontal: 4 },
+
 });

@@ -39,7 +39,6 @@ export default function AgendaScreen() {
     filters,
     setSearch,
     setType,
-    setCategory,
     toggleNearMe,
     toggleFavorites,
     selectedDay,
@@ -107,7 +106,7 @@ export default function AgendaScreen() {
   }, [availableDays, selectedDay]);
 
   const hasActiveFilters = !!(
-    filters.type || filters.category || filters.nearMe || filters.search?.trim()
+    filters.type || filters.nearMe || filters.search?.trim()
   );
 
   // Nudges shown only when the current day's list is empty.
@@ -186,7 +185,6 @@ export default function AgendaScreen() {
           onToggleFavorites={toggleFavorites}
           onToggleNearMe={toggleNearMe}
           onSetType={setType}
-          onSetCategory={setCategory}
         />
       </View>
 
