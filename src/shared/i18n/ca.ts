@@ -110,6 +110,8 @@ export interface Translations {
     locationAlertBody: string;
     locationAlertContinue: string;
     retry: string;
+    showTimeScrubber: string;
+    hideTimeScrubber: string;
   };
   event: {
     notFound: string;
@@ -229,6 +231,11 @@ export interface Translations {
     dismissedAnnouncements: string;
     dismissedAnnouncementsDesc: string;
     restoreDismissedAnnouncements: string;
+    engagementSection: string;
+    engagementFrequency: string;
+    engagementFrequencyDesc: string;
+    engagementEveryDay: string;
+    engagementEveryTwoDays: string;
   };
   feedback: {
     title: string;
@@ -274,6 +281,23 @@ export interface Translations {
     sectionContact: string;
     contactText: string;
     privacyPolicyLink: string;
+  };
+  engagement: {
+    title: string;
+    body0: string;
+    body1: string;
+    body2: string;
+    body3: string;
+    body4: string;
+    body5: string;
+    body6: string;
+    body7: string;
+    body8: string;
+    body9: string;
+    body10: string;
+    body11: string;
+    body12: string;
+    body13: string;
   };
 }
 
@@ -441,6 +465,8 @@ export const ca: Translations = {
     locationAlertBody: "Permet l'accés a la teva ubicació per veure't al mapa i trobar actes propers.",
     locationAlertContinue: 'Continua',
     retry: 'Torna-ho a intentar',
+    showTimeScrubber: 'Mostrar control horari',
+    hideTimeScrubber: 'Amagar control horari',
   },
   event: {
     notFound: 'Acte no trobat.',
@@ -584,6 +610,11 @@ export const ca: Translations = {
     dismissedAnnouncements: 'Avisos descartats',
     dismissedAnnouncementsDesc: 'Tornaran a aparèixer si els restaures.',
     restoreDismissedAnnouncements: 'Restaurar avisos',
+    engagementSection: 'Recordatoris diaris',
+    engagementFrequency: 'Freqüència',
+    engagementFrequencyDesc: 'Cada quant vols rebre curiositats i consells sobre Les Santes.',
+    engagementEveryDay: 'Cada dia',
+    engagementEveryTwoDays: 'Cada 2 dies',
   },
   feedback: {
     title: 'Com va l’app?',
@@ -633,5 +664,23 @@ export const ca: Translations = {
     sectionContact: 'Contacte',
     contactText: 'Dubtes o consultes sobre privacitat? Escriu-nos:',
     privacyPolicyLink: 'Consulta la política de privacitat completa →',
+  },
+  // ── Engagement / Daily Countdown ──────────────────────────────────────────
+  engagement: {
+    title: 'Les Santes Mataró 🎆',
+    body0: 'Sabies que en Robafaves i la Geganta es van casar el 1850? Descobreix més a Recursos!',
+    body1: 'T’agraden els focs? Revisa els millors llocs al mapa per la Nit de Sant Joan.',
+    body2: 'La Juliana porta ginebra, rom, vodka i taronjada. Vigila que puja ràpid! 🍹',
+    body3: 'El "No n’hi ha prou" és l’acte més canalla. Ja tens el mocador de la festa?',
+    body4: 'Els nens i nenes tenen el seu propi "No n’hi ha prou" infantil. No te’l perdis!',
+    body5: 'Fes una ullada als cartells de fa 100 anys a la secció de Recursos. Són art!',
+    body6: 'Recorda afegir els teus actes preferits per rebre avisos 30 minuts abans.',
+    body7: 'Mataró ja comença a fer olor a pólvora i festa. Estàs a punt?',
+    body8: 'Has vist les postals de Gegants convidats? N’hi ha de tot Catalunya!',
+    body9: 'El Bequetero és l’himne no oficial de Les Santes. 1, 2, 15!',
+    body10: 'Busques un acte familiar? Utilitza els filtres per trobar‑los ràpidament.',
+    body11: 'Descobreix la història de les nostres comparses a la guia cultural.',
+    body12: 'Ja has triat on veure els focs artificials d’aquest any? El Callao mai falla.',
+    body13: 'Falten pocs dies! Revisa que tinguis tota la roba blanca a punt per la Crida.',
   },
 };

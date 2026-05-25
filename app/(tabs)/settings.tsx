@@ -4,7 +4,8 @@ import { useFeedback } from '@/features/feedback';
 import { Colors, Typography } from '@/shared/constants';
 import { t } from '@/shared/i18n';
 import { LOCALES, useLocaleStore, type AppLocale } from '@/shared/hooks/useLocale';
-import { cancelEventNotification, getScheduledEventNotifications, type ScheduledEventNotification } from '@/shared/lib/notifications';
+import { useEngagementStore, type EngagementFrequencyDays } from '@/shared/hooks/useEngagementStore';
+import { buildEngagementSchedule, cancelEventNotification, fireTestNotification, getScheduledEventNotifications, isExpoGo, scheduleEngagementNotifications, type EngagementSlot, type ScheduledEventNotification } from '@/shared/lib/notifications';
 import { Screen } from '@/shared/ui';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
@@ -106,10 +107,105 @@ function LocaleOption({ label, flag, active, onPress }: {
   );
 }
 
+function FrequencyOption({ label, active, onPress }: {
+  label: string; active: boolean; onPress: () => void;
+}) {
+  return (
+    <TouchableOpacity
+      style={[styles.localeBtn, active && styles.localeBtnActive]}
+      onPress={onPress}
+      activeOpacity={0.75}
+      accessibilityRole="radio"
+      accessibilityState={{ checked: active }}
+      accessibilityLabel={label}
+    >
+      <Text
+        style={[styles.localeLabel, active && styles.localeLabelActive]}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.7}
+      >
+        {label}
+      </Text>
+      {active && <View style={styles.localeDot} />}
+    </TouchableOpacity>
+  );
+}
+
+/**
+ * Dev-only panel that shows the simulated engagement notification schedule
+ * and a button to fire a test notification in 5 seconds.
+ *
+ * Local scheduled notifications work in iOS Expo Go.
+ * Android Expo Go may fail due to SDK 53 native module limitations.
+ */
+function EngagementDebugPanel({ frequencyDays }: { frequencyDays: number }) {
+  const { FESTIVAL_START } = require('@/shared/constants/festival') as { FESTIVAL_START: Date };
+  const schedule = buildEngagementSchedule(new Date(), frequencyDays, FESTIVAL_START);
+  const [testing, setTesting] = React.useState(false);
+
+  const fmt = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:00`;
+
+  const handleTest = async () => {
+    setTesting(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => { });
+    const msg = await fireTestNotification(5);
+    setTesting(false);
+    Alert.alert('Test notification', msg);
+  };
+
+  return (
+    <View style={{ marginTop: 8 }}>
+      <Text style={[styles.sectionTitle, { marginTop: 8 }]}>
+        {isExpoGo ? '⚠️ Expo Go — push no disponible' : '✅ Standalone — notificaciones activas'}
+      </Text>
+
+      {/* Test button */}
+      <TouchableOpacity
+        style={[styles.card, { paddingHorizontal: 16, paddingVertical: 13, flexDirection: 'row', alignItems: 'center', gap: 8 }]}
+        onPress={handleTest}
+        disabled={testing}
+        activeOpacity={0.7}
+      >
+        <Bell size={15} color={testing ? Colors.textDim : Colors.primary} />
+        <Text style={[styles.rowLabel, { color: testing ? Colors.textDim : Colors.primary, flex: 1 }]}>
+          {testing ? 'Programando…' : 'Probar notificación en 5 s'}
+        </Text>
+      </TouchableOpacity>
+
+      {/* Slot list */}
+      <View style={[styles.card, { marginTop: 8 }]}>
+        {schedule.length === 0 ? (
+          <View style={styles.row}>
+            <Text style={styles.rowSublabel}>Festival iniciado — sin slots.</Text>
+          </View>
+        ) : (
+          schedule.map((slot: EngagementSlot) => (
+            <View key={slot.slot}>
+              {slot.slot > 0 && <View style={styles.divider} />}
+              <View style={styles.row}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.rowLabel}>
+                    Slot {slot.slot + 1} · body{slot.bodyIndex}
+                  </Text>
+                  <Text style={styles.rowSublabel}>{fmt(slot.triggerDate)}</Text>
+                </View>
+              </View>
+            </View>
+          ))
+        )}
+      </View>
+    </View>
+  );
+}
+
 // ─── Screen ──────────────────────────────────────────────────────────────────
 export default function SettingsScreen() {
   const { locale, setLocale } = useLocaleStore();
   const { isEnabled, setEnabled } = useAnalyticsStore();
+  const engagementFrequency = useEngagementStore((s) => s.frequencyDays);
+  const setEngagementFrequency = useEngagementStore((s) => s.setFrequencyDays);
   const { open: openFeedback } = useFeedback();
   const resetOnboarding = useOnboardingStore((s) => s.reset);
   const dismissedAnnouncementIds = useDismissedAnnouncementsStore((s) => s.dismissedIds);
@@ -145,6 +241,17 @@ export default function SettingsScreen() {
   }, []);
 
   const handleNotifications = () => Linking.openSettings();
+
+  const handleEngagementFrequency = useCallback(
+    (days: EngagementFrequencyDays) => {
+      if (days === engagementFrequency) return;
+      Haptics.selectionAsync().catch(() => { });
+      setEngagementFrequency(days);
+      // Re-schedule with the new cadence; safe to fire-and-forget.
+      scheduleEngagementNotifications().catch(() => { });
+    },
+    [engagementFrequency, setEngagementFrequency],
+  );
 
   const handleClearCache = () => {
     Alert.alert(
@@ -196,6 +303,29 @@ export default function SettingsScreen() {
         <SectionTitle label={t('settings.notifications')} />
         <View style={styles.card}>
           <ActionRow label={t('settings.openNotificationSettings')} onPress={handleNotifications} />
+        </View>
+
+        {/* ── Engagement reminders cadence ───────────────────────────────── */}
+        <SectionTitle label={t('settings.engagementSection')} />
+        <View style={styles.card}>
+          <View style={[styles.row, { flexDirection: 'column', alignItems: 'stretch', gap: 10 }]}>
+            <View>
+              <Text style={styles.rowLabel}>{t('settings.engagementFrequency')}</Text>
+              <Text style={styles.rowSublabel}>{t('settings.engagementFrequencyDesc')}</Text>
+            </View>
+            <View style={styles.localeGroup}>
+              <FrequencyOption
+                label={t('settings.engagementEveryDay')}
+                active={engagementFrequency === 1}
+                onPress={() => handleEngagementFrequency(1)}
+              />
+              <FrequencyOption
+                label={t('settings.engagementEveryTwoDays')}
+                active={engagementFrequency === 2}
+                onPress={() => handleEngagementFrequency(2)}
+              />
+            </View>
+          </View>
         </View>
 
         {/* Scheduled event notifications */}
@@ -311,6 +441,7 @@ export default function SettingsScreen() {
                 }}
               />
             </View>
+            <EngagementDebugPanel frequencyDays={engagementFrequency} />
           </>
         )}
 

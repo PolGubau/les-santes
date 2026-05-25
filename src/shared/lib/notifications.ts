@@ -11,9 +11,10 @@ import { t } from '@/shared/i18n';
 import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
+import { FESTIVAL_START } from '@/shared/constants/festival';
+import { useEngagementStore } from '@/shared/hooks/useEngagementStore';
 
 const MINUTES_BEFORE = 30;
-const PROJECT_ID = 'dffc30d5-6870-47b8-979f-a842d6848eb5';
 
 /**
  * True when running inside Expo Go.
@@ -123,4 +124,164 @@ export async function getScheduledEventNotifications(): Promise<ScheduledEventNo
       };
     })
     .sort((a, b) => a.triggerDate.getTime() - b.triggerDate.getTime());
+}
+
+export const ENGAGEMENT_NOTIF_PREFIX = 'engagement-';
+const ENGAGEMENT_SLOTS = 14;
+const ENGAGEMENT_HOUR = 11;
+const TOTAL_BODY_VARIANTS = 14;
+
+export interface EngagementSlot {
+  /** 0-based slot index (used as notification identifier suffix). */
+  slot: number;
+  /** Identifier passed to expo-notifications. */
+  identifier: string;
+  /** Scheduled fire time. */
+  triggerDate: Date;
+  /** Which body${n} translation key to use (already wrapped-around 14). */
+  bodyIndex: number;
+}
+
+/**
+ * Pure function — no side-effects, no async, no module dependencies.
+ *
+ * Computes the list of engagement notification slots given the scheduling
+ * parameters. The caller is responsible for actually scheduling them.
+ *
+ * @param now         Reference "current" time (injectable for tests).
+ * @param frequencyDays  Gap between consecutive notifications (1 or 2).
+ * @param festivalStart  Upper bound — slots on/after this date are omitted.
+ * @param slots       Maximum number of notifications to plan (default 14).
+ */
+export function buildEngagementSchedule(
+  now: Date,
+  frequencyDays: number,
+  festivalStart: Date,
+  slots = ENGAGEMENT_SLOTS,
+): EngagementSlot[] {
+  if (now >= festivalStart) return [];
+
+  const result: EngagementSlot[] = [];
+
+  for (let i = 0; i < slots; i++) {
+    const triggerDate = new Date(now);
+    triggerDate.setDate(now.getDate() + (i + 1) * frequencyDays);
+    triggerDate.setHours(ENGAGEMENT_HOUR, 0, 0, 0);
+    triggerDate.setMinutes(0, 0, 0);
+
+    if (triggerDate >= festivalStart) break;
+
+    result.push({
+      slot: i,
+      identifier: `${ENGAGEMENT_NOTIF_PREFIX}${i}`,
+      triggerDate,
+      bodyIndex: i % TOTAL_BODY_VARIANTS,
+    });
+  }
+
+  return result;
+}
+
+/**
+ * Schedule a rolling window of local notifications to keep testers engaged
+ * before the festival starts. Cadence (every 1 or 2 days) is read from
+ * `useEngagementStore` so users can throttle them from Settings.
+ *
+ * Idempotent: clears previous engagement notifications before rescheduling.
+ * Stops automatically once the trigger date would fall on/after the festival.
+ */
+export async function scheduleEngagementNotifications(): Promise<void> {
+  const N = await getNotifications();
+  if (!N) return;
+
+  const now = new Date();
+  const frequencyDays = useEngagementStore.getState().frequencyDays;
+
+  // Clear existing engagement notifications to be idempotent
+  const all = await N.getAllScheduledNotificationsAsync().catch(() => []);
+  for (const n of all) {
+    if (n.identifier.startsWith(ENGAGEMENT_NOTIF_PREFIX)) {
+      await N.cancelScheduledNotificationAsync(n.identifier).catch(() => {});
+    }
+  }
+
+  const schedule = buildEngagementSchedule(now, frequencyDays, FESTIVAL_START);
+
+  for (const { identifier, triggerDate, bodyIndex } of schedule) {
+    await N.scheduleNotificationAsync({
+      identifier,
+      content: {
+        title: t('engagement.title'),
+        body: t(`engagement.body${bodyIndex}` as any),
+        data: { type: 'engagement' },
+      },
+      trigger: {
+        type: N.SchedulableTriggerInputTypes.DATE,
+        date: triggerDate,
+      },
+    });
+  }
+}
+
+/**
+ * Loads expo-notifications via static `require()` so Metro bundles it.
+ * Dynamic `await import()` fails in Expo Go ("unknown module") because
+ * Metro can't resolve it at runtime. Wrapped in try/catch since the
+ * native module may still throw on Android Expo Go (SDK 53 limitation).
+ */
+function requireNotifications(): typeof import('expo-notifications') | null {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    return require('expo-notifications');
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Fires a single local notification after `delaySeconds` for manual QA.
+ *
+ * Bypasses the `isExpoGo` guard on purpose: local scheduled notifications
+ * work in iOS Expo Go. Returns a human-readable status string so the caller
+ * can surface success/failure to the user.
+ */
+export async function fireTestNotification(delaySeconds: number): Promise<string> {
+  const N = requireNotifications();
+  if (!N) {
+    return '❌ expo-notifications no disponible en este entorno.';
+  }
+
+  try {
+    const { status: existing } = await N.getPermissionsAsync();
+    let finalStatus = existing;
+    if (existing !== 'granted') {
+      const { status } = await N.requestPermissionsAsync();
+      finalStatus = status;
+    }
+    if (finalStatus !== 'granted') {
+      return '❌ Permisos de notificación denegados.';
+    }
+  } catch (e) {
+    return `❌ Error de permisos:\n${String(e)}`;
+  }
+
+  const fireAt = new Date(Date.now() + delaySeconds * 1000);
+
+  try {
+    const id = await N.scheduleNotificationAsync({
+      identifier: `debug-test-${Date.now()}`,
+      content: {
+        title: '🎆 Les Santes Mataró — TEST',
+        body: `Notificación de prueba programada ${delaySeconds}s. Si la ves, ¡funciona!`,
+        data: { type: 'debug' },
+      },
+      trigger: {
+        type: N.SchedulableTriggerInputTypes.TIME_INTERVAL,
+        seconds: delaySeconds,
+      },
+    });
+    return `✅ Programada (id: ${id})\nSaldrá a las ${fireAt.toLocaleTimeString()}`;
+  } catch (e) {
+    return `❌ Error al programar:\n${String(e)}`;
+  }
 }

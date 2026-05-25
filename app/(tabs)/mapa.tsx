@@ -19,66 +19,150 @@ import { t } from '@/shared/i18n';
 import { toFestivalDayKey } from '@/shared/lib';
 import { OfflineBanner, Screen } from '@/shared/ui';
 import { useFocusEffect } from 'expo-router';
-import { MoveHorizontal, RotateCcw } from 'lucide-react-native';
+import * as Haptics from 'expo-haptics';
+import { ChevronDown, Clock3, RotateCcw } from 'lucide-react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { PanResponder, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { PanResponder, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 // ── Time scrubber (local preview) ─────────────────────────────────────────────
 // Local-only: state lives in MapaScreen and is reset on focus so other screens
 // (and re-entries to the map) always see the real current time.
-/** Minutes of festival time advanced per pixel dragged. */
-const PX_PER_MIN = 1.5;
+// The track represents a full festival day (06:00 → 06:00 next calendar day).
+// Drag is absolute: the thumb follows the finger 1:1 across the track width.
 function pad(n: number) { return String(n).padStart(2, '0'); }
+
+// Tick positions relative to the festival day (06:00 anchor) every 3h.
+// Major ticks mark midday (12:00 = 0.25), evening (18:00 = 0.5) and midnight (00:00 = 0.75).
+const TICK_RATIOS = [0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875] as const;
+const MAJOR_TICK_RATIOS = new Set<number>([0.25, 0.5, 0.75]);
 
 function SimScrubber({
   simTime,
   onChange,
+  visible,
+  onToggleVisible,
 }: {
   simTime: number;
   onChange: (ms: number) => void;
+  visible: boolean;
+  onToggleVisible: () => void;
 }) {
   // Refs keep PanResponder handlers fresh without recreating the responder.
   const simTimeRef = useRef(simTime);
   simTimeRef.current = simTime;
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
-  const dragStartMs = useRef(simTime);
 
-  const clamp = (ms: number) =>
+  const trackRef = useRef<View | null>(null);
+  const trackLayoutRef = useRef<{ pageX: number; width: number }>({ pageX: 0, width: 0 });
+  const [trackWidth, setTrackWidth] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const measureTrack = useCallback(() => {
+    trackRef.current?.measureInWindow((x, _y, w) => {
+      if (w > 0) {
+        trackLayoutRef.current = { pageX: x, width: w };
+        setTrackWidth(w);
+      }
+    });
+  }, []);
+
+  const clampMs = (ms: number) =>
     Math.max(FESTIVAL_START.getTime(), Math.min(FESTIVAL_END.getTime(), ms));
+
+  // Map an absolute finger X position to a sim-time within the current festival day.
+  const setFromPageX = useCallback((pageX: number) => {
+    const { pageX: tx, width: tw } = trackLayoutRef.current;
+    if (tw <= 0) return;
+    const ratio = Math.max(0, Math.min(1, (pageX - tx) / tw));
+    // Anchor at 06:00 of the current festival day. Hours 0–5 belong to the previous day.
+    const dayStart = new Date(simTimeRef.current);
+    if (dayStart.getHours() < 6) dayStart.setDate(dayStart.getDate() - 1);
+    dayStart.setHours(6, 0, 0, 0);
+    const ms = clampMs(dayStart.getTime() + Math.round(ratio * 24 * 60) * 60_000);
+    onChangeRef.current(ms);
+  }, []);
 
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
-      // Only capture clearly horizontal gestures so the map can still pan vertically.
-      onMoveShouldSetPanResponder: (_, { dx, dy }) =>
-        Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 4,
-      onPanResponderGrant: () => { dragStartMs.current = simTimeRef.current; },
-      onPanResponderMove: (_, { dx }) => {
-        onChangeRef.current(clamp(dragStartMs.current + dx * PX_PER_MIN * 60_000));
+      onStartShouldSetPanResponderCapture: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: (evt) => {
+        measureTrack();
+        setIsDragging(true);
+        Haptics.selectionAsync();
+        setFromPageX(evt.nativeEvent.pageX);
       },
+      onPanResponderMove: (evt) => setFromPageX(evt.nativeEvent.pageX),
+      onPanResponderRelease: () => setIsDragging(false),
+      onPanResponderTerminate: () => setIsDragging(false),
     }),
   ).current;
 
   const d = new Date(simTime);
   const timeLabel = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 
-  // Festival day: 06:00 → 06:00 next calendar day (same as toFestivalDayKey -6h logic).
-  // Hours 0–5 belong to the end of the previous festival day → shift them past midnight.
   const rawMinutes = d.getHours() * 60 + d.getMinutes();
-  const festivalMinutes = rawMinutes < 6 * 60
-    ? rawMinutes + 18 * 60        // 00:00–05:59 → maps to 18:00–23:59 range
-    : rawMinutes - 6 * 60;        // 06:00–23:59 → maps to 00:00–17:59 range
-  const progress = Math.max(0.005, Math.min(0.995, festivalMinutes / (24 * 60)));
+  const festivalMinutes = rawMinutes < 6 * 60 ? rawMinutes + 18 * 60 : rawMinutes - 6 * 60;
+  const progress = Math.max(0, Math.min(1, festivalMinutes / (24 * 60)));
+
+  if (!visible) {
+    return (
+      <Pressable
+        style={simStyles.collapsed}
+        onPress={onToggleVisible}
+        hitSlop={8}
+        accessibilityLabel={t('map.showTimeScrubber')}
+      >
+        <Clock3 size={13} color="#6B7280" />
+        <Text style={simStyles.collapsedText}>{timeLabel}</Text>
+      </Pressable>
+    );
+  }
+
+  const thumbX = progress * trackWidth;
+  const BUBBLE_HALF = 30;
+  const bubbleCenter = Math.max(BUBBLE_HALF, Math.min(trackWidth - BUBBLE_HALF, thumbX));
 
   return (
-    <View {...panResponder.panHandlers} style={simStyles.pill}>
-      <MoveHorizontal size={13} color="#9CA3AF" />
+    <View style={simStyles.pill}>
+      <Clock3 size={13} color="#9CA3AF" />
       <Text style={simStyles.clockText}>{timeLabel}</Text>
-      <View style={simStyles.trackBg}>
-        <View style={[simStyles.trackFill, { flex: progress }]} />
-        <View style={simStyles.thumb} />
-        <View style={{ flex: 1 - progress }} />
+      <View
+        ref={trackRef}
+        onLayout={measureTrack}
+        style={simStyles.trackHit}
+        {...panResponder.panHandlers}
+      >
+        <View style={simStyles.trackBg} pointerEvents="none">
+          {TICK_RATIOS.map((r) => (
+            <View
+              key={r}
+              style={[
+                simStyles.tick,
+                MAJOR_TICK_RATIOS.has(r) && simStyles.tickMajor,
+                { left: `${r * 100}%` },
+              ]}
+            />
+          ))}
+          <View style={[simStyles.trackFill, { width: `${progress * 100}%` }]} />
+          <View
+            style={[
+              simStyles.thumb,
+              isDragging && simStyles.thumbActive,
+              { left: thumbX - (isDragging ? 8 : 5) },
+            ]}
+          />
+        </View>
+        {isDragging && trackWidth > 0 && (
+          <View
+            style={[simStyles.bubble, { left: bubbleCenter - BUBBLE_HALF }]}
+            pointerEvents="none"
+          >
+            <Text style={simStyles.bubbleText}>{timeLabel}</Text>
+          </View>
+        )}
       </View>
       <TouchableOpacity
         onPress={() => onChangeRef.current(getAppNow().getTime())}
@@ -86,6 +170,13 @@ function SimScrubber({
         accessibilityLabel={t('map.resetTime')}
       >
         <RotateCcw size={13} color="#9CA3AF" />
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={onToggleVisible}
+        hitSlop={10}
+        accessibilityLabel={t('map.hideTimeScrubber')}
+      >
+        <ChevronDown size={14} color="#9CA3AF" />
       </TouchableOpacity>
     </View>
   );
@@ -108,6 +199,30 @@ const simStyles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
+  collapsed: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.08)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  collapsedText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#374151',
+    fontVariant: ['tabular-nums'],
+    letterSpacing: -0.2,
+  },
   clockText: {
     fontSize: 15,
     fontWeight: '800',
@@ -116,16 +231,39 @@ const simStyles = StyleSheet.create({
     letterSpacing: -0.3,
     minWidth: 38,
   },
+  // Larger touch area than the thin visual track so the slider is easy to grab.
+  trackHit: { flex: 1, justifyContent: 'center', paddingVertical: 12 },
   trackBg: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
+    width: '100%',
     height: 4,
     borderRadius: 2,
     backgroundColor: '#F3F4F6',
   },
-  trackFill: { height: 4, backgroundColor: '#3B82F6', borderRadius: 2 },
+  trackFill: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    height: 4,
+    backgroundColor: '#3B82F6',
+    borderRadius: 2,
+  },
+  tick: {
+    position: 'absolute',
+    top: -2,
+    width: 2,
+    height: 8,
+    marginLeft: -1,
+    borderRadius: 1,
+    backgroundColor: '#D1D5DB',
+  },
+  tickMajor: {
+    top: -4,
+    height: 12,
+    backgroundColor: '#9CA3AF',
+  },
   thumb: {
+    position: 'absolute',
+    top: -3,
     width: 10,
     height: 10,
     borderRadius: 5,
@@ -137,7 +275,34 @@ const simStyles = StyleSheet.create({
     shadowOpacity: 0.5,
     shadowRadius: 4,
     elevation: 3,
-    marginHorizontal: -1,
+  },
+  thumbActive: {
+    top: -6,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    borderWidth: 3,
+  },
+  bubble: {
+    position: 'absolute',
+    bottom: 28,
+    width: 60,
+    paddingVertical: 4,
+    borderRadius: 8,
+    backgroundColor: '#111827',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  bubbleText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#fff',
+    fontVariant: ['tabular-nums'],
+    letterSpacing: -0.3,
   },
 });
 
@@ -159,6 +324,8 @@ export default function MapaScreen() {
   const [simTime, setSimTime] = useState<number>(() => getAppNow().getTime());
   const simTimeRef = useRef(simTime);
   simTimeRef.current = simTime;
+  const [simVisible, setSimVisible] = useState(true);
+  const toggleSimVisible = useCallback(() => setSimVisible((v) => !v), []);
 
   const handleSimTimeChange = useCallback((ms: number) => {
     setSimTime(ms);
@@ -261,7 +428,14 @@ export default function MapaScreen() {
         onListPress={selection.handleListPress}
         onSearchChange={search.handleSearchChange}
         onSearchFocus={search.handleSearchFocus}
-        simSlot={<SimScrubber simTime={simTime} onChange={handleSimTimeChange} />}
+        simSlot={
+          <SimScrubber
+            simTime={simTime}
+            onChange={handleSimTimeChange}
+            visible={simVisible}
+            onToggleVisible={toggleSimVisible}
+          />
+        }
       />
 
       {selection.showDrawer && (

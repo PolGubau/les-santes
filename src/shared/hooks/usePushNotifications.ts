@@ -1,4 +1,8 @@
-import { isExpoGo, requestNotificationPermission } from '@/shared/lib/notifications';
+import {
+  isExpoGo,
+  requestNotificationPermission,
+  scheduleEngagementNotifications,
+} from '@/shared/lib/notifications';
 import type { EventSubscription } from 'expo-notifications';
 import { router } from 'expo-router';
 import { useEffect, useRef } from 'react';
@@ -19,8 +23,14 @@ export function usePushNotifications() {
 
     let cancelled = false;
 
-    // Request permission (fire-and-forget, non-fatal)
-    requestNotificationPermission().catch(() => {});
+    // Request permission + schedule engagement sequence
+    requestNotificationPermission()
+      .then((granted) => {
+        if (granted && !cancelled) {
+          scheduleEngagementNotifications().catch(() => {});
+        }
+      })
+      .catch(() => {});
 
     // Dynamic import so the module-level side effect never runs in Expo Go
     import('expo-notifications').then((Notifications) => {
