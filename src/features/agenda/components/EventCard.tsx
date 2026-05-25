@@ -1,14 +1,12 @@
 import type { Event } from '@/entities/event';
 import { getStateLabel } from '@/entities/event';
-import { useFavoritesStore } from '@/features/favorites';
+import { FavoriteHeart } from '@/features/favorites';
 import { Colors } from '@/shared/constants';
 import { t } from '@/shared/i18n';
-import { cancelEventNotification, formatTime, scheduleEventNotification } from '@/shared/lib';
+import { formatTime } from '@/shared/lib';
 import { EventIcon } from '@/shared/ui';
-import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
-import { Heart } from 'lucide-react-native';
-import React, { useCallback, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -34,9 +32,6 @@ export function EventCard({ event, onPress, distanceMeters }: Props) {
     [event.start, event.end],
   );
 
-  const favorite = useFavoritesStore((s) => s.isFavorite(event.id));
-  const toggleFavorite = useFavoritesStore((s) => s.toggleFavorite);
-
   const animatedCard = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
@@ -48,16 +43,6 @@ export function EventCard({ event, onPress, distanceMeters }: Props) {
   const handlePressOut = () => {
     scale.value = withTiming(1, { duration: 70 });
   };
-
-  const handleFavorite = useCallback(() => {
-    Haptics.impactAsync(
-      favorite ? Haptics.ImpactFeedbackStyle.Light : Haptics.ImpactFeedbackStyle.Medium,
-    );
-    const isAdding = !favorite;
-    toggleFavorite(event.id);
-    if (isAdding) scheduleEventNotification(event).catch(() => { });
-    else cancelEventNotification(event.id).catch(() => { });
-  }, [event, favorite, toggleFavorite]);
 
   return (
     <Animated.View style={animatedCard}>
@@ -106,23 +91,8 @@ export function EventCard({ event, onPress, distanceMeters }: Props) {
               : event.shortDescription}
           </Text>
         </View>
-        {/* Inline favorite toggle — 44×44 hit area per HIG / Material */}
-        <Pressable
-          onPress={handleFavorite}
-          hitSlop={8}
-          style={({ pressed }) => [styles.favBtn, pressed && styles.favBtnPressed]}
-          accessibilityRole="button"
-          accessibilityState={{ selected: favorite }}
-          accessibilityLabel={
-            favorite ? t('event.removeFavoriteA11y') : t('event.addFavoriteA11y')
-          }
-        >
-          <Heart
-            size={20}
-            color={favorite ? Colors.primary : Colors.textDim}
-            fill={favorite ? Colors.primary : 'transparent'}
-          />
-        </Pressable>
+        {/* Inline favorite toggle */}
+        <FavoriteHeart event={event} />
       </Pressable>
     </Animated.View>
   );
@@ -160,12 +130,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   content: { flex: 1, gap: 2 },
-  favBtn: {
-    width: 44, height: 44, borderRadius: 22,
-    alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-    marginLeft: 2,
-  },
-  favBtnPressed: { opacity: 0.6 },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',

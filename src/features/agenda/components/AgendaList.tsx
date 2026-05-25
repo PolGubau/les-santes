@@ -4,6 +4,7 @@ import { Colors } from '@/shared/constants';
 import type { UserCoords } from '@/shared/hooks';
 import { t } from '@/shared/i18n';
 import { haversineDistance } from '@/shared/lib';
+import { SectionHeader } from '@/shared/ui';
 import { AgendaSkeletonList } from './AgendaSkeletonList';
 import { CalendarOff, Moon } from 'lucide-react-native';
 import React, { memo } from 'react';
@@ -35,16 +36,11 @@ const SectionCard = memo(function SectionCard({
 }) {
   return (
     <View style={styles.sectionCard}>
-      {/* Header */}
-      <View style={styles.sectionHeader}>
-        <View style={[styles.accentBar, { backgroundColor: STATE_COLOR[section.state] }]} />
-        <Text style={styles.sectionTitle}>{section.title}</Text>
-        <View style={[styles.countBadge, { borderColor: STATE_COLOR[section.state] }]}>
-          <Text style={[styles.countText, { color: STATE_COLOR[section.state] }]}>
-            {section.data.length}
-          </Text>
-        </View>
-      </View>
+      <SectionHeader
+        title={section.title}
+        count={section.data.length}
+        accentColor={STATE_COLOR[section.state]}
+      />
 
       {/* Divider */}
       <View style={styles.headerDivider} />
@@ -150,37 +146,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     overflow: 'hidden',
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  accentBar: {
-    width: 3,
-    height: 16,
-    borderRadius: 2,
-  },
-  sectionTitle: {
-    flex: 1,
-    color: Colors.text,
-    fontSize: 13,
-    fontWeight: '700',
-    letterSpacing: 0.6,
-    textTransform: 'uppercase',
-  },
-  countBadge: {
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderRadius: 10,
-    borderWidth: 1,
-  },
-  countText: {
-    fontSize: 11,
-    fontWeight: '700',
-    fontVariant: ['tabular-nums'],
   },
   headerDivider: {
     height: 1,
