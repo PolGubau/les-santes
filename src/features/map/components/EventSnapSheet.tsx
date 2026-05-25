@@ -70,7 +70,7 @@ export function EventSnapSheet({ event, onClose, showViewInMap, onViewInMap }: P
 
     const url = Platform.select({
       ios: `maps://0,0?q=${name}@${lat},${lng}`,
-      android: `geo:0,0?q=${lat},lng(${name})`,
+      android: `geo:${lat},${lng}?q=${lat},${lng}(${name})`,
       default: `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`,
     }) ?? `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
 

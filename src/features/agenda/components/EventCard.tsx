@@ -8,7 +8,7 @@ import { EventIcon } from '@/shared/ui';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { Heart } from 'lucide-react-native';
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -29,6 +29,10 @@ export function EventCard({ event, onPress, distanceMeters }: Props) {
   const scale = useSharedValue(1);
   const isFinished = event.state === 'finished';
   const stateLabel = getStateLabel(event.state);
+  const timeRange = useMemo(
+    () => `${formatTime(event.start)} – ${formatTime(event.end)}`,
+    [event.start, event.end],
+  );
 
   const favorite = useFavoritesStore((s) => s.isFavorite(event.id));
   const toggleFavorite = useFavoritesStore((s) => s.toggleFavorite);
@@ -66,7 +70,7 @@ export function EventCard({ event, onPress, distanceMeters }: Props) {
         accessibilityLabel={t('event.cardA11y', {
           title: event.title,
           state: stateLabel,
-          time: `${formatTime(event.start)} – ${formatTime(event.end)}`,
+          time: timeRange,
         })}
         accessibilityState={{ disabled: isFinished }}
       >
@@ -94,9 +98,7 @@ export function EventCard({ event, onPress, distanceMeters }: Props) {
             <Text style={[styles.title, isFinished && styles.textDim]} numberOfLines={1}>
               {event.title}
             </Text>
-            <Text style={styles.time}>
-              {formatTime(event.start)} – {formatTime(event.end)}
-            </Text>
+            <Text style={styles.time}>{timeRange}</Text>
           </View>
           <Text style={styles.desc} numberOfLines={1}>
             {distanceMeters != null
@@ -104,12 +106,13 @@ export function EventCard({ event, onPress, distanceMeters }: Props) {
               : event.shortDescription}
           </Text>
         </View>
-        {/* Inline favorite toggle */}
+        {/* Inline favorite toggle — 44×44 hit area per HIG / Material */}
         <Pressable
           onPress={handleFavorite}
-          hitSlop={10}
+          hitSlop={8}
           style={({ pressed }) => [styles.favBtn, pressed && styles.favBtnPressed]}
           accessibilityRole="button"
+          accessibilityState={{ selected: favorite }}
           accessibilityLabel={
             favorite ? t('event.removeFavoriteA11y') : t('event.addFavoriteA11y')
           }
@@ -158,9 +161,9 @@ const styles = StyleSheet.create({
   },
   content: { flex: 1, gap: 2 },
   favBtn: {
-    width: 36, height: 36, borderRadius: 18,
+    width: 44, height: 44, borderRadius: 22,
     alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-    marginLeft: 4,
+    marginLeft: 2,
   },
   favBtnPressed: { opacity: 0.6 },
   header: {

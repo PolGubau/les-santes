@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 interface EmptyStateCTAProps {
 	icon?: LucideIcon;
-	title: string;
+	title?: string;
 	description?: string;
 	ctaLabel: string;
 	onCta: () => void;
@@ -33,7 +33,7 @@ export function EmptyStateCTA({
 					<Icon size={28} color={Colors.primary} />
 				</View>
 			) : null}
-			<Text style={styles.title}>{title}</Text>
+			{title ? <Text style={styles.title}>{title}</Text> : null}
 			{description ? <Text style={styles.description}>{description}</Text> : null}
 			<Pressable
 				onPress={onCta}

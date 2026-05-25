@@ -117,6 +117,8 @@ export const es: Translations = {
     categoryCultural: 'Cultural',
     filterA11y: 'Filtro %{label}',
     categoryA11y: 'Categoría %{label}',
+    clearAll: 'Borrar filtros',
+    clearAllA11y: 'Borrar todos los filtros',
   },
 
   // ── Now screen ────────────────────────────────────────────────────────────

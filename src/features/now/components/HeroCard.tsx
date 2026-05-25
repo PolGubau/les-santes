@@ -5,7 +5,7 @@ import { formatTime } from '@/shared/lib';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Clock, MapPin } from 'lucide-react-native';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import ReAnimated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 
@@ -21,6 +21,13 @@ export function HeroCard({ event, onPress }: Props) {
   const isLive = event.state === 'now';
   const scale = useSharedValue(1);
   const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  const timeRange = useMemo(
+    () => `${formatTime(event.start)} – ${formatTime(event.end)}`,
+    [event.start, event.end],
+  );
+  const a11yLabel = isLive
+    ? t('now.liveUntilA11y', { title: event.title, time: formatTime(event.end) })
+    : event.title;
 
   // Pulsing live dot animation (opacity 1 → 0.2 → 1 every 1.8 s)
   const dotOpacity = useRef(new Animated.Value(1)).current;
@@ -42,7 +49,7 @@ export function HeroCard({ event, onPress }: Props) {
         source={event.imageUrl ? { uri: event.imageUrl } : undefined}
         style={styles.heroImage}
         contentFit="cover"
-        transition={400}
+        transition={250}
         placeholder={{ blurhash: event.blurhash ?? DEFAULT_BLURHASH }}
       />
       <LinearGradient
@@ -63,9 +70,7 @@ export function HeroCard({ event, onPress }: Props) {
           <Text style={styles.heroTitle} numberOfLines={2}>{event.title}</Text>
           <View style={styles.heroMeta}>
             <Clock size={13} color="rgba(255,255,255,0.8)" />
-            <Text style={styles.heroMetaText}>
-              {formatTime(event.start)} – {formatTime(event.end)}
-            </Text>
+            <Text style={styles.heroMetaText}>{timeRange}</Text>
             {event.locationName && (
               <>
                 <Text style={styles.heroMetaDot}>·</Text>
@@ -82,7 +87,7 @@ export function HeroCard({ event, onPress }: Props) {
         onPressIn={() => { scale.value = withTiming(0.96, { duration: 80 }); }}
         onPressOut={() => { scale.value = withSpring(1, { damping: 10, stiffness: 200 }); }}
         accessibilityRole="button"
-        accessibilityLabel={event.title}
+        accessibilityLabel={a11yLabel}
         accessibilityHint={t('now.tapHintShortA11y')}
       />
     </ReAnimated.View>

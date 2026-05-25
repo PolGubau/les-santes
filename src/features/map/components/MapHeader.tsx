@@ -4,7 +4,7 @@ import { formatDayShort } from '@/shared/lib';
 import * as Haptics from 'expo-haptics';
 import { List, Search, X } from 'lucide-react-native';
 import React, { useCallback, useEffect, useRef } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Keyboard, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface Props {
@@ -56,12 +56,22 @@ export const MapHeader = React.memo(function MapHeader({
   const handleDaySelect = useCallback(
     (day: string) => {
       Haptics.selectionAsync();
+      // Free up the map underneath when the user moves to a different day.
+      Keyboard.dismiss();
       onDayChange(day);
     },
     [onDayChange],
   );
 
-  const clearSearch = useCallback(() => onSearchChange(''), [onSearchChange]);
+  const handleListPress = useCallback(() => {
+    Keyboard.dismiss();
+    onListPress();
+  }, [onListPress]);
+
+  const clearSearch = useCallback(() => {
+    onSearchChange('');
+    Keyboard.dismiss();
+  }, [onSearchChange]);
 
   return (
     <View style={[styles.container, { top: insets.top + 8 }]} pointerEvents="box-none">
@@ -87,7 +97,7 @@ export const MapHeader = React.memo(function MapHeader({
           )}
         </View>
 
-        <Pressable style={styles.listBtn} onPress={onListPress} hitSlop={8} pointerEvents="auto">
+        <Pressable style={styles.listBtn} onPress={handleListPress} hitSlop={8} pointerEvents="auto">
           <List size={18} color={Colors.text} />
           {liveCount > 0 && <View style={styles.liveDot} />}
         </Pressable>
@@ -100,11 +110,13 @@ export const MapHeader = React.memo(function MapHeader({
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.chipsContent}
         pointerEvents="auto"
+        keyboardShouldPersistTaps="handled"
         onLayout={(e) => { scrollWidthRef.current = e.nativeEvent.layout.width; }}
       >
         {availableDays.map((day) => {
           const isSelected = day === selectedDay;
           const isToday = day === todayKey;
+          const dayLabel = isToday ? t('common.today') : formatDayShort(day);
           return (
             <Pressable
               key={day}
@@ -115,9 +127,12 @@ export const MapHeader = React.memo(function MapHeader({
                 chipOffsetsRef.current[day] = { x, width };
                 if (day === selectedDayRef.current) scrollToDay(day);
               }}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: isSelected }}
+              accessibilityLabel={dayLabel}
             >
               <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
-                {isToday ? t('common.today') : formatDayShort(day)}
+                {dayLabel}
               </Text>
             </Pressable>
           );
@@ -193,8 +208,8 @@ const styles = StyleSheet.create({
     borderColor: Colors.surface,
   },
 
-  // Day chips — full-width scroll, no outer horizontal padding
-  chipsContent: { gap: 6, paddingVertical: 2 },
+  // Day chips — small horizontal padding so first/last chips have breathing room.
+  chipsContent: { gap: 6, paddingVertical: 2, paddingHorizontal: 4 },
   // SIM row — separate row below chips, left-aligned
   simRow: { paddingTop: 2 },
   chip: {

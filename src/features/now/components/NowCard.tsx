@@ -1,9 +1,10 @@
 import type { Event } from '@/entities/event';
+import { t } from '@/shared/i18n';
 import { formatTime } from '@/shared/lib';
 import { EventIcon } from '@/shared/ui';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 
@@ -19,6 +20,8 @@ interface Props {
 export function NowCard({ event, onPress }: Props) {
   const scale = useSharedValue(1);
   const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  const endLabel = useMemo(() => formatTime(event.end), [event.end]);
+  const untilLabel = t('now.untilTime', { time: endLabel });
 
   return (
     <Animated.View style={[styles.card, animStyle]}>
@@ -26,7 +29,7 @@ export function NowCard({ event, onPress }: Props) {
         source={event.imageUrl ? { uri: event.imageUrl } : undefined}
         style={styles.image}
         contentFit="cover"
-        transition={300}
+        transition={250}
         placeholder={{ blurhash: event.blurhash ?? DEFAULT_BLURHASH }}
       />
       <LinearGradient
@@ -38,7 +41,7 @@ export function NowCard({ event, onPress }: Props) {
           <EventIcon type={event.type} size={16} color="#fff" />
         </View>
         <Text style={styles.title} numberOfLines={2}>{event.title}</Text>
-        <Text style={styles.time}>fins {formatTime(event.end)}</Text>
+        <Text style={styles.time}>{untilLabel}</Text>
       </LinearGradient>
       <Pressable
         style={StyleSheet.absoluteFill}
@@ -46,6 +49,8 @@ export function NowCard({ event, onPress }: Props) {
         onPressIn={() => { scale.value = withTiming(0.96, { duration: 80 }); }}
         onPressOut={() => { scale.value = withSpring(1, { damping: 10, stiffness: 200 }); }}
         accessibilityRole="button"
+        accessibilityLabel={t('now.liveUntilA11y', { title: event.title, time: endLabel })}
+        accessibilityHint={t('now.tapHintShortA11y')}
       />
     </Animated.View>
   );

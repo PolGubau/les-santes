@@ -46,7 +46,13 @@ export default function AgendaScreen() {
     todayKey,
     dayFavoriteCount,
     setDay,
+    clearFilters,
   } = useAgenda(events, userCoords, favoriteIds);
+
+  const handleClearAllFilters = useCallback(() => {
+    clearFilters();
+    setSearchText('');
+  }, [clearFilters]);
 
   // Jump to a specific day when requested from another screen (e.g. event detail)
   const { requestedDay, clearDay } = useAgendaFocusStore();
@@ -185,6 +191,7 @@ export default function AgendaScreen() {
           onToggleFavorites={toggleFavorites}
           onToggleNearMe={toggleNearMe}
           onSetType={setType}
+          onClearAll={handleClearAllFilters}
         />
       </View>
 
@@ -253,16 +260,23 @@ export default function AgendaScreen() {
                     ctaLabel={t('agenda.goToNextDay')}
                     onCta={handleGoToNextDay}
                   />
-                ) : emptyFilteredNudge.visible ? (
-                  <EmptyStateCTA
-                    icon={Clock}
-                    title={t('agenda.emptyFilteredNudgeTitle')}
-                    description={t('agenda.emptyFilteredNudgeDesc')}
-                    ctaLabel={t('agenda.emptyFilteredNudgeCta')}
-                    onCta={handleGoToNow}
-                    secondaryLabel={t('agenda.close')}
-                    onSecondary={emptyFilteredNudge.dismiss}
-                  />
+                ) : hasActiveFilters ? (
+                  emptyFilteredNudge.visible ? (
+                    <EmptyStateCTA
+                      icon={Clock}
+                      title={t('agenda.emptyFilteredNudgeTitle')}
+                      description={t('agenda.emptyFilteredNudgeDesc')}
+                      ctaLabel={t('agenda.emptyFilteredNudgeCta')}
+                      onCta={handleGoToNow}
+                      secondaryLabel={t('filters.clearAll')}
+                      onSecondary={handleClearAllFilters}
+                    />
+                  ) : (
+                    <EmptyStateCTA
+                      ctaLabel={t('filters.clearAll')}
+                      onCta={handleClearAllFilters}
+                    />
+                  )
                 ) : null
               }
             />

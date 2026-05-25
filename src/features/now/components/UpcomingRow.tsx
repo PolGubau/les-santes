@@ -1,10 +1,13 @@
 import type { Event } from '@/entities/event';
+import { useFavoritesStore } from '@/features/favorites';
 import { Colors } from '@/shared/constants';
-import { formatTime } from '@/shared/lib';
+import { t } from '@/shared/i18n';
+import { cancelEventNotification, formatTime, scheduleEventNotification } from '@/shared/lib';
 import { EventIcon } from '@/shared/ui';
+import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
-import { ChevronRight } from 'lucide-react-native';
-import React from 'react';
+import { ChevronRight, Heart } from 'lucide-react-native';
+import React, { useCallback, useMemo } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 
@@ -19,6 +22,20 @@ interface Props {
 export function UpcomingRow({ event, onPress }: Props) {
   const scale = useSharedValue(1);
   const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  const startLabel = useMemo(() => formatTime(event.start), [event.start]);
+
+  const favorite = useFavoritesStore((s) => s.isFavorite(event.id));
+  const toggleFavorite = useFavoritesStore((s) => s.toggleFavorite);
+
+  const handleFavorite = useCallback(() => {
+    Haptics.impactAsync(
+      favorite ? Haptics.ImpactFeedbackStyle.Light : Haptics.ImpactFeedbackStyle.Medium,
+    );
+    const isAdding = !favorite;
+    toggleFavorite(event.id);
+    if (isAdding) scheduleEventNotification(event).catch(() => { });
+    else cancelEventNotification(event.id).catch(() => { });
+  }, [event, favorite, toggleFavorite]);
 
   return (
     <Animated.View style={[styles.wrap, animStyle]}>
@@ -28,6 +45,11 @@ export function UpcomingRow({ event, onPress }: Props) {
         onPressIn={() => { scale.value = withTiming(0.97, { duration: 70 }); }}
         onPressOut={() => { scale.value = withSpring(1, { damping: 12, stiffness: 220 }); }}
         accessibilityRole="button"
+        accessibilityLabel={t('event.cardA11y', {
+          title: event.title,
+          state: t('eventState.upcoming'),
+          time: startLabel,
+        })}
       >
         {/* Thumbnail */}
         <View style={styles.thumb}>
@@ -56,18 +78,31 @@ export function UpcomingRow({ event, onPress }: Props) {
         <View style={styles.content}>
           <Text style={styles.title} numberOfLines={1}>{event.title}</Text>
           <Text style={styles.meta} numberOfLines={1}>
-            {formatTime(event.start)}
+            {startLabel}
             {event.locationName ? ` · ${event.locationName}` : ''}
           </Text>
         </View>
 
-        {/* Time badge + chevron */}
-        <View style={styles.right}>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{formatTime(event.start)}</Text>
-          </View>
-          <ChevronRight size={14} color={Colors.textDim} />
-        </View>
+        {/* Inline favorite toggle — 44×44 hit area, separate press handler */}
+        <Pressable
+          onPress={handleFavorite}
+          hitSlop={8}
+          style={({ pressed }) => [styles.favBtn, pressed && styles.favBtnPressed]}
+          accessibilityRole="button"
+          accessibilityState={{ selected: favorite }}
+          accessibilityLabel={
+            favorite ? t('event.removeFavoriteA11y') : t('event.addFavoriteA11y')
+          }
+        >
+          <Heart
+            size={18}
+            color={favorite ? Colors.primary : Colors.textDim}
+            fill={favorite ? Colors.primary : 'transparent'}
+          />
+        </Pressable>
+
+        {/* Chevron */}
+        <ChevronRight size={14} color={Colors.textDim} />
       </Pressable>
     </Animated.View>
   );
@@ -120,12 +155,9 @@ const styles = StyleSheet.create({
   content: { flex: 1, gap: 4 },
   title: { color: Colors.text, fontSize: 14, fontWeight: '700', letterSpacing: -0.2 },
   meta: { color: Colors.textMuted, fontSize: 12 },
-  right: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  badge: {
-    backgroundColor: `${Colors.stateUpcoming}18`,
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+  favBtn: {
+    width: 44, height: 44, borderRadius: 22,
+    alignItems: 'center', justifyContent: 'center', flexShrink: 0,
   },
-  badgeText: { color: Colors.stateUpcoming, fontSize: 12, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  favBtnPressed: { backgroundColor: `${Colors.primary}14` },
 });

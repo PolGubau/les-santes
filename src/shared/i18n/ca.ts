@@ -68,6 +68,7 @@ export interface Translations {
     categoryNocturn: string; categoryFamiliar: string;
     categoryTradicional: string; categoryCultural: string;
     filterA11y: string; categoryA11y: string;
+    clearAll: string; clearAllA11y: string;
   };
   now: {
     appTitle: string; subtitle: string;
@@ -418,6 +419,8 @@ export const ca: Translations = {
     categoryCultural: 'Cultural',
     filterA11y: 'Filtre %{label}',
     categoryA11y: 'Categoria %{label}',
+    clearAll: 'Esborrar filtres',
+    clearAllA11y: 'Esborrar tots els filtres',
   },
 
   // ── Now screen ────────────────────────────────────────────────────────────
