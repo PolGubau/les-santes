@@ -18,6 +18,8 @@
     "web": "expo start --web",
     "test": "jest",
     "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage --coverageReporters=text --coverageReporters=text-summary --coverageReporters=html",
+    "test:coverage:open": "jest --coverage --coverageReporters=html --coverageReporters=text-summary && node -e \"require('child_process').exec((process.platform==='win32'?'start ':process.platform==='darwin'?'open ':'xdg-open ')+'coverage/lcov-report/index.html')\"",
     "test:ci": "jest --ci --coverage",
     "seed": "pnpm dlx tsx scripts/seed-events.ts"
   },
