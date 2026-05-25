@@ -174,7 +174,21 @@ function SimScrubber({
         )}
       </View>
       <TouchableOpacity
-        onPress={() => onChangeRef.current(getAppNow().getTime())}
+        onPress={() => {
+          const now = getAppNow();
+          const todayKey = toFestivalDayKey(now);
+          const day = selectedDayRef.current;
+          let ms: number;
+          if (day === todayKey) {
+            // Selected day is today → reset to mock/real current time.
+            ms = now.getTime();
+          } else {
+            // Any other day → reset to 06:00 of that day, same as handleDayChange.
+            const [y, mo, dd] = day.split('-').map(Number);
+            ms = new Date(y, mo - 1, dd, 6, 0, 0, 0).getTime();
+          }
+          onChangeRef.current(ms);
+        }}
         hitSlop={10}
         accessibilityLabel={t('map.resetTime')}
       >

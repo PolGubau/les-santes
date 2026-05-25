@@ -77,15 +77,16 @@ export function OnboardingFlow({ visible, onFinish }: OnboardingFlowProps) {
 	}, [visible]);
 
 	const advance = useCallback(() => {
-		setIndex((i) => {
-			if (i >= SLIDE_ORDER.length - 1) {
-				track("onboarding_completed", { last_step: SLIDE_ORDER[i] });
-				onFinish();
-				return i;
-			}
-			return i + 1;
-		});
-	}, [onFinish]);
+		// Reading `index` from state instead of the setter callback avoids
+		// triggering `onFinish` (which mutates a Zustand store and causes
+		// the parent layout to re-render) from inside React's render phase.
+		if (index >= SLIDE_ORDER.length - 1) {
+			track("onboarding_completed", { last_step: SLIDE_ORDER[index] });
+			onFinish();
+			return;
+		}
+		setIndex(index + 1);
+	}, [index, onFinish]);
 
 	const handlePrimary = useCallback(
 		async (action?: () => Promise<unknown> | void) => {

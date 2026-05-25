@@ -13,6 +13,7 @@ import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { Bell, BellOff, ExternalLink, RotateCcw, Wrench } from 'lucide-react-native';
 import { useOnboardingStore } from '@/features/onboarding/store/useOnboardingStore';
+import { useNudgeStore } from '@/features/nudges';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Linking, Platform, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 
@@ -438,6 +439,15 @@ export default function SettingsScreen() {
                 onPress={() => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
                   resetOnboarding();
+                }}
+              />
+              <View style={styles.divider} />
+              <ActionRow
+                label="Resetear nudges"
+                leftIcon={<RotateCcw size={15} color={Colors.textDim} />}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
+                  useNudgeStore.getState().resetAll();
                 }}
               />
             </View>

@@ -38,15 +38,26 @@ export function useNudge(id: NudgeId, options: UseNudgeOptions = {}): UseNudgeRe
 	const dismiss = useNudgeStore((s) => s.dismiss);
 	const complete = useNudgeStore((s) => s.complete);
 
+	// Latch: once the nudge has been recorded as shown in this mount, keep it
+	// visible until the user explicitly dismisses/completes it or `when` turns
+	// false. Without this, `recordShown` increments `shownCount` which makes
+	// `shownCount >= maxShows` true on the very next render, causing the nudge
+	// to unmount in the same frame it appeared (one-frame flash).
 	const recordedRef = useRef(false);
 
 	const visible = useMemo(() => {
 		if (!when) return false;
+		// Hard stops: user explicitly closed the nudge.
+		if (state?.dismissed) return false;
+		if (state?.completed) return false;
+		// Once shown in this mount, stay visible (latch) — ignore show-count limits
+		// until the component unmounts. This prevents the flash caused by
+		// recordShown → shownCount bump → visible flips false in the same cycle.
+		if (recordedRef.current) return true;
+		// Pre-show eligibility checks.
 		const config = getNudgeConfig(id);
 		const shownCount = state?.shownCount ?? 0;
 		const lastShownTs = state?.lastShownTs ?? 0;
-		if (state?.dismissed) return false;
-		if (state?.completed) return false;
 		if (shownCount >= config.maxShows) return false;
 		if (lastShownTs > 0 && Date.now() - lastShownTs < config.cooldownMs) return false;
 		return true;
