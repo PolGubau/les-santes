@@ -333,7 +333,7 @@ export default function MapaScreen() {
   const [simTime, setSimTime] = useState<number>(() => getAppNow().getTime());
   const simTimeRef = useRef(simTime);
   simTimeRef.current = simTime;
-  const [simVisible, setSimVisible] = useState(true);
+  const [simVisible, setSimVisible] = useState(false);
   const toggleSimVisible = useCallback(() => setSimVisible((v) => !v), []);
 
   const handleSimTimeChange = useCallback((ms: number) => {
