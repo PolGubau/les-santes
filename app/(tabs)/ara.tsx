@@ -66,8 +66,15 @@ export default function AraScreen() {
     return future[0] ?? null;
   }, [events, clock]);
 
+  // Festival window — drives whether we show the "live" UI or a countdown.
+  // Without this gate the first day's events get rendered as "hero" weeks
+  // before the festival starts, making the screen look mid‑festival on May.
+  const isPreFestival = clock < FESTIVAL_START;
+  const isPostFestival = clock > FESTIVAL_END;
+  const isFestivalActive = !isPreFestival && !isPostFestival;
+
   // Hero = first live event, or first upcoming if nothing is live
-  const hero = now[0] ?? upcoming[0];
+  const hero = isFestivalActive ? (now[0] ?? upcoming[0]) : undefined;
   // Strip excludes the hero so it doesn't appear twice
   const nowStrip = now.slice(1);
 
@@ -116,8 +123,29 @@ export default function AraScreen() {
         contentContainerStyle={[styles.scrollContent, { paddingBottom: 32 }]}
         showsVerticalScrollIndicator={false}
       >
+        {/* Pre‑festival countdown card — replaces the hero when the festival
+            hasn't started yet, so we never show day‑1 events as if they were
+            "next up". The Agenda preview below stays as a teaser of what's
+            coming. */}
+        {isPreFestival && (
+          <View style={styles.preFestivalCard}>
+            <Clock size={36} color={Colors.primary} />
+            <Text style={styles.preFestivalTitle}>{t('now.festivalStartsIn')}</Text>
+            <Text style={styles.countdownValue}>
+              {formatCountdown(FESTIVAL_START.getTime() - clock.getTime())}
+            </Text>
+            <Text style={styles.preFestivalSubtitle}>
+              {t('now.festivalDates', {
+                start: FESTIVAL_START.getDate(),
+                end: FESTIVAL_END.getDate(),
+                year: FESTIVAL_START.getFullYear(),
+              })}
+            </Text>
+          </View>
+        )}
+
         {/* ❤️ Favourites live — prominent banner for night use */}
-        {liveAndFavorite.length > 0 && (
+        {isFestivalActive && liveAndFavorite.length > 0 && (
           <View style={styles.favBand}>
             <View style={styles.favBandHeader}>
               <Heart size={16} color="#fff" fill="#fff" />
@@ -148,7 +176,7 @@ export default function AraScreen() {
         )}
 
         {/* Live indicator — hidden when favorites band is shown to avoid duplication */}
-        {now.length > 0 && liveAndFavorite.length === 0 && (
+        {isFestivalActive && now.length > 0 && liveAndFavorite.length === 0 && (
           <View style={styles.liveBar}>
             <View style={styles.liveDotSmall} />
             <Text style={styles.liveBarText}>
@@ -161,7 +189,7 @@ export default function AraScreen() {
         {hero && <HeroCard event={hero} onPress={() => handlePress(hero.id)} />}
 
         {/* Ara Mateix strip — skips hero (now[0]) to avoid duplication */}
-        {nowStrip.length > 0 && (
+        {isFestivalActive && nowStrip.length > 0 && (
           <View style={styles.section}>
             <SectionHeader title={t('now.nowStripTitle')} count={now.length} />
             <ScrollView
@@ -176,8 +204,9 @@ export default function AraScreen() {
           </View>
         )}
 
-        {/* A continuació — same visual treatment as Agenda sections */}
-        {upcoming.length > 0 && (
+        {/* A continuació — same visual treatment as Agenda sections.
+            Also shown pre‑festival as a preview of what's coming. */}
+        {!isPostFestival && upcoming.length > 0 && (
           <View style={styles.section}>
             <SectionHeader title={t('now.upNextTitle')} count={upcoming.length} />
             <View style={styles.upcomingCard}>
@@ -191,8 +220,10 @@ export default function AraScreen() {
           </View>
         )}
 
-        {/* Empty state / countdown */}
-        {!hero && (
+        {/* Empty state / mid‑festival next‑event countdown. Pre‑ and
+            post‑festival are handled by the dedicated cards above; here we
+            only cover the in‑festival lull case. */}
+        {isFestivalActive && !hero && (
           <View style={styles.empty}>
             {nextEvent ? (
               <>
@@ -202,27 +233,6 @@ export default function AraScreen() {
                   {formatCountdown(new Date(nextEvent.start).getTime() - clock.getTime())}
                 </Text>
                 <Text style={styles.emptySubtitle} numberOfLines={2}>{nextEvent.title}</Text>
-              </>
-            ) : clock > FESTIVAL_END ? (
-              <>
-                <PartyPopper size={48} color={Colors.primary} />
-                <Text style={styles.emptyTitle}>{t('now.festivalEnded')}</Text>
-                <Text style={styles.emptySubtitle}>{t('now.festivalEndedSubtext')}</Text>
-              </>
-            ) : clock < FESTIVAL_START ? (
-              <>
-                <Clock size={48} color={Colors.primary} />
-                <Text style={styles.emptyTitle}>{t('now.festivalStartsIn')}</Text>
-                <Text style={styles.countdownValue}>
-                  {formatCountdown(FESTIVAL_START.getTime() - clock.getTime())}
-                </Text>
-                <Text style={styles.emptySubtitle}>
-                  {t('now.festivalDates', {
-                    start: FESTIVAL_START.getDate(),
-                    end: FESTIVAL_END.getDate(),
-                    year: FESTIVAL_START.getFullYear(),
-                  })}
-                </Text>
               </>
             ) : (
               <>
@@ -239,6 +249,15 @@ export default function AraScreen() {
                 </Pressable>
               </>
             )}
+          </View>
+        )}
+
+        {/* Post‑festival ended state */}
+        {isPostFestival && (
+          <View style={styles.empty}>
+            <PartyPopper size={48} color={Colors.primary} />
+            <Text style={styles.emptyTitle}>{t('now.festivalEnded')}</Text>
+            <Text style={styles.emptySubtitle}>{t('now.festivalEndedSubtext')}</Text>
           </View>
         )}
       </ScrollView>
@@ -273,6 +292,22 @@ const styles = StyleSheet.create({
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8, paddingTop: 80 },
   emptyTitle: { color: Colors.text, fontSize: 18, fontWeight: '700' },
   emptySubtitle: { color: Colors.textMuted, fontSize: 14, textAlign: 'center', maxWidth: 240 },
+  preFestivalCard: {
+    marginHorizontal: 16,
+    marginBottom: 16,
+    paddingVertical: 24,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  preFestivalTitle: { color: Colors.text, fontSize: 15, fontWeight: '700' },
+  preFestivalSubtitle: {
+    color: Colors.textMuted, fontSize: 13, textAlign: 'center', marginTop: 4,
+  },
   countdownValue: {
     color: Colors.primary,
     fontSize: 40,
