@@ -41,17 +41,21 @@ function SimScrubber({
   onChange,
   visible,
   onToggleVisible,
+  selectedDay,
 }: {
   simTime: number;
   onChange: (ms: number) => void;
   visible: boolean;
   onToggleVisible: () => void;
+  /** YYYY-MM-DD festival day key — anchors the scrubber range. */
+  selectedDay: string;
 }) {
   // Refs keep PanResponder handlers fresh without recreating the responder.
-  const simTimeRef = useRef(simTime);
-  simTimeRef.current = simTime;
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
+  // Always-fresh ref so PanResponder (created once) sees the current day.
+  const selectedDayRef = useRef(selectedDay);
+  selectedDayRef.current = selectedDay;
 
   const trackRef = useRef<View | null>(null);
   const trackLayoutRef = useRef<{ pageX: number; width: number }>({ pageX: 0, width: 0 });
@@ -67,19 +71,24 @@ function SimScrubber({
     });
   }, []);
 
-  const clampMs = (ms: number) =>
-    Math.max(FESTIVAL_START.getTime(), Math.min(FESTIVAL_END.getTime(), ms));
-
-  // Map an absolute finger X position to a sim-time within the current festival day.
+  // Map an absolute finger X position to a sim-time **within** the selected
+  // festival day (06:00 → 06:00 next calendar day). The output is clamped to
+  // that day so dragging can never trigger a day-chip change.
   const setFromPageX = useCallback((pageX: number) => {
     const { pageX: tx, width: tw } = trackLayoutRef.current;
     if (tw <= 0) return;
     const ratio = Math.max(0, Math.min(1, (pageX - tx) / tw));
-    // Anchor at 06:00 of the current festival day. Hours 0–5 belong to the previous day.
-    const dayStart = new Date(simTimeRef.current);
-    if (dayStart.getHours() < 6) dayStart.setDate(dayStart.getDate() - 1);
-    dayStart.setHours(6, 0, 0, 0);
-    const ms = clampMs(dayStart.getTime() + Math.round(ratio * 24 * 60) * 60_000);
+    // Anchor: 06:00 of the selected festival day (YYYY-MM-DD key).
+    const [y, m, d] = selectedDayRef.current.split('-').map(Number);
+    const dayStart = new Date(y, m - 1, d, 6, 0, 0, 0);
+    const dayStartMs = dayStart.getTime();
+    const dayEndMs = dayStartMs + 24 * 60 * 60 * 1000 - 1;
+    // Clamp within both the day boundary and the overall festival window.
+    const raw = dayStartMs + Math.round(ratio * 24 * 60) * 60_000;
+    const ms = Math.max(
+      Math.max(dayStartMs, FESTIVAL_START.getTime()),
+      Math.min(Math.min(dayEndMs, FESTIVAL_END.getTime()), raw),
+    );
     onChangeRef.current(ms);
   }, []);
 
@@ -365,18 +374,17 @@ export default function MapaScreen() {
   const handleDayChange = useCallback((nextDay: string) => {
     if (nextDay === selectedDayRef.current) return;
     setDay(nextDay);
-    const prev = new Date(simTimeRef.current);
-    const hh = prev.getHours();
-    const mm = prev.getMinutes();
+    // Reset to the mock/real "now". If "now" belongs to the newly selected day,
+    // the scrubber will land on the actual current time; otherwise it lands on
+    // 06:00 of that day (the festival-day anchor / earliest visible time).
+    const now = getAppNow();
+    const nowDay = toFestivalDayKey(now);
     const [y, m, d] = nextDay.split('-').map(Number);
-    // Night hours (0–5) are the tail of the festival day — put them on the next calendar date.
-    const calendarDate = hh < 6 ? new Date(y, m - 1, d + 1) : new Date(y, m - 1, d);
-    const next = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), calendarDate.getDate(), hh, mm, 0, 0);
-    const ms = Math.max(FESTIVAL_START.getTime(), Math.min(FESTIVAL_END.getTime(), next.getTime()));
-    if (ms !== simTimeRef.current) {
-      setSimTime(ms);
-      mapRef.current?.setSimTime(ms);
-    }
+    const ms = nowDay === nextDay
+      ? Math.max(FESTIVAL_START.getTime(), Math.min(FESTIVAL_END.getTime(), now.getTime()))
+      : new Date(y, m - 1, d, 6, 0, 0, 0).getTime();
+    setSimTime(ms);
+    mapRef.current?.setSimTime(Math.abs(ms - Date.now()) < 2_000 ? null : ms);
   }, [setDay]);
 
   // Reverse sync: when the scrubber crosses a festival day boundary (or reset
@@ -434,6 +442,7 @@ export default function MapaScreen() {
             onChange={handleSimTimeChange}
             visible={simVisible}
             onToggleVisible={toggleSimVisible}
+            selectedDay={selectedDay}
           />
         }
       />
