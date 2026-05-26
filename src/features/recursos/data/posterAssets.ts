@@ -21,6 +21,7 @@ export const POSTER_ASSETS: Record<string, number> = {
 	"1940": require("../../../../assets/resources/posters/1940.avif"),
 	"1941": require("../../../../assets/resources/posters/1941.avif"),
 	"1942": require("../../../../assets/resources/posters/1942.avif"),
+	"1943": require("../../../../assets/resources/posters/1943.avif"),
 	"1944": require("../../../../assets/resources/posters/1944.avif"),
 	"1945": require("../../../../assets/resources/posters/1945.avif"),
 	"1946": require("../../../../assets/resources/posters/1946.avif"),
