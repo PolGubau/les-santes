@@ -670,10 +670,10 @@ export const ca: Translations = {
   },
   // ── Engagement / Daily Countdown ──────────────────────────────────────────
   engagement: {
-    title: 'Les Santes Mataró 🎆',
+    title: 'Les Santes Mataró',
     body0: 'Sabies que en Robafaves i la Geganta es van casar el 1850? Descobreix més a Recursos!',
     body1: 'T’agraden els focs? Revisa els millors llocs al mapa per la Nit de Sant Joan.',
-    body2: 'La Juliana porta ginebra, rom, vodka i taronjada. Vigila que puja ràpid! 🍹',
+    body2: 'La Juliana és la beguda secreta de Les Santes, gaudeix‑la si tens edat per fer-ho!',
     body3: 'El "No n’hi ha prou" és l’acte més canalla. Ja tens el mocador de la festa?',
     body4: 'Els nens i nenes tenen el seu propi "No n’hi ha prou" infantil. No te’l perdis!',
     body5: 'Fes una ullada als cartells de fa 100 anys a la secció de Recursos. Són art!',

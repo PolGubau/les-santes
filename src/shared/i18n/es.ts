@@ -368,10 +368,10 @@ export const es: Translations = {
   },
   // ── Engagement / Daily Countdown ──────────────────────────────────────────
   engagement: {
-    title: 'Les Santes Mataró 🎆',
+    title: 'Les Santes Mataró',
     body0: '¿Sabías que Robafaves y la Geganta se casaron en 1850? ¡Descubre más en Recursos!',
     body1: '¿Te gustan los fuegos? Revisa los mejores sitios en el mapa para la Noche de San Juan.',
-    body2: 'La Juliana lleva ginebra, ron, vodka y naranjada. ¡Cuidado que sube rápido! 🍹',
+    body2: 'La Juliana es la bebida secreta de Les Santes, ¡disfrútala si eres mayor de edad!',
     body3: 'El "No n’hi ha prou" es el acto más canalla. ¿Ya tienes el pañuelo de la fiesta?',
     body4: 'Los niños y niñas tienen su propio "No n’hi ha prou" infantil. ¡No te lo pierdas!',
     body5: 'Echa un vistazo a los carteles de hace 100 años en la sección de Recursos. ¡Son arte!',

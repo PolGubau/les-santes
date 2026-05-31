@@ -368,10 +368,10 @@ export const en: Translations = {
   },
   // ── Engagement / Daily Countdown ──────────────────────────────────────────
   engagement: {
-    title: 'Les Santes Mataró 🎆',
+    title: 'Les Santes Mataró',
     body0: 'Did you know Robafaves and the Giantess got married in 1850? Discover more in Resources!',
     body1: 'Do you like fireworks? Check the best spots on the map for the big night.',
-    body2: 'La Juliana is made of gin, rum, vodka and orange soda. Careful, it kicks hard! 🍹',
+    body2: 'La Juliana is made of gin, rum, vodka and orange soda. Careful, it kicks hard!',
     body3: 'The "No n’hi ha prou" is the wildest act. Do you already have your festival scarf?',
     body4: 'Kids have their own "No n’hi ha prou" for children. Don’t miss it!',
     body5: 'Check out the posters from 100 years ago in the Resources section. They are art!',
