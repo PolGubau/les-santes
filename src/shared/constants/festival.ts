@@ -18,15 +18,15 @@
 declare const process: { env: Record<string, string | undefined> };
 
 export const FESTIVAL_ID: string =
-  process.env.EXPO_PUBLIC_FESTIVAL_ID ?? 'les-santes-2026';
+	process.env.EXPO_PUBLIC_FESTIVAL_ID ?? "les-santes-2026";
 
 /**
  * Dates oficials del festival actual (per defecte: Les Santes 2026, Mataró).
  * Configurables via env per poder reconstruir builds d'edicions anteriors.
  */
 export const FESTIVAL_START = new Date(
-  `${process.env.EXPO_PUBLIC_FESTIVAL_START ?? '2026-07-24'}T00:00:00`,
+	`${process.env.EXPO_PUBLIC_FESTIVAL_START ?? "2026-07-17"}T00:00:00`,
 );
 export const FESTIVAL_END = new Date(
-  `${process.env.EXPO_PUBLIC_FESTIVAL_END ?? '2026-07-29'}T23:59:59`,
+	`${process.env.EXPO_PUBLIC_FESTIVAL_END ?? "2026-07-29"}T23:59:59`,
 );

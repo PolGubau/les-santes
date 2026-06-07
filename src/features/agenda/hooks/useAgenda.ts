@@ -1,12 +1,13 @@
-import type {
-	Event,
-	EventType,
-	RawEvent,
-} from "@/entities/event";
+import type { Event, EventType, RawEvent } from "@/entities/event";
 import { withState } from "@/entities/event";
 import type { UserCoords } from "@/shared/hooks";
 import { useNow } from "@/shared/hooks";
-import { haversineDistance, toDateKey, toFestivalDayKey } from "@/shared/lib";
+import {
+	dateFromKey,
+	enumerateDayKeys,
+	haversineDistance,
+	toFestivalDayKey,
+} from "@/shared/lib";
 import { useMemo, useState } from "react";
 
 function applyFilters(
@@ -17,7 +18,12 @@ function applyFilters(
 ): Event[] {
 	const q = filters.search?.trim().toLowerCase();
 	let result = events.filter((e) => {
-		if (q && !e.title.toLowerCase().includes(q) && !(e.shortDescription?.toLowerCase().includes(q))) return false;
+		if (
+			q &&
+			!e.title.toLowerCase().includes(q) &&
+			!e.shortDescription?.toLowerCase().includes(q)
+		)
+			return false;
 		if (filters.onlyFavorites && !favoriteIds?.has(e.id)) return false;
 		if (filters.type && e.type !== filters.type) return false;
 		if (filters.nearMe && userCoords && e.kind === "static" && e.location) {
@@ -74,10 +80,21 @@ export function useAgenda(
 	const [filters, setFilters] = useState<AgendaFilters>({});
 	const [selectedDay, setDay] = useState<string>(nowKey);
 
-	/** All days that have at least one event, sorted ascending */
+	/**
+	 * Every festival day from the first to the last event, contiguous.
+	 * Days without events are kept so they stay selectable (the list shows an
+	 * empty-state for them rather than hiding the day).
+	 */
 	const availableDays = useMemo(() => {
-		const keys = new Set(events.map((e) => toFestivalDayKey(new Date(e.start))));
-		return Array.from(keys).sort();
+		if (events.length === 0) return [];
+		let min = "";
+		let max = "";
+		for (const e of events) {
+			const key = toFestivalDayKey(new Date(e.start));
+			if (!min || key < min) min = key;
+			if (!max || key > max) max = key;
+		}
+		return enumerateDayKeys(min, max);
 	}, [events]);
 
 	/**
@@ -87,14 +104,17 @@ export function useAgenda(
 	const effectiveDay = useMemo(() => {
 		if (availableDays.includes(selectedDay)) return selectedDay;
 		if (availableDays.length === 0) return selectedDay;
-		const nowMs = now.getTime();
+		// Compare whole festival days (noon-local) so the "closest day" pick is
+		// stable: new Date("YYYY-MM-DD") parses as UTC midnight, which skews the
+		// distance against the local `now`. dateFromKey keeps both sides local.
+		const nowMs = dateFromKey(nowKey).getTime();
 		return availableDays.reduce((best, day) =>
-			Math.abs(new Date(day).getTime() - nowMs) <
-			Math.abs(new Date(best).getTime() - nowMs)
+			Math.abs(dateFromKey(day).getTime() - nowMs) <
+			Math.abs(dateFromKey(best).getTime() - nowMs)
 				? day
 				: best,
 		);
-	}, [availableDays, selectedDay, now]);
+	}, [availableDays, selectedDay, nowKey]);
 
 	/** All events enriched with current state, not yet day-filtered */
 	const withStates = useMemo(
@@ -138,10 +158,13 @@ export function useAgenda(
 		).length;
 	}, [withStates, effectiveDay, favoriteIds]);
 
-	const setSearch = (search: string) => setFilters((f) => ({ ...f, search: search || undefined }));
-	const setType = (type: EventType | undefined) => setFilters((f) => ({ ...f, type }));
+	const setSearch = (search: string) =>
+		setFilters((f) => ({ ...f, search: search || undefined }));
+	const setType = (type: EventType | undefined) =>
+		setFilters((f) => ({ ...f, type }));
 	const toggleNearMe = () => setFilters((f) => ({ ...f, nearMe: !f.nearMe }));
-	const toggleFavorites = () => setFilters((f) => ({ ...f, onlyFavorites: !f.onlyFavorites }));
+	const toggleFavorites = () =>
+		setFilters((f) => ({ ...f, onlyFavorites: !f.onlyFavorites }));
 	const clearFilters = () => setFilters({});
 
 	return {

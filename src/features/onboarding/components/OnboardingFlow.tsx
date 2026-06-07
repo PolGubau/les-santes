@@ -1,8 +1,10 @@
 import { track } from "@/features/analytics";
 import { Colors } from "@/shared/constants";
+import { useReducedMotion } from "@/shared/hooks";
 import { t } from "@/shared/i18n";
 import * as Haptics from "expo-haptics";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import type React from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
 	FadeIn,
@@ -13,7 +15,10 @@ import Animated, {
 	withSpring,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { requestLocationPermission, requestNotificationPermission } from "../lib/permissions";
+import {
+	requestLocationPermission,
+	requestNotificationPermission,
+} from "../lib/permissions";
 import { LocationPreview } from "./LocationPreview";
 import { NotificationPreview } from "./NotificationPreview";
 import { WelcomeHero } from "./WelcomeHero";
@@ -34,13 +39,12 @@ const DOT_WIDTH = 24;
 const DOT_WIDTH_ACTIVE = 32;
 
 function ProgressDot({ active }: { active: boolean }) {
+	const reduced = useReducedMotion();
 	const width = useSharedValue(active ? DOT_WIDTH_ACTIVE : DOT_WIDTH);
 	useEffect(() => {
-		width.value = withSpring(active ? DOT_WIDTH_ACTIVE : DOT_WIDTH, {
-			damping: 14,
-			stiffness: 180,
-		});
-	}, [active, width]);
+		const target = active ? DOT_WIDTH_ACTIVE : DOT_WIDTH;
+		width.value = reduced ? target : withSpring(target, { damping: 14, stiffness: 180 });
+	}, [active, width, reduced]);
 	const style = useAnimatedStyle(() => ({ width: width.value }));
 	return (
 		<Animated.View
@@ -145,8 +149,18 @@ export function OnboardingFlow({ visible, onFinish }: OnboardingFlowProps) {
 	const slide = slides[index];
 
 	return (
-		<Modal visible={visible} animationType="fade" transparent={false} statusBarTranslucent>
-			<View style={[styles.root, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }]}>
+		<Modal
+			visible={visible}
+			animationType="fade"
+			transparent={false}
+			statusBarTranslucent
+		>
+			<View
+				style={[
+					styles.root,
+					{ paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 },
+				]}
+			>
 				<View style={styles.progress}>
 					{SLIDE_ORDER.map((id, i) => (
 						<ProgressDot key={id} active={i === index} />
@@ -160,7 +174,10 @@ export function OnboardingFlow({ visible, onFinish }: OnboardingFlowProps) {
 					style={styles.body}
 				>
 					{slide.visual}
-					<Animated.Text entering={FadeInDown.duration(500).delay(520)} style={styles.title}>
+					<Animated.Text
+						entering={FadeInDown.duration(500).delay(520)}
+						style={styles.title}
+					>
 						{slide.title}
 					</Animated.Text>
 					<Animated.Text
@@ -171,10 +188,15 @@ export function OnboardingFlow({ visible, onFinish }: OnboardingFlowProps) {
 					</Animated.Text>
 				</Animated.View>
 
-				<Animated.View entering={FadeInDown.duration(500).delay(720)} style={styles.footer}>
-
+				<Animated.View
+					entering={FadeInDown.duration(500).delay(720)}
+					style={styles.footer}
+				>
 					<Pressable
-						style={({ pressed }) => [styles.primary, (pressed || busy) && { opacity: 0.85 }]}
+						style={({ pressed }) => [
+							styles.primary,
+							(pressed || busy) && { opacity: 0.85 },
+						]}
 						onPress={() => handlePrimary(slide.onPrimary)}
 						accessibilityRole="button"
 						accessibilityLabel={slide.primaryLabel}
@@ -185,7 +207,10 @@ export function OnboardingFlow({ visible, onFinish }: OnboardingFlowProps) {
 					{slide.skipLabel ? (
 						<Pressable
 							onPress={() => handleSkip(slide.id)}
-							style={({ pressed }) => [styles.skip, pressed && { opacity: 0.6 }]}
+							style={({ pressed }) => [
+								styles.skip,
+								pressed && { opacity: 0.6 },
+							]}
 							accessibilityRole="button"
 							accessibilityLabel={slide.skipLabel}
 							disabled={busy}
@@ -213,7 +238,12 @@ const styles = StyleSheet.create({
 	},
 	progressDotActive: { backgroundColor: Colors.primary },
 	body: { flex: 1, alignItems: "center", justifyContent: "center", gap: 18 },
-	title: { color: Colors.text, fontSize: 24, fontWeight: "800", textAlign: "center" },
+	title: {
+		color: Colors.text,
+		fontSize: 24,
+		fontWeight: "800",
+		textAlign: "center",
+	},
 	description: {
 		color: Colors.textMuted,
 		fontSize: 15,

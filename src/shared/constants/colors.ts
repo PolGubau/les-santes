@@ -4,9 +4,9 @@ export const Colors = {
 	background: "#FAF8F5", // blanc trencat càlid — llegible al sol
 	surface: "#FFFFFF",
 	surfaceHigh: "#F2EDE7", // estat premut, lleugerament càlid
-	text: "#1A1110", // quasi-negre amb calidesa
-	textMuted: "#776C6A", // gris càlid llegible
-	textDim: "#B8ADA9", // secundari, placeholder
+	text: "#1A1110", // quasi-negre amb calidesa — contrast ~16:1
+	textMuted: "#776C6A", // gris càlid llegible — contrast ~5.0:1 (WCAG AA cos)
+	textDim: "#8E827E", // terciari/placeholder — contrast ~3.4:1 (WCAG AA UI)
 	border: "#E4DDD6", // vora subtil càlida
 
 	// event states — colors ajustats per contrast sobre fons clar

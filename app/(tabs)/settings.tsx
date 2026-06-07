@@ -1,19 +1,19 @@
 import { useAnalyticsStore } from '@/features/analytics/store/useAnalyticsStore';
 import { useDismissedAnnouncementsStore } from '@/features/announcements';
-import { useFeedback } from '@/features/feedback';
+import { useFeedback, useStoreReview } from '@/features/feedback';
+import { useNudgeStore } from '@/features/nudges';
+import { useOnboardingStore } from '@/features/onboarding/store/useOnboardingStore';
 import { Colors, Typography } from '@/shared/constants';
+import { type EngagementFrequencyDays, useEngagementStore } from '@/shared/hooks/useEngagementStore';
+import { type AppLocale, LOCALES, useLocaleStore } from '@/shared/hooks/useLocale';
 import { t } from '@/shared/i18n';
-import { LOCALES, useLocaleStore, type AppLocale } from '@/shared/hooks/useLocale';
-import { useEngagementStore, type EngagementFrequencyDays } from '@/shared/hooks/useEngagementStore';
-import { buildEngagementSchedule, cancelEventNotification, fireTestNotification, getScheduledEventNotifications, isExpoGo, scheduleEngagementNotifications, type EngagementSlot, type ScheduledEventNotification } from '@/shared/lib/notifications';
+import { type EngagementSlot, type ScheduledEventNotification, buildEngagementSchedule, cancelEventNotification, fireTestNotification, getScheduledEventNotifications, isExpoGo, scheduleEngagementNotifications } from '@/shared/lib/notifications';
 import { Screen } from '@/shared/ui';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
-import { Bell, BellOff, ExternalLink, RotateCcw, Wrench } from 'lucide-react-native';
-import { useOnboardingStore } from '@/features/onboarding/store/useOnboardingStore';
-import { useNudgeStore } from '@/features/nudges';
+import { Bell, BellOff, ExternalLink, RotateCcw, Star, Wrench } from 'lucide-react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Linking, Platform, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 
@@ -208,6 +208,7 @@ export default function SettingsScreen() {
   const engagementFrequency = useEngagementStore((s) => s.frequencyDays);
   const setEngagementFrequency = useEngagementStore((s) => s.setFrequencyDays);
   const { open: openFeedback } = useFeedback();
+  const { canRate, rateApp } = useStoreReview();
   const resetOnboarding = useOnboardingStore((s) => s.reset);
   const dismissedAnnouncementIds = useDismissedAnnouncementsStore((s) => s.dismissedIds);
   const restoreDismissedAnnouncements = useDismissedAnnouncementsStore((s) => s.restoreAll);
@@ -278,6 +279,10 @@ export default function SettingsScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
     openFeedback();
   }, [openFeedback]);
+  const handleRateApp = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
+    void rateApp('settings');
+  }, [rateApp]);
 
   return (
     <Screen edges={['top']}>
@@ -382,6 +387,16 @@ export default function SettingsScreen() {
         <SectionTitle label={t('settings.feedback')} />
         <View style={styles.card}>
           <ActionRow label={t('settings.feedbackHint')} onPress={handleFeedback} />
+          {canRate && (
+            <>
+              <View style={styles.divider} />
+              <ActionRow
+                label={t('settings.rateAppHint')}
+                leftIcon={<Star size={15} color={Colors.primary} />}
+                onPress={handleRateApp}
+              />
+            </>
+          )}
         </View>
 
         {/* ── Cache ───────────────────────────────────────────────────────── */}

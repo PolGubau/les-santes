@@ -3,21 +3,21 @@ import { eventRepository } from '@/entities/event/repository';
 import { useAgendaFocusStore } from '@/features/agenda';
 import { useFavoritesStore } from '@/features/favorites';
 import { useMapFocusStore } from '@/features/map';
+import { EventMiniMap } from '@/features/map/components/EventMiniMap';
 import { ContextualHint, useNudge, useNudgeStore, useTrackEventViewOnMount } from '@/features/nudges';
 import { Colors, FESTIVAL_START } from '@/shared/constants';
 import { t } from '@/shared/i18n';
-import { addEventToCalendar, cancelEventNotification, formatDayShort, formatTime, scheduleEventNotification } from '@/shared/lib';
-import { EventMiniMap } from '@/features/map/components/EventMiniMap';
+import { addEventToCalendar, cancelEventNotification, formatDayShort, formatTime, scheduleEventNotification, toFestivalDayKey } from '@/shared/lib';
 import { BackButton, EventIcon, Screen, SkeletonBox, useShimmer } from '@/shared/ui';
-import { Image } from 'expo-image';
 import * as Haptics from 'expo-haptics';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useLocalSearchParams, router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import { CalendarDays, CalendarPlus, Clock, Heart, MapPin, Navigation, PersonStanding, Share2 } from 'lucide-react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import Animated from 'react-native-reanimated';
 import { Linking, Platform, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { captureRef } from 'react-native-view-shot';
 
@@ -176,7 +176,10 @@ export default function EventDetailScreen() {
 
   const handleViewInAgenda = useCallback(() => {
     if (!event) return;
-    requestAgendaDay(event.start.substring(0, 10));
+    // Match the agenda's grouping key (festival day, 06:00 cutoff) so late-night
+    // events land on the day they're actually listed under — not their raw
+    // calendar/UTC date. Mirrors useMapFocusSync's resolution.
+    requestAgendaDay(toFestivalDayKey(new Date(event.start)));
     router.push('/(tabs)/agenda');
   }, [event, requestAgendaDay]);
 
@@ -201,7 +204,7 @@ export default function EventDetailScreen() {
   }
 
   const stateColor = STATE_COLOR[event.state];
-  const dayLabel = formatDayShort(event.start.substring(0, 10));
+  const dayLabel = formatDayShort(toFestivalDayKey(new Date(event.start)));
 
   return (
     <Screen safe={false}>

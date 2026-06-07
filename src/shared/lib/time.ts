@@ -26,7 +26,7 @@ function capitalize(s: string): string {
 }
 
 /** Parse a "YYYY-MM-DD" key as noon local time to avoid TZ boundary issues. */
-function dateFromKey(dateKey: string): Date {
+export function dateFromKey(dateKey: string): Date {
 	return new Date(`${dateKey}T12:00:00`);
 }
 
@@ -34,7 +34,9 @@ function dateFromKey(dateKey: string): Date {
 export function formatDayFull(dateKey: string): string {
 	const d = dateFromKey(dateKey);
 	const locale = intlLocale();
-	const weekday = new Intl.DateTimeFormat(locale, { weekday: "long" }).format(d);
+	const weekday = new Intl.DateTimeFormat(locale, { weekday: "long" }).format(
+		d,
+	);
 	const dayMonth = new Intl.DateTimeFormat(locale, {
 		day: "numeric",
 		month: "long",
@@ -74,6 +76,22 @@ export function toDateKey(date: Date): string {
 export function toFestivalDayKey(date: Date): string {
 	const adjusted = new Date(date.getTime() - 6 * 60 * 60 * 1000);
 	return toDateKey(adjusted);
+}
+
+/**
+ * Inclusive list of every "YYYY-MM-DD" key from startKey to endKey.
+ * Returns a contiguous range so days without events are still represented.
+ */
+export function enumerateDayKeys(startKey: string, endKey: string): string[] {
+	if (startKey > endKey) return [];
+	const keys: string[] = [];
+	const cursor = dateFromKey(startKey);
+	const end = dateFromKey(endKey).getTime();
+	while (cursor.getTime() <= end) {
+		keys.push(toDateKey(cursor));
+		cursor.setDate(cursor.getDate() + 1);
+	}
+	return keys;
 }
 
 /** Short weekday + day-of-month chip: "Ds 27" / "Sat 27" / "Sáb 27" */

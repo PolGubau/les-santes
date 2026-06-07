@@ -19,7 +19,8 @@ export type AnalyticsEventName =
 	| "onboarding_started"
 	| "onboarding_step_skipped"
 	| "onboarding_completed"
-	| "onboarding_skipped";
+	| "onboarding_skipped"
+	| "store_review_requested";
 
 const FESTIVAL_ID = process.env.EXPO_PUBLIC_FESTIVAL_ID ?? "les-santes-2026";
 const APP_VERSION = Constants.expoConfig?.version ?? "0.0.0";
@@ -59,7 +60,11 @@ function persistRow(row: AnalyticsRow, attempt = 1): void {
 					setTimeout(() => persistRow(row, attempt + 1), RETRY_DELAY_MS);
 				} else if (__DEV__) {
 					// eslint-disable-next-line no-console
-					console.warn("[analytics] dropped event after retries:", row.event_name, res.error.message);
+					console.warn(
+						"[analytics] dropped event after retries:",
+						row.event_name,
+						res.error.message,
+					);
 				}
 			});
 	} catch (e) {

@@ -1,6 +1,7 @@
 import { Colors } from '@/shared/constants';
+import { useReducedMotion } from '@/shared/hooks';
 import { useEffect } from 'react';
-import { View, type ViewStyle, StyleSheet } from 'react-native';
+import { StyleSheet, View, type ViewStyle } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -11,17 +12,24 @@ import Animated, {
 
 /**
  * Shared shimmer animation for all skeleton components.
- * Returns an Animated.View style with a pulsing opacity.
+ * Returns an Animated.View style with a pulsing opacity. When the user has
+ * enabled "Reduce motion" the shimmer is locked to a static mid-opacity so
+ * the placeholder is still visible but does not pulse.
  */
 export function useShimmer() {
-  const opacity = useSharedValue(0.4);
+  const reduced = useReducedMotion();
+  const opacity = useSharedValue(reduced ? 0.7 : 0.4);
   useEffect(() => {
+    if (reduced) {
+      opacity.value = 0.7;
+      return;
+    }
     opacity.value = withRepeat(
       withTiming(1, { duration: 900, easing: Easing.inOut(Easing.ease) }),
       -1,
       true,
     );
-  }, [opacity]);
+  }, [opacity, reduced]);
   return useAnimatedStyle(() => ({ opacity: opacity.value }));
 }
 

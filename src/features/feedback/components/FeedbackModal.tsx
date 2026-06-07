@@ -18,6 +18,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFeedback } from "../hooks/useFeedback";
+import { useStoreReview } from "../hooks/useStoreReview";
 import {
 	FEEDBACK_MESSAGE_MAX,
 	FEEDBACK_TAGS,
@@ -34,8 +35,12 @@ import { RatingStars } from "./RatingStars";
  * Captures runtime context (route, session time, behaviour counters)
  * automatically — never asks the user.
  */
+/** Ratings at or above this are happy enough to ask for a public store review. */
+const STORE_REVIEW_RATING_THRESHOLD = 4;
+
 export function FeedbackModal() {
 	const { isOpen, close, submit } = useFeedback();
+	const { requestReview } = useStoreReview();
 	const insets = useSafeAreaInsets();
 	const pathname = usePathname();
 
@@ -77,9 +82,13 @@ export function FeedbackModal() {
 				() => { },
 			);
 			setSuccess(true);
+			const earnedStoreReview = rating >= STORE_REVIEW_RATING_THRESHOLD;
 			setTimeout(() => {
 				reset();
 				close();
+				// Happy users get the native store prompt once the sheet is gone,
+				// so the two dialogs never overlap. Best‑effort, never blocks.
+				if (earnedStoreReview) void requestReview("feedback_high_rating");
 			}, 2400);
 		} catch (e) {
 			setError((e as Error).message || t("feedback.error"));
@@ -89,7 +98,7 @@ export function FeedbackModal() {
 		} finally {
 			setSubmitting(false);
 		}
-	}, [rating, type, tags, message, pathname, submit, reset, close, submitting]);
+	}, [rating, type, tags, message, pathname, submit, reset, close, submitting, requestReview]);
 
 	const canSubmit = rating >= 1 && !submitting;
 

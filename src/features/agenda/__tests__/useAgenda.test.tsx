@@ -1,3 +1,5 @@
+import type { RawEvent } from '@/entities/event';
+import { useAgenda } from '@/features/agenda/hooks/useAgenda';
 /**
  * useAgenda orchestrates every agenda filter in the app: search, type,
  * favorites, near-me radius + sort, and the day fallback when
@@ -8,8 +10,6 @@
  * so all sample events live on that festival day unless noted.
  */
 import { act, renderHook } from '@testing-library/react-native';
-import { useAgenda } from '@/features/agenda/hooks/useAgenda';
-import type { RawEvent } from '@/entities/event';
 
 // Plaça de l'Ajuntament (Mataró) — used as user location for near-me tests.
 const USER = { lat: 41.5388, lng: 2.4448 };
@@ -138,13 +138,34 @@ describe('useAgenda — day fallback', () => {
     expect(result.current.filtered.map((e) => e.id)).toEqual(['a']);
   });
 
-  it('availableDays is sorted ascending and de-duplicated', () => {
+  it('picks the closest available day when all events are before now', () => {
+    // Frozen now is 2026-07-27; both options are earlier, 07-25 is closer.
+    const events = [
+      ev({ id: 'a', start: '2026-07-24T18:00:00Z' }),
+      ev({ id: 'b', start: '2026-07-25T18:00:00Z' }),
+    ];
+    const { result } = renderHook(() => useAgenda(events));
+    expect(result.current.selectedDay).toBe('2026-07-25');
+    expect(result.current.filtered.map((e) => e.id)).toEqual(['b']);
+  });
+
+  it('availableDays spans a contiguous range, including days without events', () => {
     const events = [
       ev({ id: 'a', start: '2026-07-29T18:00:00Z' }),
       ev({ id: 'b', start: '2026-07-27T18:00:00Z' }),
       ev({ id: 'c', start: '2026-07-27T20:00:00Z' }),
     ];
     const { result } = renderHook(() => useAgenda(events));
-    expect(result.current.availableDays).toEqual(['2026-07-27', '2026-07-29']);
+    // 07-28 has no events but is still listed so it stays selectable.
+    expect(result.current.availableDays).toEqual([
+      '2026-07-27',
+      '2026-07-28',
+      '2026-07-29',
+    ]);
+  });
+
+  it('availableDays is empty when there are no events', () => {
+    const { result } = renderHook(() => useAgenda([]));
+    expect(result.current.availableDays).toEqual([]);
   });
 });
