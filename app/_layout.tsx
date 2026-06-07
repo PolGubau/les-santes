@@ -103,6 +103,7 @@ export default function RootLayout() {
           <OnboardingFlow visible={!hasSeenOnboarding} onFinish={markOnboardingSeen} />
           <FeedbackModal />
         </SafeAreaProvider>
+      </ThemeProvider>
     </GestureHandlerRootView>
   );
 }
