@@ -3,12 +3,8 @@ import { t } from "@/shared/i18n";
 import { formatDayChipFromKey } from "@/shared/lib/time";
 import * as Haptics from "expo-haptics";
 import React, { useCallback, useEffect, useRef } from "react";
-import {
-	Pressable,
-	ScrollView,
-	StyleSheet,
-	Text,
-} from "react-native";
+import { Pressable, ScrollView, StyleSheet } from 'react-native';
+import { Text } from '@/shared/ui';
 import Animated, {
 	useSharedValue,
 	useAnimatedStyle,

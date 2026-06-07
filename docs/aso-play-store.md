@@ -56,8 +56,32 @@ Què trobaràs:
 • Funciona offline — descarrega't el programa i el mapa abans
   d'arribar al centre, on la cobertura sol saturar-se.
 
+Agenda i programa complet
+Consulta el programa de Les Santes dia a dia i hora a hora:
+correfocs, cercaviles de gegants, actuacions de castellers,
+sardanes, concerts i focs artificials. Filtra per tipus d'acte,
+cerca qualsevol acte pel nom i marca els teus favorits.
+
+Mapa interactiu del festival
+Ubica cada acte sobre el mapa de Mataró, segueix en directe les
+rutes mòbils del correfoc i la cercavila, i orienta't amb el teu
+punt blau. Pensat per respondre fins i tot quan la cobertura es
+satura al centre durant els actes més multitudinaris.
+
+Ara mateix
+La pantalla "Ara" et mostra què està passant en aquest instant i
+què ve a continuació, perquè no et perdis cap moment de la festa
+major.
+
+Avisos i recordatoris
+Rep un avís quan canvia l'hora o la ubicació d'un acte i quan
+comença alguna cosa que has marcat com a favorita. Ajusta la
+freqüència dels recordatoris a Ajustos.
+
 Per als de casa, per als que vénen de fora i per a les famílies
 que volen no perdre's res del programa de Les Santes a Mataró.
+
+Disponible en català, castellà i anglès.
 
 Privacitat: no demanem comptes, no recopilem dades personals.
 Només estadístiques anònimes que pots desactivar a Ajustos.
@@ -71,21 +95,22 @@ Web: lessantes.polgubau.com
 
 - **Name** (30 char): `Les Santes — Festa Major`
 - **Subtitle** (30 char): `Programa, mapa i avisos`
-- **Keywords field** (100 char, separades per coma, no repetir name/subtitle):
-  `mataro,festa,correfoc,gegants,castellers,sardanes,agenda,programa,festes,catalunya`
+- **Keywords field** (100 char, separades per coma, **sense espais** després de la coma, no repetir name/subtitle):
+  `mataro,festes,correfoc,gegants,castellers,sardanes,agenda,programa,catalunya,2026,horaris,avisos`
+  (96 chars — eliminat "festa" per solapament amb "festes"; afegits `2026`, `horaris`, `avisos`)
 - **Promotional text** (170 char, editable sense review): usar per actes destacats del dia.
 
 ## 5. Screenshots — pla (Play + iOS)
 
 Mateix joc per a CA / ES / EN, 5 captures **amb caption a sobre** (en blanc trencat càlid de la marca):
 
-| # | Pantalla | Caption proposat |
-|---|---|---|
-| 1 | `Now` amb hero card | "Què està passant ARA" |
-| 2 | Agenda d'un dia | "Tot el programa a un cop d'ull" |
-| 3 | Detall d'acte | "Cada acte amb mapa, durada i avisos" |
-| 4 | Mapa amb clusters | "Mapa interactiu — funciona offline" |
-| 5 | Favorits + recursos | "Els teus actes, al teu calendari" |
+| #   | Pantalla            | Caption proposat                      |
+| --- | ------------------- | ------------------------------------- |
+| 1   | `Now` amb hero card | "Què està passant ARA"                |
+| 2   | Agenda d'un dia     | "Tot el programa a un cop d'ull"      |
+| 3   | Detall d'acte       | "Cada acte amb mapa, durada i avisos" |
+| 4   | Mapa amb clusters   | "Mapa interactiu — funciona offline"  |
+| 5   | Favorits + recursos | "Els teus actes, al teu calendari"    |
 
 Format: 1080 × 1920 (vertical), exportat des de simulador iPhone 15 / Pixel 8.
 Script suggerit: utilitzar `react-native-view-shot` en mode `__DEV__` per generar les captures programàticament i mantenir consistència entre re‑llançaments.
@@ -118,3 +143,21 @@ Storyboard mínim:
 - **Conversion rate** (instal·lacions / visites) — objectiu > 30 %.
 - **Search-vs-Explore** ratio — pujar "Search" indica que les keywords funcionen.
 - Revisar setmanalment durant les 4 setmanes pre-festival.
+
+## 10. Release notes (plantilla per versió)
+
+Es mostren als usuaris existents a l'hora de decidir si actualitzen.
+Actualitzar a cada release, front-loading la novetat més rellevant.
+
+```
+Novetats d'aquesta versió:
+• [NOU] …
+• [MILLORA] …
+• [CORRECCIÓ] …
+
+T'agrada Les Santes? Deixa'ns una ressenya ⭐
+```
+
+Per a les properes versions, destacar quan es publiquin:
+**mode fosc** i **millores d'accessibilitat (mida de lletra del sistema)**.
+Localitzar les notes als 3 idiomes (CA/ES/EN).

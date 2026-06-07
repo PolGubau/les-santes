@@ -2,7 +2,8 @@ import { Colors, Typography } from '@/shared/constants';
 import { t } from '@/shared/i18n';
 import { Bell } from 'lucide-react-native';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from '@/shared/ui';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 
 const W = 288;

@@ -7,14 +7,8 @@ import { Image } from "expo-image";
 import { router } from "expo-router";
 import { ImageOff } from "lucide-react-native";
 import { memo, useCallback } from "react";
-import {
-  FlatList,
-  type ListRenderItem,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { FlatList, type ListRenderItem, Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '@/shared/ui';
 
 const CREDITS =
   "L'exposició ha estat organitzada pel Museu Arxiu de Santa Maria - Centre d'Estudis Locals de Mataró, amb el suport de la Fundació Iluro i la Direcció de Cultura de l'Ajuntament de Mataró. També hi han col·laborat l'Arxiu Comarcal del Maresme, Cabré Junqueras, Folgarona, MataróAudiovisual, Publicitat Fermalli, Ferreteria Colomer, Fustes Pram, Finques Pous, Copy-Rap, Avet-Set i Calçats Boixet.";

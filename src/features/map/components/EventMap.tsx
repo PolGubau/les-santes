@@ -8,7 +8,8 @@ import * as Location from 'expo-location';
 import { useFocusEffect } from 'expo-router';
 import { WifiOff } from 'lucide-react-native';
 import React, { forwardRef, memo, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Animated, Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '@/shared/ui';
 import WebView, { type WebViewMessageEvent } from 'react-native-webview';
 import { useLocalMapAssets } from '../hooks/useLocalMapAssets';
 

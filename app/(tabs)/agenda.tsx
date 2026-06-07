@@ -14,7 +14,8 @@ import { router } from "expo-router";
 import { Clock, Search, X } from "lucide-react-native";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { NativeScrollEvent, NativeSyntheticEvent } from "react-native";
-import { FlatList, Pressable, StyleSheet, Text, TextInput, View, useWindowDimensions } from "react-native";
+import { FlatList, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Text, TextInput } from '@/shared/ui';
 
 export default function AgendaScreen() {
   const { width: SCREEN_WIDTH } = useWindowDimensions();

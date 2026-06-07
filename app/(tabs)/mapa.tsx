@@ -22,7 +22,8 @@ import { useFocusEffect } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { ChevronDown, Clock3, RotateCcw } from 'lucide-react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { PanResponder, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { PanResponder, Pressable, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text } from '@/shared/ui';
 
 // ── Time scrubber (local preview) ─────────────────────────────────────────────
 // Local-only: state lives in MapaScreen and is reset on focus so other screens

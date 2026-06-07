@@ -8,7 +8,8 @@ import { SectionHeader } from '@/shared/ui';
 import { AgendaSkeletonList } from './AgendaSkeletonList';
 import { CalendarOff, Moon } from 'lucide-react-native';
 import React, { memo } from 'react';
-import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { Text } from '@/shared/ui';
 import { buildSections } from '../lib/sections';
 import { EventCard } from './EventCard';
 

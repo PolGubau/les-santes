@@ -1,6 +1,7 @@
 import { Colors } from '@/shared/constants';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from './Text';
 
 interface Props {
   title: string;
@@ -18,7 +19,9 @@ export function SectionHeader({ title, count, accentColor }: Props) {
     return (
       <View style={styles.boxedContainer}>
         <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-        <Text style={styles.boxedTitle}>{title}</Text>
+        <Text style={styles.boxedTitle} accessibilityRole="header">
+          {title}
+        </Text>
         {count != null && (
           <View style={[styles.countBadge, { borderColor: accentColor }]}>
             <Text style={[styles.countBadgeText, { color: accentColor }]}>{count}</Text>
@@ -30,7 +33,9 @@ export function SectionHeader({ title, count, accentColor }: Props) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{title}</Text>
+      <Text style={styles.title} accessibilityRole="header">
+        {title}
+      </Text>
       {count != null && <Text style={styles.count}>{count}</Text>}
     </View>
   );

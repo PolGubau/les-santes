@@ -4,6 +4,8 @@ import { OnboardingFlow, useOnboardingStore } from '@/features/onboarding';
 import { Colors } from '@/shared/constants';
 import { useLocaleStore, usePushNotifications } from '@/shared/hooks';
 import { t } from '@/shared/i18n';
+import { ThemeProvider } from '@/shared/theme';
+import { Text } from '@/shared/ui';
 import { Inter_400Regular, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
 import { useFonts } from 'expo-font';
 import { Stack, useRouter } from 'expo-router';
@@ -11,7 +13,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { AlertCircle } from 'lucide-react-native';
 import React, { useEffect } from 'react';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
@@ -80,23 +82,27 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <StatusBar style="auto" />
-        {/* `key={locale}` remounts the whole navigation tree on language
+      {/* ThemeProvider is mounted but dormant: the preference defaults to
+          `light`, so the resolved palette matches today's UI exactly. Dark
+          mode activates once the `Colors.*` → `useTheme()` migration lands. */}
+      <ThemeProvider>
+        <SafeAreaProvider>
+          <StatusBar style="auto" />
+          {/* `key={locale}` remounts the whole navigation tree on language
             change so every screen picks up the new translations, since most
             components consume `t` directly without subscribing to the store. */}
-        <Stack
-          key={locale}
-          screenOptions={{
-            headerShown: false,
-            animation: 'fade_from_bottom',
-            animationDuration: 320,
-            gestureEnabled: true,
-          }}
-        />
-        <OnboardingFlow visible={!hasSeenOnboarding} onFinish={markOnboardingSeen} />
-        <FeedbackModal />
-      </SafeAreaProvider>
+          <Stack
+            key={locale}
+            screenOptions={{
+              headerShown: false,
+              animation: 'fade_from_bottom',
+              animationDuration: 320,
+              gestureEnabled: true,
+            }}
+          />
+          <OnboardingFlow visible={!hasSeenOnboarding} onFinish={markOnboardingSeen} />
+          <FeedbackModal />
+        </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }

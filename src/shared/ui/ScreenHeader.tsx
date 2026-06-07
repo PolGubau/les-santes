@@ -1,7 +1,8 @@
-import { Colors } from '@/shared/constants';
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { BackButton } from './BackButton';
+import { Colors } from "@/shared/constants";
+import type React from "react";
+import { StyleSheet, View } from "react-native";
+import { BackButton } from "./BackButton";
+import { Text } from "./Text";
 
 interface Props {
   title: string;
@@ -24,9 +25,13 @@ export function ScreenHeader({ title, subtitle, onBack, right }: Props) {
       <BackButton onPress={onBack} />
 
       <View style={styles.textBlock}>
-        <Text style={styles.title} numberOfLines={1}>{title}</Text>
+        <Text style={styles.title} numberOfLines={1} accessibilityRole="header">
+          {title}
+        </Text>
         {subtitle ? (
-          <Text style={styles.subtitle} numberOfLines={1}>{subtitle}</Text>
+          <Text style={styles.subtitle} numberOfLines={1}>
+            {subtitle}
+          </Text>
         ) : null}
       </View>
 
@@ -37,8 +42,8 @@ export function ScreenHeader({ title, subtitle, onBack, right }: Props) {
 
 const styles = StyleSheet.create({
   root: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
     paddingHorizontal: 16,
     paddingTop: 14,
@@ -48,7 +53,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   textBlock: { flex: 1 },
-  title: { color: Colors.text, fontSize: 18, fontWeight: '700' },
+  title: { color: Colors.text, fontSize: 18, fontWeight: "700" },
   subtitle: { color: Colors.textMuted, fontSize: 12, marginTop: 2 },
   right: { flexShrink: 0 },
 });

@@ -2,7 +2,8 @@ import type { Event } from '@/entities/event';
 import { Colors } from '@/shared/constants';
 import { t } from '@/shared/i18n';
 import React, { useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '@/shared/ui';
 import WebView from 'react-native-webview';
 
 declare const process: { env: Record<string, string | undefined> };

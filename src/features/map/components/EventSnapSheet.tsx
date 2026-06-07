@@ -1,4 +1,4 @@
-﻿import { STATE_COLOR, getStateLabel, type Event } from '@/entities/event';
+import { STATE_COLOR, getStateLabel, type Event } from '@/entities/event';
 import { Colors } from '@/shared/constants';
 import { t } from '@/shared/i18n';
 import { addEventToCalendar, formatDayShort, formatTime } from '@/shared/lib';
@@ -13,7 +13,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { CalendarPlus, Clock, ExternalLink, Map, MapPin, Navigation, PersonStanding } from 'lucide-react-native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { Linking, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Linking, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '@/shared/ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 

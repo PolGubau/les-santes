@@ -8,7 +8,8 @@ import {
 } from 'lucide-react-native';
 import type { LucideIcon } from 'lucide-react-native';
 import React, { useMemo } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Text } from '@/shared/ui';
 import type { AgendaFilters } from '../hooks/useAgenda';
 
 // Keys are resolved on each render so locale changes propagate immediately.

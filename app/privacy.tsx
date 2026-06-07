@@ -3,7 +3,8 @@ import { t } from '@/shared/i18n';
 import { Screen, ScreenHeader } from '@/shared/ui';
 import { BarChart2, Bell, HardDrive, MapPin, MessageSquare } from 'lucide-react-native';
 import React from 'react';
-import { Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text } from '@/shared/ui';
 
 const CONTACT_EMAIL = 'gubaupol+lessantes-support@gmail.com';
 const PRIVACY_POLICY_URL = 'https://lessantes.polgubau.com/privacy';

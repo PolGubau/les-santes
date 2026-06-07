@@ -3,7 +3,8 @@ import { t } from '@/shared/i18n';
 import { useRouter } from 'expo-router';
 import { AlertCircle } from 'lucide-react-native';
 import React from 'react';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
+import { Text } from '@/shared/ui';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ErrorScreen() {

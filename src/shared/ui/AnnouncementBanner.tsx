@@ -3,7 +3,8 @@ import { useDismissedAnnouncementsStore } from '@/features/announcements';
 import { t } from '@/shared/i18n';
 import { AlertCircle, AlertTriangle, Info, X } from 'lucide-react-native';
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text } from './Text';
 
 const SEVERITY_STYLE: Record<
   Announcement['severity'],

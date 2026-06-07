@@ -3,13 +3,8 @@ import { Colors } from '@/shared/constants';
 import { BackButton, RichText, Screen } from '@/shared/ui';
 import { Image } from 'expo-image';
 import { useLocalSearchParams } from 'expo-router';
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-  useWindowDimensions,
-} from 'react-native';
+import { ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Text } from '@/shared/ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function CartellDetailScreen() {

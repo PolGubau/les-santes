@@ -1,7 +1,8 @@
 import { Colors } from '@/shared/constants';
 import { useNow } from '@/shared/hooks';
 import React from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { Text } from '@/shared/ui';
 
 export function LiveClock() {
   const time = useNow(1_000);

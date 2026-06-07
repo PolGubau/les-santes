@@ -8,7 +8,8 @@ import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { ArrowRight, ChevronRight, Heart } from 'lucide-react-native';
 import React, { useCallback } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { FlatList, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Text } from '@/shared/ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface Props {

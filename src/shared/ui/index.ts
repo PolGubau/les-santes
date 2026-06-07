@@ -12,3 +12,5 @@ export * from "./ScreenHeader";
 export * from "./SectionHeader";
 export * from "./Skeleton";
 export * from "./StateBadge";
+export * from "./Text";
+export * from "./TextInput";

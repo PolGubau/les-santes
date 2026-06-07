@@ -1,7 +1,8 @@
 import { Colors } from '@/shared/constants';
 import { Screen, ScreenHeader } from '@/shared/ui';
 import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { Text } from '@/shared/ui';
 
 const DIES = [
   { day: '25 jul', emoji: '🌙', nom: 'La Nit Boja', desc: "Desvetllament Bellugós (gegants per La Riera), Escapada a Negra Nit (correfoc) i La Ruixada: milers de persones banyades sota la música en directe." },

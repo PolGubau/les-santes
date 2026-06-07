@@ -1,7 +1,8 @@
 import { Colors, Typography } from "@/shared/constants";
 import * as Haptics from "expo-haptics";
 import React from "react";
-import { Pressable, StyleSheet, Text } from "react-native";
+import { Pressable, StyleSheet } from 'react-native';
+import { Text } from '@/shared/ui';
 
 interface ChipProps {
 	label: string;

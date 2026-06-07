@@ -1,7 +1,8 @@
 import { Colors } from '@/shared/constants';
 import { t } from '@/shared/i18n';
 import { Image } from 'expo-image';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from '@/shared/ui';
 import type { Cartell } from '../types';
 
 interface Props {

@@ -4,18 +4,8 @@ import * as Haptics from "expo-haptics";
 import { usePathname } from "expo-router";
 import { CheckCircle2, X } from "lucide-react-native";
 import React, { useCallback, useState } from "react";
-import {
-	ActivityIndicator,
-	KeyboardAvoidingView,
-	Modal,
-	Platform,
-	Pressable,
-	ScrollView,
-	StyleSheet,
-	Text,
-	TextInput,
-	View,
-} from "react-native";
+import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Text, TextInput } from '@/shared/ui';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFeedback } from "../hooks/useFeedback";
 import { useStoreReview } from "../hooks/useStoreReview";

@@ -5,7 +5,8 @@ import { t } from "@/shared/i18n";
 import * as Haptics from "expo-haptics";
 import type React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Modal, Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '@/shared/ui';
 import Animated, {
 	FadeIn,
 	FadeInDown,

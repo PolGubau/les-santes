@@ -7,7 +7,8 @@ import { formatTime } from '@/shared/lib';
 import { EventIcon } from '@/shared/ui';
 import { Image } from 'expo-image';
 import React, { useMemo } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '@/shared/ui';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,

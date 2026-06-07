@@ -12,7 +12,8 @@ import { AnnouncementBanner, ErrorState, OfflineBanner, Screen, SectionHeader } 
 import { router } from 'expo-router';
 import { Clock, Heart, Moon, PartyPopper } from 'lucide-react-native';
 import React, { useCallback, useMemo } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Text } from '@/shared/ui';
 
 // ─── Countdown helpers ───────────────────────────────────────────────────────
 function formatCountdown(ms: number): string {

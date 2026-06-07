@@ -15,7 +15,8 @@ import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { Bell, BellOff, ExternalLink, RotateCcw, Star, Wrench } from 'lucide-react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, Linking, Platform, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Linking, Platform, ScrollView, StyleSheet, Switch, TouchableOpacity, View } from 'react-native';
+import { Text } from '@/shared/ui';
 
 const EVENTS_CACHE_KEY = '@les-santes/events-v1';
 const PRIVACY_POLICY_URL = 'https://lessantes.polgubau.com/privacy';

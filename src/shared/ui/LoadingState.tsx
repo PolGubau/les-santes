@@ -1,7 +1,8 @@
 import { Colors } from '@/shared/constants';
 import { t } from '@/shared/i18n';
 import React from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { Text } from './Text';
 
 interface Props {
   label?: string;

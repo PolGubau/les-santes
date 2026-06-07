@@ -1,7 +1,8 @@
 import { Colors } from "@/shared/constants";
 import { X } from "lucide-react-native";
 import React, { useEffect, useRef } from "react";
-import { Animated, Pressable, StyleSheet, Text } from "react-native";
+import { Animated, Pressable, StyleSheet } from 'react-native';
+import { Text } from '@/shared/ui';
 
 interface FirstTimeTooltipProps {
 	title: string;

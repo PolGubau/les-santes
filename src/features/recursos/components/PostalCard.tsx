@@ -5,7 +5,8 @@ import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { ChevronLeft, ChevronRight, ImageOff, X } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
-import { Modal, Pressable, StatusBar, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Modal, Pressable, StatusBar, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Text } from '@/shared/ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {

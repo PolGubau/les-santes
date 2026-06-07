@@ -2,7 +2,8 @@ import { Colors } from '@/shared/constants';
 import { t } from '@/shared/i18n';
 import { WifiOff } from 'lucide-react-native';
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text } from './Text';
 
 interface Props {
   message?: string;

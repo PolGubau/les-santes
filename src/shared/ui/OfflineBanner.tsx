@@ -2,7 +2,8 @@ import { Colors } from '@/shared/constants';
 import { t } from '@/shared/i18n';
 import { WifiOff } from 'lucide-react-native';
 import React, { memo } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { Text } from './Text';
 
 interface Props {
   /** Timestamp (ms) of the last cached data, or null if unknown. */

@@ -4,7 +4,8 @@ import { formatDayShort } from '@/shared/lib';
 import * as Haptics from 'expo-haptics';
 import { List, Search, X } from 'lucide-react-native';
 import React, { useCallback, useEffect, useRef } from 'react';
-import { Keyboard, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Keyboard, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Text, TextInput } from '@/shared/ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface Props {

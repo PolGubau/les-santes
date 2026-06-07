@@ -1,6 +1,7 @@
 import { type EventState, STATE_COLOR, getStateLabel } from '@/entities/event';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from './Text';
 
 interface Props {
   state: EventState;
