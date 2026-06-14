@@ -9,6 +9,7 @@ import { type AppLocale, LOCALES, useLocaleStore } from '@/shared/hooks/useLocal
 import { t } from '@/shared/i18n';
 import { type EngagementSlot, type ScheduledEventNotification, buildEngagementSchedule, cancelEventNotification, fireTestNotification, getScheduledEventNotifications, isExpoGo, scheduleEngagementNotifications } from '@/shared/lib/notifications';
 import { Screen } from '@/shared/ui';
+import { Text } from '@/shared/ui';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import * as Haptics from 'expo-haptics';
@@ -16,7 +17,6 @@ import { router } from 'expo-router';
 import { Bell, BellOff, ExternalLink, RotateCcw, Star, Wrench } from 'lucide-react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Linking, Platform, ScrollView, StyleSheet, Switch, TouchableOpacity, View } from 'react-native';
-import { Text } from '@/shared/ui';
 
 const EVENTS_CACHE_KEY = '@les-santes/events-v1';
 const PRIVACY_POLICY_URL = 'https://lessantes.polgubau.com/privacy';
@@ -322,14 +322,14 @@ export default function SettingsScreen() {
             </View>
             <View style={styles.localeGroup}>
               <FrequencyOption
-                label={t('settings.engagementEveryDay')}
-                active={engagementFrequency === 1}
-                onPress={() => handleEngagementFrequency(1)}
-              />
-              <FrequencyOption
                 label={t('settings.engagementEveryTwoDays')}
                 active={engagementFrequency === 2}
                 onPress={() => handleEngagementFrequency(2)}
+              />
+              <FrequencyOption
+                label={t('settings.engagementNever')}
+                active={engagementFrequency === 0}
+                onPress={() => handleEngagementFrequency(0)}
               />
             </View>
           </View>

@@ -1,16 +1,16 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
 
 /**
  * Cadence at which pre-festival engagement notifications fire.
- * Kept as a small union so adding a new option (e.g. weekly) stays additive.
+ * 0 = disabled (never), 2 = every 2 days.
  */
-export type EngagementFrequencyDays = 1 | 2;
+export type EngagementFrequencyDays = 0 | 2;
 
 interface EngagementStoreState {
-  frequencyDays: EngagementFrequencyDays;
-  setFrequencyDays: (days: EngagementFrequencyDays) => void;
+	frequencyDays: EngagementFrequencyDays;
+	setFrequencyDays: (days: EngagementFrequencyDays) => void;
 }
 
 /**
@@ -21,15 +21,15 @@ interface EngagementStoreState {
  * present during the closed-testing window.
  */
 export const useEngagementStore = create<EngagementStoreState>()(
-  persist(
-    (set) => ({
-      frequencyDays: 2,
-      setFrequencyDays: (days) => set({ frequencyDays: days }),
-    }),
-    {
-      name: 'santes-engagement',
-      storage: createJSONStorage(() => AsyncStorage),
-      partialize: (s) => ({ frequencyDays: s.frequencyDays }),
-    },
-  ),
+	persist(
+		(set) => ({
+			frequencyDays: 2,
+			setFrequencyDays: (days) => set({ frequencyDays: days }),
+		}),
+		{
+			name: "santes-engagement",
+			storage: createJSONStorage(() => AsyncStorage),
+			partialize: (s) => ({ frequencyDays: s.frequencyDays }),
+		},
+	),
 );

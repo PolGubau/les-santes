@@ -268,8 +268,8 @@ export interface Translations {
 		engagementSection: string;
 		engagementFrequency: string;
 		engagementFrequencyDesc: string;
-		engagementEveryDay: string;
 		engagementEveryTwoDays: string;
+		engagementNever: string;
 	};
 	feedback: {
 		title: string;
@@ -664,8 +664,8 @@ export const ca: Translations = {
 		engagementFrequency: "Freqüència",
 		engagementFrequencyDesc:
 			"Cada quant vols rebre curiositats i consells sobre Les Santes.",
-		engagementEveryDay: "Cada dia",
 		engagementEveryTwoDays: "Cada 2 dies",
+		engagementNever: "Mai",
 	},
 	feedback: {
 		title: "Com va l’app?",

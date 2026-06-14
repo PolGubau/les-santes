@@ -330,8 +330,8 @@ export const en: Translations = {
 		engagementFrequency: "Frequency",
 		engagementFrequencyDesc:
 			"How often you want to receive tips and trivia about Les Santes.",
-		engagementEveryDay: "Every day",
 		engagementEveryTwoDays: "Every 2 days",
+		engagementNever: "Never",
 	},
 	feedback: {
 		title: "How is the app?",
