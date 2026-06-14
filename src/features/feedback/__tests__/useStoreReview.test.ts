@@ -1,8 +1,8 @@
 /**
  * useStoreReview must be crash-proof and respect the native/fallback order:
  *   - requestReview only fires the native flow when it's available.
- *   - rateApp prefers the native flow and only opens the store URL when the
- *     native flow is unavailable.
+ *   - rateApp (explicit user intent) opens the store URL directly and only
+ *     falls back to the native flow when no listing URL exists for the OS.
  *   - nothing ever throws, even if expo-store-review or Linking rejects.
  *
  * Platform is pinned to Android so the Play Store fallback URL is exercised.
@@ -88,8 +88,11 @@ describe("useStoreReview", () => {
 		expect(returned).toBe(false);
 	});
 
-	it("rateApp opens the store URL when the native flow is unavailable", async () => {
-		mockedAvailable.mockResolvedValue(false);
+	it("rateApp opens the store URL directly and skips the native flow", async () => {
+		// Even when the native flow is available, an explicit button must go
+		// straight to the listing — the throttled in‑app review API often shows
+		// nothing, making the button feel broken.
+		mockedAvailable.mockResolvedValue(true);
 		const { result } = renderHook(() => useStoreReview());
 
 		await act(async () => {
@@ -102,16 +105,17 @@ describe("useStoreReview", () => {
 		);
 	});
 
-	it("rateApp does not open the store URL when the native flow runs", async () => {
+	it("rateApp falls back to the native flow when opening the store fails", async () => {
 		mockedAvailable.mockResolvedValue(true);
+		jest.spyOn(Linking, "openURL").mockRejectedValue(new Error("no activity"));
 		const { result } = renderHook(() => useStoreReview());
 
 		await act(async () => {
 			await result.current.rateApp("settings");
 		});
 
+		expect(Linking.openURL).toHaveBeenCalledTimes(1);
 		expect(mockedRequest).toHaveBeenCalledTimes(1);
-		expect(Linking.openURL).not.toHaveBeenCalled();
 	});
 
 	// Kept last: this test makes requestReview reject, so running it after the
