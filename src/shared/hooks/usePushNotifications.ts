@@ -20,6 +20,9 @@ import { useEffect, useRef } from "react";
  */
 export function usePushNotifications() {
 	const responseListener = useRef<EventSubscription | null>(null);
+	// Identifier of the last response we routed, so the persisted cold-start
+	// response is never handled twice (e.g. across remounts).
+	const handledResponseId = useRef<string | null>(null);
 
 	useEffect(() => {
 		if (isExpoGo) return;
@@ -40,28 +43,50 @@ export function usePushNotifications() {
 			})
 			.catch(() => {});
 
+		// Route the tap depending on the notification payload type. Deduped by
+		// request identifier so a single response is never handled twice.
+		const handleResponse = (
+			response: import("expo-notifications").NotificationResponse,
+		) => {
+			const id = response.notification.request.identifier;
+			if (handledResponseId.current === id) return;
+			handledResponseId.current = id;
+
+			const data = response.notification.request.content.data as
+				| { eventId?: string; type?: string; day?: string }
+				| undefined;
+
+			// Daily agenda preview → open the agenda on the announced day.
+			if (data?.type === "daily-agenda" && data.day) {
+				useAgendaFocusStore.getState().requestDay(data.day);
+				router.push("/(tabs)/agenda");
+				return;
+			}
+
+			// Favourite event reminder → open the event detail.
+			if (data?.eventId) {
+				router.push(`/event/${data.eventId}`);
+			}
+		};
+
 		// Dynamic import so the module-level side effect never runs in Expo Go
 		import("expo-notifications").then((Notifications) => {
 			if (cancelled) return;
-			// Route the tap depending on the notification payload type.
+
+			// Cold start: the app was launched by tapping a notification while it
+			// was killed, so the listener below would miss it. We use the function
+			// form (not the useLastNotificationResponse hook) on purpose: the hook
+			// needs a static top-level import, which would trigger the Expo Go
+			// side effect this module loads dynamically to avoid.
+			Notifications.getLastNotificationResponseAsync()
+				.then((response) => {
+					if (!cancelled && response) handleResponse(response);
+				})
+				.catch(() => {});
+
+			// Foreground/background taps while the listener is mounted.
 			responseListener.current =
-				Notifications.addNotificationResponseReceivedListener((response) => {
-					const data = response.notification.request.content.data as
-						| { eventId?: string; type?: string; day?: string }
-						| undefined;
-
-					// Daily agenda preview → open the agenda on the announced day.
-					if (data?.type === "daily-agenda" && data.day) {
-						useAgendaFocusStore.getState().requestDay(data.day);
-						router.push("/(tabs)/agenda");
-						return;
-					}
-
-					// Favourite event reminder → open the event detail.
-					if (data?.eventId) {
-						router.push(`/event/${data.eventId}`);
-					}
-				});
+				Notifications.addNotificationResponseReceivedListener(handleResponse);
 		});
 
 		return () => {
