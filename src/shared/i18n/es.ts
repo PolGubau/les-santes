@@ -212,6 +212,13 @@ export const es: Translations = {
 			other: "%{title} empieza en %{count} minutos",
 		},
 	},
+	festivalReminder: {
+		weekBeforeTitle: "🎉 ¡Falta una semana!",
+		weekBeforeBody:
+			"Les Santes empiezan dentro de 7 días. ¿Ya tienes elegidos tus actos favoritos?",
+		startDayTitle: "🎆 ¡Hoy empiezan Les Santes!",
+		startDayBody: "¡Ya estamos! Abre la app para ver qué pasa hoy en Mataró.",
+	},
 	quickActions: {
 		upNext: "Próximo",
 		eventsInProgress: "Actos en curso",

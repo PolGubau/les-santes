@@ -7,6 +7,9 @@
  *  2. On subsequent launches, use the cached copies — no network needed.
  *  3. Writes the HTML alongside the assets so relative paths resolve correctly.
  *
+ * Both EventMap (main) and EventMiniMap share the same downloaded assets so
+ * MapLibre (~750 KB) is only ever downloaded once per device.
+ *
  * Why not expo-asset? Asset.fromModule() requires Metro to register binary files
  * (via assetExts), which is fragile with New Architecture and large files (~745 KB).
  * FileSystem.downloadAsync is simpler, more portable, and survives cache clears.
@@ -31,7 +34,12 @@ const REMOTE_ASSETS = [
 	},
 ] as const;
 
-async function prepareMapAssets(htmlContent: string): Promise<string> {
+/**
+ * Ensures MapLibre + Supercluster are present in the cache directory.
+ * Returns the directory path (with trailing slash) so callers can write
+ * their own HTML files next to the assets.
+ */
+async function ensureAssetsDownloaded(): Promise<string> {
 	const mapDir = `${FileSystem.cacheDirectory}map/`;
 
 	const dirInfo = await FileSystem.getInfoAsync(mapDir);
@@ -50,12 +58,24 @@ async function prepareMapAssets(htmlContent: string): Promise<string> {
 		}),
 	);
 
-	// Write the HTML file alongside the assets so relative <script>/<link> paths work
+	return mapDir;
+}
+
+async function prepareMapAssets(htmlContent: string): Promise<string> {
+	const mapDir = await ensureAssetsDownloaded();
 	const htmlUri = `${mapDir}index.html`;
 	await FileSystem.writeAsStringAsync(htmlUri, htmlContent, {
 		encoding: FileSystem.EncodingType.UTF8,
 	});
+	return htmlUri;
+}
 
+async function prepareMiniMapAssets(htmlContent: string): Promise<string> {
+	const mapDir = await ensureAssetsDownloaded();
+	const htmlUri = `${mapDir}mini.html`;
+	await FileSystem.writeAsStringAsync(htmlUri, htmlContent, {
+		encoding: FileSystem.EncodingType.UTF8,
+	});
 	return htmlUri;
 }
 
@@ -69,6 +89,22 @@ export function useLocalMapAssets(htmlContent: string): string | null {
 		// htmlContent is a stable module-level constant — safe to omit from deps
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
+
+	return htmlUri;
+}
+
+/**
+ * Same as useLocalMapAssets but writes mini.html — shared with EventMiniMap
+ * so MapLibre is never re-downloaded just for the mini map.
+ */
+export function useLocalMiniMapAssets(htmlContent: string): string | null {
+	const [htmlUri, setHtmlUri] = useState<string | null>(null);
+
+	useEffect(() => {
+		prepareMiniMapAssets(htmlContent)
+			.then(setHtmlUri)
+			.catch((err) => console.error("[useLocalMiniMapAssets]", err));
+	}, [htmlContent]);
 
 	return htmlUri;
 }

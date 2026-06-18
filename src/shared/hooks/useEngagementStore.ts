@@ -17,13 +17,13 @@ interface EngagementStoreState {
  * User preference for the daily engagement reminder cadence. Read by
  * `scheduleEngagementNotifications` whenever it (re)builds the queue.
  *
- * Defaults to every 2 days — non-intrusive while still keeping the app
- * present during the closed-testing window.
+ * Defaults to 0 (disabled) — the app is published, so periodic engagement
+ * nudges are off by default. Only the fixed festival reminders fire.
  */
 export const useEngagementStore = create<EngagementStoreState>()(
 	persist(
 		(set) => ({
-			frequencyDays: 2,
+			frequencyDays: 0,
 			setFrequencyDays: (days) => set({ frequencyDays: days }),
 		}),
 		{

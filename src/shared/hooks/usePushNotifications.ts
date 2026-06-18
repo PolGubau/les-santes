@@ -1,11 +1,12 @@
 import {
-  isExpoGo,
-  requestNotificationPermission,
-  scheduleEngagementNotifications,
-} from '@/shared/lib/notifications';
-import type { EventSubscription } from 'expo-notifications';
-import { router } from 'expo-router';
-import { useEffect, useRef } from 'react';
+	isExpoGo,
+	requestNotificationPermission,
+	scheduleEngagementNotifications,
+	scheduleFestivalReminders,
+} from "@/shared/lib/notifications";
+import type { EventSubscription } from "expo-notifications";
+import { router } from "expo-router";
+import { useEffect, useRef } from "react";
 
 /**
  * Initialize notifications in the root layout:
@@ -16,41 +17,43 @@ import { useEffect, useRef } from 'react';
  * effect in DevicePushTokenAutoRegistration.fx that throws on Android Expo Go.
  */
 export function usePushNotifications() {
-  const responseListener = useRef<EventSubscription | null>(null);
+	const responseListener = useRef<EventSubscription | null>(null);
 
-  useEffect(() => {
-    if (isExpoGo) return;
+	useEffect(() => {
+		if (isExpoGo) return;
 
-    let cancelled = false;
+		let cancelled = false;
 
-    // Request permission + schedule engagement sequence
-    requestNotificationPermission()
-      .then((granted) => {
-        if (granted && !cancelled) {
-          scheduleEngagementNotifications().catch(() => {});
-        }
-      })
-      .catch(() => {});
+		// Request permission + schedule reminders
+		requestNotificationPermission()
+			.then((granted) => {
+				if (granted && !cancelled) {
+					// Fixed festival reminders (week-before + start day) always fire.
+					scheduleFestivalReminders().catch(() => {});
+					// Periodic engagement nudges only if opted in (off by default).
+					scheduleEngagementNotifications().catch(() => {});
+				}
+			})
+			.catch(() => {});
 
-    // Dynamic import so the module-level side effect never runs in Expo Go
-    import('expo-notifications').then((Notifications) => {
-      if (cancelled) return;
-      // Navigate directly to the event detail when user taps a notification
-      responseListener.current = Notifications.addNotificationResponseReceivedListener(
-        (response) => {
-          const eventId = response.notification.request.content.data?.eventId as
-            | string
-            | undefined;
-          if (eventId) {
-            router.push(`/event/${eventId}`);
-          }
-        },
-      );
-    });
+		// Dynamic import so the module-level side effect never runs in Expo Go
+		import("expo-notifications").then((Notifications) => {
+			if (cancelled) return;
+			// Navigate directly to the event detail when user taps a notification
+			responseListener.current =
+				Notifications.addNotificationResponseReceivedListener((response) => {
+					const eventId = response.notification.request.content.data?.eventId as
+						| string
+						| undefined;
+					if (eventId) {
+						router.push(`/event/${eventId}`);
+					}
+				});
+		});
 
-    return () => {
-      cancelled = true;
-      responseListener.current?.remove();
-    };
-  }, []);
+		return () => {
+			cancelled = true;
+			responseListener.current?.remove();
+		};
+	}, []);
 }

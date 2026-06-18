@@ -172,6 +172,12 @@ export interface Translations {
 		eventStartingSoonTitle: string;
 		eventStartingSoonBody: { one: string; other: string };
 	};
+	festivalReminder: {
+		weekBeforeTitle: string;
+		weekBeforeBody: string;
+		startDayTitle: string;
+		startDayBody: string;
+	};
 	quickActions: {
 		upNext: string;
 		eventsInProgress: string;
@@ -546,6 +552,13 @@ export const ca: Translations = {
 			one: "%{title} comença en 1 minut",
 			other: "%{title} comença en %{count} minuts",
 		},
+	},
+	festivalReminder: {
+		weekBeforeTitle: "🎉 Falta una setmana!",
+		weekBeforeBody:
+			"Les Santes comencen d'aquí a 7 dies. Ja tens triats els teus actes preferits?",
+		startDayTitle: "🎆 Avui comencen Les Santes!",
+		startDayBody: "Ja hi som! Obre l'app per veure què passa avui a Mataró.",
 	},
 	quickActions: {
 		upNext: "Proper",

@@ -1,10 +1,11 @@
 import type { Event } from '@/entities/event';
 import { Colors } from '@/shared/constants';
 import { t } from '@/shared/i18n';
+import { Text } from '@/shared/ui';
 import React, { useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
-import { Text } from '@/shared/ui';
 import WebView from 'react-native-webview';
+import { useLocalMiniMapAssets } from '../hooks/useLocalMapAssets';
 
 declare const process: { env: Record<string, string | undefined> };
 const MAPTILER_KEY = process.env.EXPO_PUBLIC_MAPTILER_KEY ?? 'xvhIdcAsn7WrwOYPt8W2';
@@ -63,10 +64,13 @@ function buildMiniHtml({ event, zoom = 15.5 }: BuildMiniHtml): string {
     `;
   }
 
+  // Use local relative paths — assets live in the same cache dir as this HTML file
+  // (written by useLocalMiniMapAssets → prepareMiniMapAssets).
+  // This avoids re-downloading MapLibre (~750 KB) on every mini-map open.
   return `<!DOCTYPE html><html><head>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<link href="https://cdn.jsdelivr.net/npm/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+<link href="maplibre-gl.css" rel="stylesheet">
+<script src="maplibre-gl.js"></script>
 <style>*{margin:0;padding:0;box-sizing:border-box;}body,#map{width:100%;height:100vh;}</style>
 </head><body><div id="map"></div><script>
 const map = new maplibregl.Map({
@@ -92,6 +96,7 @@ const MAP_H = 180;
 export function EventMiniMap({ event, onPress, zoom = 15.5 }: Props) {
   const [ready, setReady] = useState(false);
   const html = useRef(buildMiniHtml({ event, zoom })).current;
+  const localUri = useLocalMiniMapAssets(html);
 
   const hasLocation = event.kind === 'static'
     ? !!event.location
@@ -105,10 +110,14 @@ export function EventMiniMap({ event, onPress, zoom = 15.5 }: Props) {
     <View style={s.wrap}>
       <WebView
         style={StyleSheet.absoluteFill}
-        source={{ html, baseUrl: 'https://localhost' }}
+        source={localUri
+          ? { uri: localUri }
+          : { html, baseUrl: 'https://localhost' }}
         originWhitelist={['*']}
         javaScriptEnabled
         scrollEnabled={false}
+        allowFileAccess
+        allowUniversalAccessFromFileURLs
         onMessage={() => setReady(true)}
       />
       {!ready && (

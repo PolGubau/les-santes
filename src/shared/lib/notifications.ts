@@ -233,6 +233,70 @@ export async function scheduleEngagementNotifications(): Promise<void> {
 	}
 }
 
+export const FESTIVAL_REMINDER_PREFIX = "festival-";
+/** Hour of day (local) at which festival reminders fire. */
+const FESTIVAL_REMINDER_HOUR = 11;
+/** Days before the festival start for the early reminder. */
+const FESTIVAL_REMINDER_DAYS_BEFORE = 7;
+
+/**
+ * Schedules two fixed reminders around the festival start:
+ *   • one week before it begins
+ *   • the morning it begins
+ *
+ * Independent from the engagement cadence — these always fire (when
+ * notifications are permitted). Idempotent: clears any previously scheduled
+ * festival reminders first and skips trigger dates in the past.
+ */
+export async function scheduleFestivalReminders(): Promise<void> {
+	const N = await getNotifications();
+	if (!N) return;
+
+	// Clear existing festival reminders to stay idempotent.
+	const all = await N.getAllScheduledNotificationsAsync().catch(() => []);
+	for (const n of all) {
+		if (n.identifier.startsWith(FESTIVAL_REMINDER_PREFIX)) {
+			await N.cancelScheduledNotificationAsync(n.identifier).catch(() => {});
+		}
+	}
+
+	const now = new Date();
+
+	const weekBefore = new Date(FESTIVAL_START);
+	weekBefore.setDate(FESTIVAL_START.getDate() - FESTIVAL_REMINDER_DAYS_BEFORE);
+	weekBefore.setHours(FESTIVAL_REMINDER_HOUR, 0, 0, 0);
+
+	const startDay = new Date(FESTIVAL_START);
+	startDay.setHours(FESTIVAL_REMINDER_HOUR, 0, 0, 0);
+
+	const reminders = [
+		{
+			identifier: `${FESTIVAL_REMINDER_PREFIX}week-before`,
+			date: weekBefore,
+			title: t("festivalReminder.weekBeforeTitle"),
+			body: t("festivalReminder.weekBeforeBody"),
+		},
+		{
+			identifier: `${FESTIVAL_REMINDER_PREFIX}start-day`,
+			date: startDay,
+			title: t("festivalReminder.startDayTitle"),
+			body: t("festivalReminder.startDayBody"),
+		},
+	];
+
+	for (const { identifier, date, title, body } of reminders) {
+		if (date <= now) continue;
+		await N.scheduleNotificationAsync({
+			identifier,
+			content: { title, body, data: { type: "festival-reminder" } },
+			trigger: {
+				type: N.SchedulableTriggerInputTypes.DATE,
+				date,
+			},
+		});
+	}
+}
+
 /**
  * Loads expo-notifications via static `require()` so Metro bundles it.
  * Dynamic `await import()` fails in Expo Go ("unknown module") because
@@ -283,7 +347,7 @@ export async function fireTestNotification(
 		const id = await N.scheduleNotificationAsync({
 			identifier: `debug-test-${Date.now()}`,
 			content: {
-				title: "🎆 Les Santes Mataró — TEST",
+				title: "Les Santes Mataró - TEST",
 				body: `Notificación de prueba programada ${delaySeconds}s. Si la ves, ¡funciona!`,
 				data: { type: "debug" },
 			},
