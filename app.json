@@ -4,7 +4,6 @@
 		"slug": "app",
 		"scheme": "les-santes",
 		"version": "1.1.2",
-		"orientation": "portrait",
 		"icon": "./assets/ios-light.png",
 		"userInterfaceStyle": "light",
 		"newArchEnabled": true,
@@ -89,21 +88,27 @@
 							"title": "Ara",
 							"subtitle": "Actes en curs",
 							"icon": "time",
-							"params": { "href": "/(tabs)/ara" }
+							"params": {
+								"href": "/(tabs)/ara"
+							}
 						},
 						{
 							"id": "agenda",
 							"title": "Agenda",
 							"subtitle": "Tots els actes",
 							"icon": "date",
-							"params": { "href": "/(tabs)/agenda" }
+							"params": {
+								"href": "/(tabs)/agenda"
+							}
 						},
 						{
 							"id": "mapa",
 							"title": "Mapa",
 							"subtitle": "Mapa del festival",
 							"icon": "location",
-							"params": { "href": "/(tabs)/mapa" }
+							"params": {
+								"href": "/(tabs)/mapa"
+							}
 						}
 					]
 				}
