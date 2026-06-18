@@ -483,7 +483,7 @@ export const ca: Translations = {
 		nowStripTitle: "Ara mateix",
 		upNextTitle: "A continuació",
 		nextEventIn: "Pròxim acte en",
-		festivalStartsIn: "Les Santes comença en",
+		festivalStartsIn: "Només falten",
 		festivalDates: "%{start} - %{end} de juliol de %{year} · Mataró",
 		suggestAgendaTitle: "Encara no tens favorits",
 		suggestAgendaDesc:

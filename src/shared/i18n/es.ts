@@ -138,7 +138,7 @@ export const es: Translations = {
 		nowStripTitle: "Ahora mismo",
 		upNextTitle: "A continuación",
 		nextEventIn: "Próximo acto en",
-		festivalStartsIn: "Les Santes empieza en",
+		festivalStartsIn: "Solo faltan",
 		festivalDates: "%{start} - %{end} de julio de %{year} · Mataró",
 		suggestAgendaTitle: "Aún no tienes favoritos",
 		suggestAgendaDesc:

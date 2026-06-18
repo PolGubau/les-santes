@@ -101,7 +101,7 @@ describe('AraScreen — pre-festival (before 2026-07-24)', () => {
 
   it('shows the pre-festival countdown card', () => {
     const { getByText } = render(<AraScreen />);
-    expect(getByText('Les Santes comença en')).toBeTruthy();
+    expect(getByText('Només falten')).toBeTruthy();
   });
 
   it('does NOT render the hero card', () => {
@@ -124,7 +124,7 @@ describe('AraScreen — festival active (2026-07-25)', () => {
 
   it('does NOT show the pre-festival countdown', () => {
     const { queryByText } = render(<AraScreen />);
-    expect(queryByText('Les Santes comença en')).toBeNull();
+    expect(queryByText('Només falten')).toBeNull();
   });
 
   it('renders the hero card with the live event', () => {
@@ -151,7 +151,7 @@ describe('AraScreen — post-festival (after 2026-07-29)', () => {
 
   it('does NOT show the pre-festival countdown', () => {
     const { queryByText } = render(<AraScreen />);
-    expect(queryByText('Les Santes comença en')).toBeNull();
+    expect(queryByText('Només falten')).toBeNull();
   });
 
   it('does NOT render the hero card', () => {

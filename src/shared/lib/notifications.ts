@@ -1,10 +1,11 @@
 /**
  * Notification utilities — local (favorites) + remote push token registration.
  *
- * expo-notifications is loaded lazily via dynamic import because its index.js
- * runs a module-level side effect (DevicePushTokenAutoRegistration.fx) that
- * calls addPushTokenListener() immediately, which throws on Android Expo Go
- * since SDK 53. A static import triggers that error before any guard runs.
+ * expo-notifications is loaded lazily (via require() at call time, see
+ * loadNotificationsModule) because its index.js runs a module-level side effect
+ * (DevicePushTokenAutoRegistration.fx) that calls addPushTokenListener()
+ * immediately, which throws on Android Expo Go since SDK 53. A static top-level
+ * import would trigger that error before any guard runs.
  */
 import type { Event } from "@/entities/event";
 import { readEventCache } from "@/entities/event/cache";
@@ -26,23 +27,101 @@ export const isExpoGo =
 	Constants.appOwnership === "expo" ||
 	Constants.executionEnvironment === "storeClient";
 
-/** Lazy singleton — only loaded once, only when NOT in Expo Go. */
+/**
+ * Loads expo-notifications lazily via require() so its module-level side effect
+ * (DevicePushTokenAutoRegistration.fx → addPushTokenListener) runs only when we
+ * first ask for it — never at this module's load time, which throws on Android
+ * Expo Go (SDK 53+). require() is preferred over `await import()` because the
+ * latter is unresolvable at runtime in Expo Go ("unknown module"). Being
+ * synchronous, there is no await gap, so concurrent callers can never
+ * double-install the notification handler.
+ */
 let _notifications: typeof import("expo-notifications") | null = null;
-async function getNotifications() {
-	if (isExpoGo) return null;
-	if (!_notifications) {
-		_notifications = await import("expo-notifications");
-		_notifications.setNotificationHandler({
-			handleNotification: async () => ({
-				shouldShowAlert: true,
-				shouldShowBanner: true,
-				shouldShowList: true,
-				shouldPlaySound: true,
-				shouldSetBadge: false,
-			}),
-		});
+let _handlerInstalled = false;
+
+function loadNotificationsModule(): typeof import("expo-notifications") | null {
+	if (_notifications) return _notifications;
+	try {
+		// eslint-disable-next-line @typescript-eslint/no-require-imports
+		const mod = require("expo-notifications") as typeof import(
+			"expo-notifications",
+		);
+		if (!_handlerInstalled) {
+			mod.setNotificationHandler({
+				handleNotification: async () => ({
+					shouldShowBanner: true,
+					shouldShowList: true,
+					shouldPlaySound: true,
+					shouldSetBadge: false,
+				}),
+			});
+			_handlerInstalled = true;
+		}
+		_notifications = mod;
+		return mod;
+	} catch {
+		return null;
 	}
-	return _notifications;
+}
+
+/**
+ * Lazy module accessor for the regular scheduling paths. Returns null in Expo
+ * Go, where scheduled/push notifications are not supported for our use cases.
+ */
+async function getNotifications(): Promise<
+	typeof import("expo-notifications") | null
+> {
+	if (isExpoGo) return null;
+	return loadNotificationsModule();
+}
+
+/** Creates the Android notification channel used by every local notification. */
+async function ensureAndroidChannel(
+	N: typeof import("expo-notifications"),
+): Promise<void> {
+	if (Platform.OS !== "android") return;
+	await N.setNotificationChannelAsync("default", {
+		name: "Les Santes",
+		importance: N.AndroidImportance.HIGH,
+		vibrationPattern: [0, 250, 250, 250],
+	});
+}
+
+/** Cancels every scheduled notification whose identifier starts with `prefix`. */
+async function cancelScheduledByPrefix(
+	N: typeof import("expo-notifications"),
+	prefix: string,
+): Promise<void> {
+	const all = await N.getAllScheduledNotificationsAsync().catch(() => []);
+	for (const n of all) {
+		if (n.identifier.startsWith(prefix)) {
+			await N.cancelScheduledNotificationAsync(n.identifier).catch(() => {});
+		}
+	}
+}
+
+/**
+ * Serializes scheduling operations into a single chain. Each scheduler reads
+ * all pending notifications, cancels its own and re-adds them; running two
+ * concurrently (e.g. the root layout and a Settings toggle) could interleave
+ * those steps, so we queue them instead.
+ */
+let _scheduleQueue: Promise<unknown> = Promise.resolve();
+function serialize<T>(task: () => Promise<T>): Promise<T> {
+	const run = _scheduleQueue.then(task, task);
+	_scheduleQueue = run.catch(() => {});
+	return run;
+}
+
+/** Public scheduler entry points — serialized to avoid interleaving. */
+export function scheduleEngagementNotifications(): Promise<void> {
+	return serialize(scheduleEngagementNotificationsImpl);
+}
+export function scheduleDailyAgendaNotifications(): Promise<void> {
+	return serialize(scheduleDailyAgendaNotificationsImpl);
+}
+export function scheduleFestivalReminders(): Promise<void> {
+	return serialize(scheduleFestivalRemindersImpl);
 }
 
 /** Request notification permissions and setup local channels. Returns true if granted. */
@@ -60,13 +139,7 @@ export async function requestNotificationPermission(): Promise<boolean> {
 
 	if (finalStatus !== "granted") return false;
 
-	if (Platform.OS === "android") {
-		await N.setNotificationChannelAsync("default", {
-			name: "Les Santes",
-			importance: N.AndroidImportance.HIGH,
-			vibrationPattern: [0, 250, 250, 250],
-		});
-	}
+	await ensureAndroidChannel(N);
 
 	return true;
 }
@@ -113,6 +186,21 @@ export interface ScheduledEventNotification {
 	triggerDate: Date;
 }
 
+/**
+ * Extracts the fire time (ms since epoch) from a scheduled notification's
+ * trigger without unsafe casts. Only DATE triggers carry a `date` field; for
+ * anything else we return null and the caller falls back gracefully.
+ */
+function triggerDateMs(
+	trigger: import("expo-notifications").NotificationTrigger | null,
+): number | null {
+	if (trigger && "date" in trigger && trigger.date != null) {
+		const d = trigger.date;
+		return typeof d === "number" ? d : new Date(d).getTime();
+	}
+	return null;
+}
+
 /** Returns all pending local notifications that belong to favourite events. */
 export async function getScheduledEventNotifications(): Promise<
 	ScheduledEventNotification[]
@@ -125,11 +213,11 @@ export async function getScheduledEventNotifications(): Promise<
 	return all
 		.filter((n) => n.identifier.startsWith("event-"))
 		.map((n) => {
-			const trigger = n.trigger as { date?: number } | null;
+			const ms = triggerDateMs(n.trigger);
 			return {
 				eventId: n.identifier.replace("event-", ""),
 				title: n.content.body ?? n.identifier,
-				triggerDate: trigger?.date ? new Date(trigger.date) : new Date(),
+				triggerDate: ms != null ? new Date(ms) : new Date(),
 			};
 		})
 		.sort((a, b) => a.triggerDate.getTime() - b.triggerDate.getTime());
@@ -176,7 +264,6 @@ export function buildEngagementSchedule(
 		const triggerDate = new Date(now);
 		triggerDate.setDate(now.getDate() + (i + 1) * frequencyDays);
 		triggerDate.setHours(ENGAGEMENT_HOUR, 0, 0, 0);
-		triggerDate.setMinutes(0, 0, 0);
 
 		if (triggerDate >= festivalStart) break;
 
@@ -199,20 +286,15 @@ export function buildEngagementSchedule(
  * Idempotent: clears previous engagement notifications before rescheduling.
  * Stops automatically once the trigger date would fall on/after the festival.
  */
-export async function scheduleEngagementNotifications(): Promise<void> {
+async function scheduleEngagementNotificationsImpl(): Promise<void> {
 	const N = await getNotifications();
 	if (!N) return;
 
 	const now = new Date();
 	const frequencyDays = useEngagementStore.getState().frequencyDays;
 
-	// Clear existing engagement notifications to be idempotent
-	const all = await N.getAllScheduledNotificationsAsync().catch(() => []);
-	for (const n of all) {
-		if (n.identifier.startsWith(ENGAGEMENT_NOTIF_PREFIX)) {
-			await N.cancelScheduledNotificationAsync(n.identifier).catch(() => {});
-		}
-	}
+	// Clear existing engagement notifications to be idempotent.
+	await cancelScheduledByPrefix(N, ENGAGEMENT_NOTIF_PREFIX);
 
 	// frequencyDays === 0 means the user opted out — nothing to schedule.
 	if (frequencyDays === 0) return;
@@ -224,7 +306,7 @@ export async function scheduleEngagementNotifications(): Promise<void> {
 			identifier,
 			content: {
 				title: t("engagement.title"),
-				body: t(`engagement.body${bodyIndex}` as any),
+				body: t(`engagement.body${bodyIndex}`),
 				data: { type: "engagement" },
 			},
 			trigger: {
@@ -301,17 +383,12 @@ export function buildDailyAgendaSchedule(
  * Reads the cached events to know which days actually have something on, so it
  * never schedules a reminder when the following day would be empty.
  */
-export async function scheduleDailyAgendaNotifications(): Promise<void> {
+async function scheduleDailyAgendaNotificationsImpl(): Promise<void> {
 	const N = await getNotifications();
 	if (!N) return;
 
 	// Clear existing daily-agenda notifications to stay idempotent.
-	const all = await N.getAllScheduledNotificationsAsync().catch(() => []);
-	for (const n of all) {
-		if (n.identifier.startsWith(DAILY_AGENDA_NOTIF_PREFIX)) {
-			await N.cancelScheduledNotificationAsync(n.identifier).catch(() => {});
-		}
-	}
+	await cancelScheduledByPrefix(N, DAILY_AGENDA_NOTIF_PREFIX);
 
 	const cached = await readEventCache().catch(() => null);
 	if (!cached) return;
@@ -353,17 +430,12 @@ const FESTIVAL_REMINDER_DAYS_BEFORE = 7;
  * notifications are permitted). Idempotent: clears any previously scheduled
  * festival reminders first and skips trigger dates in the past.
  */
-export async function scheduleFestivalReminders(): Promise<void> {
+async function scheduleFestivalRemindersImpl(): Promise<void> {
 	const N = await getNotifications();
 	if (!N) return;
 
 	// Clear existing festival reminders to stay idempotent.
-	const all = await N.getAllScheduledNotificationsAsync().catch(() => []);
-	for (const n of all) {
-		if (n.identifier.startsWith(FESTIVAL_REMINDER_PREFIX)) {
-			await N.cancelScheduledNotificationAsync(n.identifier).catch(() => {});
-		}
-	}
+	await cancelScheduledByPrefix(N, FESTIVAL_REMINDER_PREFIX);
 
 	const now = new Date();
 
@@ -403,31 +475,16 @@ export async function scheduleFestivalReminders(): Promise<void> {
 }
 
 /**
- * Loads expo-notifications via static `require()` so Metro bundles it.
- * Dynamic `await import()` fails in Expo Go ("unknown module") because
- * Metro can't resolve it at runtime. Wrapped in try/catch since the
- * native module may still throw on Android Expo Go (SDK 53 limitation).
- */
-function requireNotifications(): typeof import("expo-notifications") | null {
-	try {
-		// eslint-disable-next-line @typescript-eslint/no-require-imports
-		return require("expo-notifications");
-	} catch {
-		return null;
-	}
-}
-
-/**
  * Fires a single local notification after `delaySeconds` for manual QA.
  *
- * Bypasses the `isExpoGo` guard on purpose: local scheduled notifications
- * work in iOS Expo Go. Returns a human-readable status string so the caller
- * can surface success/failure to the user.
+ * Loads the module directly, bypassing the `isExpoGo` guard on purpose:
+ * local scheduled notifications work in iOS Expo Go. Returns a human-readable
+ * status string so the caller can surface success/failure to the user.
  */
 export async function fireTestNotification(
 	delaySeconds: number,
 ): Promise<string> {
-	const N = requireNotifications();
+	const N = loadNotificationsModule();
 	if (!N) {
 		return "❌ expo-notifications no disponible en este entorno.";
 	}
@@ -442,6 +499,7 @@ export async function fireTestNotification(
 		if (finalStatus !== "granted") {
 			return "❌ Permisos de notificación denegados.";
 		}
+		await ensureAndroidChannel(N);
 	} catch (e) {
 		return `❌ Error de permisos:\n${String(e)}`;
 	}
