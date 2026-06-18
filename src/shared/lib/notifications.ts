@@ -21,11 +21,13 @@ const MINUTES_BEFORE = 30;
 
 /**
  * True when running inside Expo Go.
- * `appOwnership === 'expo'` is the canonical detection used by Expo itself.
+ * `executionEnvironment === 'storeClient'` is the non-deprecated detection
+ * (replaces the deprecated `Constants.appOwnership === 'expo'`).
  */
-export const isExpoGo =
-	Constants.appOwnership === "expo" ||
-	Constants.executionEnvironment === "storeClient";
+export const isExpoGo = Constants.executionEnvironment === "storeClient";
+
+/** Alias for the lazily-loaded expo-notifications module type. */
+type NotificationsModule = typeof import("expo-notifications");
 
 /**
  * Loads expo-notifications lazily via require() so its module-level side effect
@@ -43,9 +45,7 @@ function loadNotificationsModule(): typeof import("expo-notifications") | null {
 	if (_notifications) return _notifications;
 	try {
 		// eslint-disable-next-line @typescript-eslint/no-require-imports
-		const mod = require("expo-notifications") as typeof import(
-			"expo-notifications",
-		);
+		const mod = require("expo-notifications") as NotificationsModule;
 		if (!_handlerInstalled) {
 			mod.setNotificationHandler({
 				handleNotification: async () => ({
