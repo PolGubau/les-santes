@@ -219,6 +219,10 @@ export const es: Translations = {
 		startDayTitle: "🎆 ¡Hoy empiezan Les Santes!",
 		startDayBody: "¡Ya estamos! Abre la app para ver qué pasa hoy en Mataró.",
 	},
+	dailyAgenda: {
+		title: "📅 Mañana en Les Santes",
+		body: "Mira todo lo que pasará mañana en el festival. Pulsa para ver la agenda.",
+	},
 	quickActions: {
 		upNext: "Próximo",
 		eventsInProgress: "Actos en curso",

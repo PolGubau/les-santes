@@ -1,6 +1,8 @@
+import { useAgendaFocusStore } from "@/features/agenda";
 import {
 	isExpoGo,
 	requestNotificationPermission,
+	scheduleDailyAgendaNotifications,
 	scheduleEngagementNotifications,
 	scheduleFestivalReminders,
 } from "@/shared/lib/notifications";
@@ -32,6 +34,8 @@ export function usePushNotifications() {
 					scheduleFestivalReminders().catch(() => {});
 					// Periodic engagement nudges only if opted in (off by default).
 					scheduleEngagementNotifications().catch(() => {});
+					// Evening preview (20:00) of the next festival day's programme.
+					scheduleDailyAgendaNotifications().catch(() => {});
 				}
 			})
 			.catch(() => {});
@@ -39,14 +43,23 @@ export function usePushNotifications() {
 		// Dynamic import so the module-level side effect never runs in Expo Go
 		import("expo-notifications").then((Notifications) => {
 			if (cancelled) return;
-			// Navigate directly to the event detail when user taps a notification
+			// Route the tap depending on the notification payload type.
 			responseListener.current =
 				Notifications.addNotificationResponseReceivedListener((response) => {
-					const eventId = response.notification.request.content.data?.eventId as
-						| string
+					const data = response.notification.request.content.data as
+						| { eventId?: string; type?: string; day?: string }
 						| undefined;
-					if (eventId) {
-						router.push(`/event/${eventId}`);
+
+					// Daily agenda preview → open the agenda on the announced day.
+					if (data?.type === "daily-agenda" && data.day) {
+						useAgendaFocusStore.getState().requestDay(data.day);
+						router.push("/(tabs)/agenda");
+						return;
+					}
+
+					// Favourite event reminder → open the event detail.
+					if (data?.eventId) {
+						router.push(`/event/${data.eventId}`);
 					}
 				});
 		});

@@ -178,6 +178,10 @@ export interface Translations {
 		startDayTitle: string;
 		startDayBody: string;
 	};
+	dailyAgenda: {
+		title: string;
+		body: string;
+	};
 	quickActions: {
 		upNext: string;
 		eventsInProgress: string;
@@ -559,6 +563,10 @@ export const ca: Translations = {
 			"Les Santes comencen d'aquí a 7 dies. Ja tens triats els teus actes preferits?",
 		startDayTitle: "🎆 Avui comencen Les Santes!",
 		startDayBody: "Ja hi som! Obre l'app per veure què passa avui a Mataró.",
+	},
+	dailyAgenda: {
+		title: "📅 Demà a Les Santes",
+		body: "Mira tot el que passarà demà al festival. Prem per veure l'agenda.",
 	},
 	quickActions: {
 		upNext: "Proper",

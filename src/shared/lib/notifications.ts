@@ -7,12 +7,14 @@
  * since SDK 53. A static import triggers that error before any guard runs.
  */
 import type { Event } from "@/entities/event";
+import { readEventCache } from "@/entities/event/cache";
 import { FESTIVAL_START } from "@/shared/constants/festival";
 import { useEngagementStore } from "@/shared/hooks/useEngagementStore";
 import { t } from "@/shared/i18n";
 import Constants from "expo-constants";
 import * as Device from "expo-device";
 import { Platform } from "react-native";
+import { dateFromKey, toFestivalDayKey } from "./time";
 
 const MINUTES_BEFORE = 30;
 
@@ -224,6 +226,109 @@ export async function scheduleEngagementNotifications(): Promise<void> {
 				title: t("engagement.title"),
 				body: t(`engagement.body${bodyIndex}` as any),
 				data: { type: "engagement" },
+			},
+			trigger: {
+				type: N.SchedulableTriggerInputTypes.DATE,
+				date: triggerDate,
+			},
+		});
+	}
+}
+
+export const DAILY_AGENDA_NOTIF_PREFIX = "daily-agenda-";
+/** Hour of the evening before (local) at which the daily agenda preview fires. */
+const DAILY_AGENDA_HOUR = 20;
+
+export interface DailyAgendaSlot {
+	/** Festival day key ("YYYY-MM-DD") the notification points to. */
+	day: string;
+	/** Identifier passed to expo-notifications. */
+	identifier: string;
+	/** Scheduled fire time — DAILY_AGENDA_HOUR the evening before `day`. */
+	triggerDate: Date;
+}
+
+/**
+ * Pure function — no side-effects, no async, no module dependencies.
+ *
+ * For every festival day that has events, plans one notification the previous
+ * evening at `hour` announcing the next day's programme. Slots whose trigger is
+ * already in the past are skipped. Because slots are only emitted for days that
+ * actually contain events, it never fires when "tomorrow" is empty (e.g. once
+ * the festival is over).
+ *
+ * @param now            Reference "current" time (injectable for tests).
+ * @param daysWithEvents Festival day keys ("YYYY-MM-DD") that contain events.
+ * @param hour           Evening hour to fire at (default 20).
+ */
+export function buildDailyAgendaSchedule(
+	now: Date,
+	daysWithEvents: Iterable<string>,
+	hour = DAILY_AGENDA_HOUR,
+): DailyAgendaSlot[] {
+	const result: DailyAgendaSlot[] = [];
+	const seen = new Set<string>();
+
+	for (const day of daysWithEvents) {
+		if (seen.has(day)) continue;
+		seen.add(day);
+
+		// Fire at `hour` the calendar day before the festival day.
+		const triggerDate = dateFromKey(day);
+		triggerDate.setDate(triggerDate.getDate() - 1);
+		triggerDate.setHours(hour, 0, 0, 0);
+
+		if (triggerDate <= now) continue;
+
+		result.push({
+			day,
+			identifier: `${DAILY_AGENDA_NOTIF_PREFIX}${day}`,
+			triggerDate,
+		});
+	}
+
+	return result.sort(
+		(a, b) => a.triggerDate.getTime() - b.triggerDate.getTime(),
+	);
+}
+
+/**
+ * Schedule one local notification per festival evening (DAILY_AGENDA_HOUR)
+ * previewing the next day's programme. Tapping it opens the agenda on that day
+ * (see the response listener in usePushNotifications).
+ *
+ * Idempotent: clears previously scheduled daily-agenda notifications first.
+ * Reads the cached events to know which days actually have something on, so it
+ * never schedules a reminder when the following day would be empty.
+ */
+export async function scheduleDailyAgendaNotifications(): Promise<void> {
+	const N = await getNotifications();
+	if (!N) return;
+
+	// Clear existing daily-agenda notifications to stay idempotent.
+	const all = await N.getAllScheduledNotificationsAsync().catch(() => []);
+	for (const n of all) {
+		if (n.identifier.startsWith(DAILY_AGENDA_NOTIF_PREFIX)) {
+			await N.cancelScheduledNotificationAsync(n.identifier).catch(() => {});
+		}
+	}
+
+	const cached = await readEventCache().catch(() => null);
+	if (!cached) return;
+
+	const daysWithEvents = new Set(
+		cached.data.map((e) => toFestivalDayKey(new Date(e.start))),
+	);
+
+	const schedule = buildDailyAgendaSchedule(new Date(), daysWithEvents);
+
+	for (const { day, identifier, triggerDate } of schedule) {
+		await N.scheduleNotificationAsync({
+			identifier,
+			content: {
+				title: t("dailyAgenda.title"),
+				body: t("dailyAgenda.body"),
+				data: { type: "daily-agenda", day },
 			},
 			trigger: {
 				type: N.SchedulableTriggerInputTypes.DATE,
